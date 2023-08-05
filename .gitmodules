@@ -1,0 +1,3 @@
+[submodule "vendor/kronos"]
+	path = vendor/kronos
+	url = https://github.com/SonalPinto/kronos.git

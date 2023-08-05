@@ -1,3 +1,10 @@
+examples/**/*.o
+examples/**/*.elf
+target/
+sim/
+*.bin
+*.hex
+
 # Quartus directories and files
 db
 greybox_tmp
