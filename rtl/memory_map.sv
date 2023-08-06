@@ -16,7 +16,7 @@ module memory_map (
     output reg [31:0] inst_q
 );
 
-  reg [31:0] mem[4096];
+  reg [31:0] mem[128*1024];
 
   initial $readmemh("../examples/rust/rust.hex", mem);
 
@@ -27,7 +27,7 @@ module memory_map (
     if (inst_req) begin
       inst_ack <= 1;
 
-      inst_q   <= mem[inst_addr[13:2]];
+      inst_q   <= mem[inst_addr[18:2]];
     end
   end
 
@@ -41,27 +41,27 @@ module memory_map (
       casex ({
         data_addr[31:2], 2'b00
       })
-        32'h0000_0XXX: begin
+        32'h000X_XXXX, 32'h001X_XXXX: begin
           // Actual RAM
           if (data_wren) begin
             if (data_mask[0]) begin
-              mem[data_addr[13:2]][7:0] <= data_data[7:0];
+              mem[data_addr[18:2]][7:0] <= data_data[7:0];
             end
 
             if (data_mask[1]) begin
-              mem[data_addr[13:2]][15:8] <= data_data[15:8];
+              mem[data_addr[18:2]][15:8] <= data_data[15:8];
             end
 
             if (data_mask[2]) begin
-              mem[data_addr[13:2]][23:16] <= data_data[23:16];
+              mem[data_addr[18:2]][23:16] <= data_data[23:16];
             end
 
             if (data_mask[3]) begin
-              mem[data_addr[13:2]][31:24] <= data_data[31:24];
+              mem[data_addr[18:2]][31:24] <= data_data[31:24];
             end
           end else begin
             reg [31:0] read_data;
-            read_data = mem[data_addr[13:2]];
+            read_data = mem[data_addr[18:2]];
 
             if (data_mask[0]) begin
               data_q[7:0] <= read_data[7:0];

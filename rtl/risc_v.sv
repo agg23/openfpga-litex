@@ -15,10 +15,6 @@ module risc_v (
   wire data_req;
   wire data_ack;
 
-  wire software_interrupt = 1;
-  wire timer_interrupt = 1;
-  wire external_interrupt = 1;
-
   kronos_core #(
       .BOOT_ADDR            (32'h0),
       .FAST_BRANCH          (1),
@@ -44,9 +40,10 @@ module risc_v (
       .data_req    (data_req),
       .data_ack    (data_ack),
 
-      .software_interrupt(software_interrupt),
-      .timer_interrupt   (timer_interrupt),
-      .external_interrupt(external_interrupt)
+      // Interrupts must be disabled, as programs are forced to be single threaded
+      .software_interrupt(1'b0),
+      .timer_interrupt   (1'b0),
+      .external_interrupt(1'b0)
   );
 
   memory_map memory_map (
