@@ -1,2 +1,3 @@
+set_global_assignment -name SYSTEMVERILOG_FILE   [file join $::quartus(qip_path) "components/uart_tx.sv"]
 set_global_assignment -name SYSTEMVERILOG_FILE   [file join $::quartus(qip_path) "memory_map.sv"]
 set_global_assignment -name SYSTEMVERILOG_FILE   [file join $::quartus(qip_path) "risc_v.sv"]

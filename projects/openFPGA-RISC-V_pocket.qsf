@@ -10,7 +10,7 @@
 # Project-Wide Assignments
 # ==============================================================================
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 18.1.1
-set_global_assignment -name LAST_QUARTUS_VERSION "18.1.1 Lite Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "21.1.1 Lite Edition"
 set_global_assignment -name TOP_LEVEL_ENTITY apf_top
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
@@ -64,3 +64,5 @@ set_global_assignment -name QIP_FILE ../rtl/openFPGA-RISC-V.qip
 # ==============================================================================
 
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+
+set_global_assignment -name QIP_FILE ../target/pocket/uart_fifo.qip

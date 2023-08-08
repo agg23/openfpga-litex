@@ -1,6 +1,6 @@
 examples/**/*.o
 examples/**/*.elf
-target/
+examples/**/target/
 sim/
 *.bin
 *.hex

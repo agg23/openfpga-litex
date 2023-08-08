@@ -79,15 +79,16 @@ extern "C" fn main() -> () {
 
     let starting_count = read_mcycle();
 
-    unsafe { *ADDRESS = starting_count };
+    // unsafe { *ADDRESS = starting_count };
 
-    let _ = write!(data, "{starting_count}");
+    let _ = write!(data, "{starting_count}\n");
     print(&data, &mut serial);
 
-    print("Hello world", &mut serial);
+    print("Hello world\n", &mut serial);
 
     let end_count = read_mcycle();
 
-    let _ = write!(data, "{end_count}");
+    let mut data = String::new();
+    let _ = write!(data, "{end_count}\n");
     print(&data, &mut serial);
 }

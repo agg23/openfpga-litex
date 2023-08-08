@@ -13,7 +13,11 @@ module memory_map (
     input wire [31:0] inst_addr,
     input wire inst_req,
     output reg inst_ack,
-    output reg [31:0] inst_q
+    output reg [31:0] inst_q,
+
+    // UART
+    output reg [7:0] uart_tx_data = 0,
+    output reg uart_tx_req = 0
 );
 
   reg [31:0] mem[128*1024];
@@ -34,6 +38,8 @@ module memory_map (
   // Data
   always @(posedge clk) begin
     data_ack <= 0;
+
+    uart_tx_req <= 0;
 
     if (data_req) begin
       data_ack <= 1;
@@ -80,10 +86,17 @@ module memory_map (
             end
           end
         end
+        // 32'h8000_0000: begin
+        //   if (data_wren) begin
+        //     // UART write
+        //     $display("%c %d", data_data[7:0], data_data[7:0]);
+        //   end
+        // end
         32'h8000_0000: begin
           if (data_wren) begin
-            // UART write
-            $display("%c %d", data_data[7:0], data_data[7:0]);
+            // $display("Writing %c", data_data[7:0]);
+            uart_tx_data <= data_data[7:0];
+            uart_tx_req  <= 1;
           end
         end
         default: begin

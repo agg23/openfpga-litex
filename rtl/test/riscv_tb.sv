@@ -1,12 +1,27 @@
+`timescale 1ns / 1ns
+
 module riscv_tb;
 
   reg clk = 0;
 
   reg reset = 1;
 
+  wire uart_tx;
+  wire [7:0] uart_data;
+  wire uart_done;
+
   risc_v risc_uut (
       .clk  (clk),
-      .reset(reset)
+      .reset(reset),
+
+      .uart_tx(uart_tx)
+  );
+
+  uart_output uart_output (
+      .clk  (clk),
+      .reset(reset),
+
+      .uart_tx(uart_tx)
   );
 
   // Register file

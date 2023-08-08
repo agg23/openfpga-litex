@@ -1,7 +1,10 @@
 module risc_v (
     input wire clk,
-    input wire reset
+    input wire reset,
+
+    output wire uart_tx
 );
+
   wire [31:0] instr_addr;
   wire [31:0] instr_data;
   wire instr_req;
@@ -46,6 +49,10 @@ module risc_v (
       .external_interrupt(1'b0)
   );
 
+  wire [7:0] uart_tx_data;
+  wire uart_tx_start;
+  wire uart_tx_busy;
+
   memory_map memory_map (
       .clk(clk),
 
@@ -61,6 +68,23 @@ module risc_v (
       .inst_addr(instr_addr),
       .inst_req(instr_req),
       .inst_ack(instr_ack),
-      .inst_q(instr_data)
+      .inst_q(instr_data),
+
+      // UART
+      .uart_tx_data(uart_tx_data),
+      .uart_tx_req (uart_tx_req)
+  );
+
+  uart #(
+      .CLK_SPEED(100_000_000),
+      .BAUDRATE (115200)
+  ) uart (
+      .clk  (clk),
+      .reset(reset),
+
+      .tx_data(uart_tx_data),
+      .tx_req(uart_tx_req),
+      .tx_busy(uart_tx_busy),
+      .txd(uart_tx)
   );
 endmodule
