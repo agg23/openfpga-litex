@@ -36,9 +36,9 @@ init:
     addi x31, zero, 0
 
     /* set stack pointer */
-    /* TODO: This is hardcoded to 128K */
-    lui sp, %hi(128*1024)
-    addi sp, sp, %lo(128*1024)
+    /* TODO: This is hardcoded to 64K */
+    lui sp, %hi(64*1024)
+    addi sp, sp, %lo(64*1024)
 
     /* call main */
     jal ra, main

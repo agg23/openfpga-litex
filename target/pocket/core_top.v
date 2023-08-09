@@ -232,23 +232,23 @@ module core_top (
   assign port_ir_rx_disable      = 1;
 
   // bridge endianness
-  assign bridge_endian_little    = 0;
+  assign bridge_endian_little    = 1;
 
   // cart is unused, so set all level translators accordingly
   // directions are 0:IN, 1:OUT
-  assign cart_tran_bank3         = 8'hzz;
-  assign cart_tran_bank3_dir     = 1'b0;
+  // assign cart_tran_bank3         = 8'hzz;
+  // assign cart_tran_bank3_dir     = 1'b0;
   assign cart_tran_bank2         = 8'hzz;
   assign cart_tran_bank2_dir     = 1'b0;
   assign cart_tran_bank1         = 8'hzz;
   assign cart_tran_bank1_dir     = 1'b0;
-  assign cart_tran_bank0         = 4'hf;
-  assign cart_tran_bank0_dir     = 1'b1;
+  // assign cart_tran_bank0         = 4'hf;
+  // assign cart_tran_bank0_dir     = 1'b1;
   assign cart_tran_pin30         = 1'b0;  // reset or cs2, we let the hw control it by itself
   assign cart_tran_pin30_dir     = 1'bz;
   assign cart_pin30_pwroff_reset = 1'b0;  // hardware can control this
-  assign cart_tran_pin31         = 1'bz;  // input
-  assign cart_tran_pin31_dir     = 1'b0;  // input
+  // assign cart_tran_pin31         = 1'bz;  // input
+  // assign cart_tran_pin31_dir     = 1'b0;  // input
 
   // link port is input only
   assign port_tran_so            = 1'bz;
@@ -493,9 +493,77 @@ module core_top (
 
 
   ////////////////////////////////////////////////////////////////////////////////////////
+  // Data loading
 
+  reg ioctl_download;
+  wire ioctl_wr;
+  // Byte addresses
+  wire [19:0] ioctl_addr;
+  wire [31:0] ioctl_dout;
 
+  always @(posedge clk_74a) begin
+    if (dataslot_requestwrite) ioctl_download <= 1;
+    else if (dataslot_allcomplete) ioctl_download <= 0;
+  end
 
+  data_loader #(
+      .ADDRESS_MASK_UPPER_4(4'h1),
+      .ADDRESS_SIZE(20)
+  ) data_loader (
+      .clk_74a(clk_74a),
+      .clk_memory(clk_sys_150),
+
+      .bridge_wr(bridge_wr),
+      .bridge_endian_little(bridge_endian_little),
+      .bridge_addr(bridge_addr),
+      .bridge_wr_data(bridge_wr_data),
+
+      .write_en  (ioctl_wr),
+      .write_addr(ioctl_addr),
+      .write_data(ioctl_dout)
+  );
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // Debug UART
+
+  wire cart_button;
+  wire uart_tx;
+
+  debug_key debug_key (
+      .cart_tran_bank0_dir(cart_tran_bank0_dir),
+      .cart_tran_bank0(cart_tran_bank0),
+
+      .cart_tran_bank3_dir(cart_tran_bank3_dir),
+      .cart_tran_bank3(cart_tran_bank3),
+
+      .cart_tran_pin31_dir(cart_tran_pin31_dir),
+      .cart_tran_pin31(cart_tran_pin31),
+
+      // IO
+      .led(cart_button),
+      .button(cart_button),
+      .uart_tx(uart_tx)
+  );
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // Core
+
+  // TODO: Rename
+  risc_v #(
+      .CLK_SPEED(150_000_000),
+      .BAUDRATE (115200)
+  ) risc_uut (
+      .clk  (clk_sys_150),
+      .reset(~reset_n),
+
+      // Program upload
+      .ioctl_download(ioctl_download),
+      .ioctl_addr(ioctl_addr[19:2]),
+      .ioctl_dout(ioctl_dout),
+      .ioctl_wr(ioctl_wr),
+
+      .uart_tx(uart_tx)
+  );
 
   // video generation
   // ~12,288,000 hz pixel clock
@@ -509,8 +577,8 @@ module core_top (
   // PLL output has a minimum output frequency anyway.
 
 
-  assign video_rgb_clock = clk_core_12288;
-  assign video_rgb_clock_90 = clk_core_12288_90deg;
+  assign video_rgb_clock = clk_vid_12288;
+  assign video_rgb_clock_90 = clk_vid_12288_90deg;
   assign video_rgb = vidout_rgb;
   assign video_de = vidout_de;
   assign video_skip = vidout_skip;
@@ -541,7 +609,7 @@ module core_top (
   reg [9:0] square_x = 'd135;
   reg [9:0] square_y = 'd95;
 
-  always @(posedge clk_core_12288 or negedge reset_n) begin
+  always @(posedge clk_vid_12288 or negedge reset_n) begin
 
     if (~reset_n) begin
 
@@ -653,9 +721,9 @@ module core_top (
 
   ///////////////////////////////////////////////
 
-
-  wire clk_core_12288;
-  wire clk_core_12288_90deg;
+  wire clk_sys_150;
+  wire clk_vid_12288;
+  wire clk_vid_12288_90deg;
 
   wire pll_core_locked;
   wire pll_core_locked_s;
@@ -669,8 +737,9 @@ module core_top (
       .refclk(clk_74a),
       .rst   (0),
 
-      .outclk_0(clk_core_12288),
-      .outclk_1(clk_core_12288_90deg),
+      .outclk_0(clk_sys_150),
+      .outclk_1(clk_vid_12288),
+      .outclk_2(clk_vid_12288_90deg),
 
       .locked(pll_core_locked)
   );

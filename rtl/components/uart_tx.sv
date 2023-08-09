@@ -61,7 +61,7 @@ module uart_tx #(
     end
   end
 
-  logic tx_do_sample;
+  logic tx_do_sample  /* synthesis keep */;
   assign tx_do_sample = (tx_sample_cntr[15:0] == '0);
 
 

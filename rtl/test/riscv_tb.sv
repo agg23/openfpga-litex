@@ -14,6 +14,12 @@ module riscv_tb;
       .clk  (clk),
       .reset(reset),
 
+      // Program upload
+      .ioctl_download(1'b0),
+      .ioctl_addr(17'h0),
+      .ioctl_dout(32'h0),
+      .ioctl_wr(1'b0),
+
       .uart_tx(uart_tx)
   );
 
@@ -70,11 +76,12 @@ module riscv_tb;
   initial begin
     int i;
 
-    for (i = 0; i < 1024; i += 1) begin
-      risc_uut.memory_map.mem[i] = 0;
-    end
+    // for (i = 0; i < 1024; i += 1) begin
+    //   risc_uut.memory_map.mem[i] = 0;
+    // end
 
-    $readmemh("../examples/rust/rust.hex", risc_uut.memory_map.mem);
+    $readmemh("../examples/rust/rust.hex",
+              risc_uut.memory_map.ram.altsyncram_component.m_default.altsyncram_inst.mem_data);
 
     cycle();
     cycle();

@@ -1,6 +1,15 @@
-module risc_v (
+module risc_v #(
+    parameter CLK_SPEED = 100_000_000,
+    parameter BAUDRATE  = 115200
+) (
     input wire clk,
     input wire reset,
+
+    // Program upload
+    input wire ioctl_download,
+    input wire [16:0] ioctl_addr,
+    input wire [31:0] ioctl_dout,
+    input wire ioctl_wr,
 
     output wire uart_tx
 );
@@ -50,7 +59,7 @@ module risc_v (
   );
 
   wire [7:0] uart_tx_data;
-  wire uart_tx_start;
+  wire uart_tx_req;
   wire uart_tx_busy;
 
   memory_map memory_map (
@@ -70,14 +79,20 @@ module risc_v (
       .inst_ack(instr_ack),
       .inst_q(instr_data),
 
+      // Program upload
+      .ioctl_download(ioctl_download),
+      .ioctl_addr(ioctl_addr),
+      .ioctl_dout(ioctl_dout),
+      .ioctl_wr(ioctl_wr),
+
       // UART
       .uart_tx_data(uart_tx_data),
       .uart_tx_req (uart_tx_req)
   );
 
   uart #(
-      .CLK_SPEED(100_000_000),
-      .BAUDRATE (115200)
+      .CLK_SPEED(CLK_SPEED),
+      .BAUDRATE (BAUDRATE)
   ) uart (
       .clk  (clk),
       .reset(reset),

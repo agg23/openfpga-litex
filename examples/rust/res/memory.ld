@@ -7,7 +7,7 @@ Source: https://docs.rust-embedded.org/embedonomicon/memory-layout.html
 /* Define memory layout (RAM only architecture) */
 MEMORY {
     /*RAM : ORIGIN = 0x00000000, LENGTH =  256K*/   /* 1K = 1 KiBi = 1024 bytes */
-    RAM : ORIGIN = 0x00000000, LENGTH =  128K
+    RAM : ORIGIN = 0x00000000, LENGTH =  64K
 }
 
 /* Define sections */

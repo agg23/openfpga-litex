@@ -4,6 +4,7 @@ examples/**/target/
 sim/
 *.bin
 *.hex
+*.rbf_r
 
 # Quartus directories and files
 db
