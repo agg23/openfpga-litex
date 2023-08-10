@@ -23,12 +23,19 @@ global_asm!(include_str!("init.s"));
 /// A panic handler is required in Rust, this is probably the most basic one possible
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
+    let mut output = String::new();
+
     let mut serial = Serial;
 
-    if let Some(s) = info.payload().downcast_ref::<&str>() {
-        print(s, &mut serial);
-    } else {
+    // if let Some(s) = info.payload().downcast_ref::<&str>() {
+    //     print(s, &mut serial);
+    // } else {
+    //     print("Unknown panic occurred", &mut serial);
+    // }
+    if let Err(_) = writeln!(&mut output, "{info}") {
         print("Unknown panic occurred", &mut serial);
+    } else {
+        print(&output, &mut serial);
     }
 
     loop {}
@@ -77,18 +84,18 @@ extern "C" fn main() -> () {
     // // unsafe { *(0x8000_0000 as *mut u32) = 25 }
     let mut data = String::new();
 
-    let starting_count = read_mcycle();
+    // let starting_count = read_mcycle();
 
-    // unsafe { *ADDRESS = starting_count };
+    // // unsafe { *ADDRESS = starting_count };
 
-    let _ = write!(data, "{starting_count}\n");
-    print(&data, &mut serial);
+    // let _ = write!(data, "{starting_count}\n");
+    // print(&data, &mut serial);
 
-    print("Hello world\n", &mut serial);
+    print("Hello foo\n", &mut serial);
 
-    let end_count = read_mcycle();
+    // let end_count = read_mcycle();
 
-    let mut data = String::new();
-    let _ = write!(data, "{end_count}\n");
-    print(&data, &mut serial);
+    // let mut data = String::new();
+    // let _ = write!(data, "{end_count}\n");
+    // print(&data, &mut serial);
 }

@@ -526,10 +526,13 @@ module core_top (
   ////////////////////////////////////////////////////////////////////////////////////////
   // Debug UART
 
-  wire cart_button;
+  wire reload_rom_active;
+  wire uart_rx;
   wire uart_tx;
 
   debug_key debug_key (
+      .clk(clk_sys_150),
+
       .cart_tran_bank0_dir(cart_tran_bank0_dir),
       .cart_tran_bank0(cart_tran_bank0),
 
@@ -540,8 +543,10 @@ module core_top (
       .cart_tran_pin31(cart_tran_pin31),
 
       // IO
-      .led(cart_button),
-      .button(cart_button),
+      .led(reload_rom_active),
+      // .button(cart_button),
+
+      .uart_rx(uart_rx),
       .uart_tx(uart_tx)
   );
 
@@ -551,7 +556,8 @@ module core_top (
   // TODO: Rename
   risc_v #(
       .CLK_SPEED(150_000_000),
-      .BAUDRATE (115200)
+      // .BAUDRATE (115200)
+      .BAUDRATE (2_000_000)
   ) risc_uut (
       .clk  (clk_sys_150),
       .reset(~reset_n),
@@ -562,6 +568,9 @@ module core_top (
       .ioctl_dout(ioctl_dout),
       .ioctl_wr(ioctl_wr),
 
+      .reload_rom_active(reload_rom_active),
+
+      .uart_rx(uart_rx),
       .uart_tx(uart_tx)
   );
 

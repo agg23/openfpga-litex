@@ -11,6 +11,9 @@ module risc_v #(
     input wire [31:0] ioctl_dout,
     input wire ioctl_wr,
 
+    output wire reload_rom_active,
+
+    input  wire uart_rx,
     output wire uart_tx
 );
 
@@ -37,7 +40,7 @@ module risc_v #(
       .CATCH_MISALIGNED_LDST(1)
   ) riscv (
       .clk (clk),
-      .rstz(~reset),
+      .rstz(~reset && ~reload_rom_active),
 
       .instr_addr(instr_addr),
       .instr_data(instr_data),
@@ -62,6 +65,10 @@ module risc_v #(
   wire uart_tx_req;
   wire uart_tx_busy;
 
+  wire reload_rom_wr;
+  wire [31:0] reload_rom_addr;
+  wire [31:0] reload_rom_data;
+
   memory_map memory_map (
       .clk(clk),
 
@@ -80,10 +87,10 @@ module risc_v #(
       .inst_q(instr_data),
 
       // Program upload
-      .ioctl_download(ioctl_download),
-      .ioctl_addr(ioctl_addr),
-      .ioctl_dout(ioctl_dout),
-      .ioctl_wr(ioctl_wr),
+      .ioctl_download(ioctl_download || reload_rom_active),
+      .ioctl_addr(reload_rom_active ? reload_rom_addr : ioctl_addr),
+      .ioctl_dout(reload_rom_active ? reload_rom_data : ioctl_dout),
+      .ioctl_wr(ioctl_wr || reload_rom_wr),
 
       // UART
       .uart_tx_data(uart_tx_data),
@@ -100,6 +107,14 @@ module risc_v #(
       .tx_data(uart_tx_data),
       .tx_req(uart_tx_req),
       .tx_busy(uart_tx_busy),
-      .txd(uart_tx)
+      .txd(uart_tx),
+
+      .rxd(uart_rx),
+
+      // Reloading ROM data
+      .reload_rom_active(reload_rom_active),
+      .reload_rom_wr(reload_rom_wr),
+      .reload_rom_addr(reload_rom_addr),
+      .reload_rom_data(reload_rom_data)
   );
 endmodule
