@@ -9,7 +9,7 @@ impl Write<u8> for Serial {
     type Error = ();
 
     fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
-        unsafe { *ADDRESS = word };
+        unsafe { ADDRESS.write_volatile(word) };
 
         Ok(())
     }

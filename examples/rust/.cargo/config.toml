@@ -1,7 +1,7 @@
 [target.riscv32i-unknown-none-elf]
 rustflags = [
     "-C", "link-arg=-Tres/memory.ld",   # Add linker script "{projectdir}/res/memory.ld"
-    "-C", "opt-level=0",                # Don't optimize
+    #"-C", "opt-level=0",                # Don't optimize
 ]
 
 [build]

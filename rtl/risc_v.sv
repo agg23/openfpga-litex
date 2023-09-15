@@ -11,8 +11,19 @@ module risc_v #(
     input wire [31:0] ioctl_dout,
     input wire ioctl_wr,
 
+    // Display IO
+    output wire [19:0] display_addr,
+    output wire [15:0] display_data,
+    output wire display_wr,
+    output wire display_flip_framebuffer,
+    input wire display_busy,
+
     output wire reload_rom_active,
 
+    // Other IO
+    input wire vblank,
+
+    // UART
     input  wire uart_rx,
     output wire uart_tx
 );
@@ -72,6 +83,9 @@ module risc_v #(
   memory_map memory_map (
       .clk(clk),
 
+      .reset(reset),
+
+      // Main RAM
       .data_addr(data_addr),
       .data_data(data_wr_data),
       .data_q(data_rd_data),
@@ -81,6 +95,7 @@ module risc_v #(
       .data_mask(data_mask),
       .data_ack (data_ack),
 
+      // Program RAM
       .inst_addr(instr_addr),
       .inst_req(instr_req),
       .inst_ack(instr_ack),
@@ -91,6 +106,16 @@ module risc_v #(
       .ioctl_addr(reload_rom_active ? reload_rom_addr : ioctl_addr),
       .ioctl_dout(reload_rom_active ? reload_rom_data : ioctl_dout),
       .ioctl_wr(ioctl_wr || reload_rom_wr),
+
+      // Display IO
+      .display_addr(display_addr),
+      .display_data(display_data),
+      .display_wr(display_wr),
+      .display_flip_framebuffer(display_flip_framebuffer),
+      .display_busy(display_busy),
+
+      // Other IO
+      .vblank(vblank),
 
       // UART
       .uart_tx_data(uart_tx_data),

@@ -20,6 +20,10 @@ module riscv_tb;
       .ioctl_dout(32'h0),
       .ioctl_wr(1'b0),
 
+      // Display IO
+      // Automatically say write has completed to PSRAM
+      .display_busy(1'b0),
+
       .uart_tx(uart_tx)
   );
 

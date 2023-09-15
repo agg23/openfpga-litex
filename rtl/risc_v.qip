@@ -1,5 +1,8 @@
 set_global_assignment -name SYSTEMVERILOG_FILE   [file join $::quartus(qip_path) "components/uart_rx.sv"]
 set_global_assignment -name SYSTEMVERILOG_FILE   [file join $::quartus(qip_path) "components/uart_tx.sv"]
 set_global_assignment -name SYSTEMVERILOG_FILE   [file join $::quartus(qip_path) "components/uart.sv"]
+set_global_assignment -name SYSTEMVERILOG_FILE   [file join $::quartus(qip_path) "video/counts.sv"]
+set_global_assignment -name SYSTEMVERILOG_FILE   [file join $::quartus(qip_path) "video/rgb565_to_rgb888.sv"]
+set_global_assignment -name SYSTEMVERILOG_FILE   [file join $::quartus(qip_path) "video/video.sv"]
 set_global_assignment -name SYSTEMVERILOG_FILE   [file join $::quartus(qip_path) "memory_map.sv"]
 set_global_assignment -name SYSTEMVERILOG_FILE   [file join $::quartus(qip_path) "risc_v.sv"]

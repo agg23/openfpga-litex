@@ -42,6 +42,9 @@ module uart #(
   reg start_upload_uart_wr = 0;
   reg reset_uart_wr = 0;
 
+  wire [7:0] rx_data;
+  wire rx_finished_byte;
+
   uart_tx #(
       .CLK_HZ(CLK_SPEED),
       .BAUD  (BAUDRATE)
@@ -49,14 +52,11 @@ module uart #(
       .clk (clk),
       .nrst(~reset),
 
-      .tx_data(start_upload_uart_wr ? "s" : reset_uart_wr ? "r" : fifo_data),
-      .tx_start(tx_start || start_upload_uart_wr || reset_uart_wr),
+      .tx_data(start_upload_uart_wr ? "s" : reset_uart_wr ? "r" : reload_rom_active ? rx_data : fifo_data),
+      .tx_start(tx_start || start_upload_uart_wr || reset_uart_wr || reload_rom_active && rx_finished_byte),
       .tx_busy(tx_busy),
       .txd(txd)
   );
-
-  wire [7:0] rx_data;
-  wire rx_finished_byte;
 
   uart_rx #(
       .CLK_HZ(CLK_SPEED),
@@ -74,11 +74,12 @@ module uart #(
 
   localparam STATE_NONE = 0;
   localparam STATE_ROM_DOWNLOAD = 1;
-  localparam STATE_RESETTING = 2;
+  // localparam STATE_RESETTING = 2;
+  localparam STATE_CLEARING = 3;
 
   reg [1:0] state = STATE_NONE;
 
-  assign reload_rom_active = state == STATE_ROM_DOWNLOAD;
+  assign reload_rom_active = state == STATE_ROM_DOWNLOAD || state == STATE_CLEARING;
 
   reg [31:0] shift_data = 0;
   reg [ 1:0] shift_count = 0;
@@ -98,11 +99,11 @@ module uart #(
       reset_uart_wr <= 0;
 
       if (rom_download_timeout == 1) begin
-        state <= STATE_NONE;
+        state <= STATE_CLEARING;
 
-        if (state == STATE_RESETTING) begin
-          reset_uart_wr <= 1;
-        end
+        // if (state == STATE_RESETTING) begin
+        //   reset_uart_wr <= 1;
+        // end
       end
 
       if (rom_download_timeout != 0) begin
@@ -114,6 +115,20 @@ module uart #(
           shift_count <= 0;
           rom_addr <= 0;
           reload_rom_addr <= 0;
+        end
+        STATE_CLEARING: begin
+          if (rom_addr == 32'h1_0000) begin
+            // Finished
+            state <= STATE_NONE;
+
+            reset_uart_wr <= 1;
+          end else begin
+            reload_rom_wr <= 1;
+            reload_rom_addr <= rom_addr;
+            reload_rom_data <= 32'h0;
+
+            rom_addr <= rom_addr + 32'h1;
+          end
         end
       endcase
 
@@ -129,19 +144,18 @@ module uart #(
 
                 start_upload_uart_wr <= 1;
               end
-              "r": begin
-                // Reset
-                rom_download_timeout <= 20;
+              // "r": begin
+              //   // Reset
+              //   rom_download_timeout <= 20;
 
-                state <= STATE_RESETTING;
-              end
+              //   state <= STATE_RESETTING;
+              // end
               default: begin
                 // Do nothing
               end
             endcase
           end
           STATE_ROM_DOWNLOAD: begin
-
             rom_download_timeout <= RESET_TIMEOUT;
 
             shift_data <= {rx_data, shift_data[31:8]};
