@@ -1,5 +1,7 @@
 module video #(
-    parameter MEM_CLK_SPEED = 40_000_000
+    parameter MEM_CLK_SPEED = 40_000_000,
+    parameter WIDTH = 10'd267,
+    parameter HEIGHT = 10'd240
 ) (
     input wire clk_sys,
     input wire clk_mem,
@@ -142,7 +144,10 @@ module video #(
   wire [9:0] video_x;
   wire [9:0] video_y;
 
-  counts counts (
+  counts #(
+      .WIDTH (WIDTH),
+      .HEIGHT(HEIGHT)
+  ) counts (
       .clk(clk_vid),
 
       .x(video_x),
@@ -156,7 +161,7 @@ module video #(
       .de(de)
   );
 
-  assign video_addr = video_y * 10'd360 + {11'b0, video_x};
+  assign video_addr = video_y * WIDTH + {11'b0, video_x};
 
   reg prev_video_tick = 0;
   reg prev_prev_video_tick = 0;

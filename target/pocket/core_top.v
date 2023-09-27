@@ -561,7 +561,7 @@ module core_top (
 
   // TODO: Rename
   risc_v #(
-      .CLK_SPEED(80_000_000),
+      .CLK_SPEED(120_000_000),
       // .BAUDRATE (115200)
       .BAUDRATE (2_000_000)
   ) risc_v (
@@ -601,11 +601,13 @@ module core_top (
   wire [23:0] rgb;
 
   video #(
-      .MEM_CLK_SPEED(40_000_000)
+      .MEM_CLK_SPEED(40_000_000),
+      .WIDTH(10'd267),
+      .HEIGHT(10'd240)
   ) video (
       .clk_sys(clk_sys_150),
       .clk_mem(clk_mem_50),
-      .clk_vid(clk_vid_10),
+      .clk_vid(clk_vid_actual_4),
 
       // Display IO
       .display_addr(display_addr),
@@ -684,6 +686,7 @@ module core_top (
   wire clk_mem_50;
   wire clk_vid_10;
   wire clk_vid_10_90deg;
+  wire clk_vid_actual_4;
 
   wire pll_core_locked;
   wire pll_core_locked_s;
@@ -701,6 +704,7 @@ module core_top (
       .outclk_1(clk_mem_50),
       .outclk_2(clk_vid_10),
       .outclk_3(clk_vid_10_90deg),
+      .outclk_4(clk_vid_actual_4),
 
       .locked(pll_core_locked)
   );

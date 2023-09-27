@@ -1,4 +1,7 @@
-module counts (
+module counts #(
+    parameter WIDTH  = 10'd267,
+    parameter HEIGHT = 10'd240
+) (
     input wire clk,
 
     output reg [9:0] x = 0,
@@ -11,14 +14,11 @@ module counts (
 
     output wire de
 );
-  localparam WIDTH = 10'd400;
-  localparam HEIGHT = 10'd360;
+  localparam HBLANK_LEN = 10'd5;
+  localparam VBLANK_LEN = 10'd6;
 
-  localparam HBLANK_LEN = 10'd23;
-  localparam VBLANK_LEN = 10'd34;
-
-  localparam HBLANK_OFFSET = 10'd8;
-  localparam VBLANK_OFFSET = 10'd14;
+  localparam HBLANK_OFFSET = 10'd3;
+  localparam VBLANK_OFFSET = 10'd2;
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // Generated
@@ -42,6 +42,7 @@ module counts (
   always @(posedge clk) begin
     reg [9:0] next_x;
     reg [9:0] next_y;
+
 
     hsync <= 0;
     vsync <= 0;

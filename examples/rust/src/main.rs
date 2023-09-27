@@ -131,8 +131,8 @@ extern "C" fn main() -> () {
     loop {
         address = 0;
 
-        for y in 0..360 {
-            for x in 0..400 {
+        for y in 0..240 {
+            for x in 0..267 {
                 // let color = if x >= bar_x && x < bar_x + 10 {
                 //     0xF800
                 // } else {
@@ -185,7 +185,7 @@ extern "C" fn main() -> () {
             //     check_x = 0;
             // }
 
-            address += 400;
+            address += 267;
         }
 
         if forward && bar_x == 400 - 10 {

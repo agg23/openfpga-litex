@@ -17,7 +17,6 @@ pub struct Hardware;
 
 impl Hardware {
     pub fn write_pixel(address: usize, pixel: u16) {
-        println!("{:p}: {address:x}", &Hardware::pixels()[address]);
         *&mut Hardware::pixels()[address] = pixel as u32;
     }
 
@@ -30,6 +29,6 @@ impl Hardware {
     }
 
     fn pixels() -> &'static mut [u32] {
-        unsafe { from_raw_parts_mut(FRAME_ADDRESS, 400 * 360) }
+        unsafe { from_raw_parts_mut(FRAME_ADDRESS, 267 * 240) }
     }
 }
