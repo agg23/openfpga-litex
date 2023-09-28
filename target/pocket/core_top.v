@@ -564,7 +564,7 @@ module core_top (
       .CLK_SPEED(120_000_000),
       // .BAUDRATE (115200)
       .BAUDRATE (2_000_000)
-  ) risc_v (
+  ) soc (
       .clk  (clk_sys_150),
       .reset(~reset_n),
 

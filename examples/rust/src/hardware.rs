@@ -1,8 +1,9 @@
 use core::slice::from_raw_parts_mut;
 
-use crate::println;
+use crate::pixel::Rgb565Pixel32;
 
 const FRAME_ADDRESS: *mut u32 = 0x0010_0000 as *mut u32;
+const FRAME_ADDRESS_SLINT: *mut Rgb565Pixel32 = 0x0010_0000 as *mut Rgb565Pixel32;
 const FRAMEBUFFER_FLIP_ADDRESS: *mut bool = 0x8000_1000 as *mut bool;
 const VBLANK_STATUS_ADDRESS: *mut VBlankStatus = 0x8000_1004 as *mut VBlankStatus;
 
@@ -30,5 +31,9 @@ impl Hardware {
 
     fn pixels() -> &'static mut [u32] {
         unsafe { from_raw_parts_mut(FRAME_ADDRESS, 267 * 240) }
+    }
+
+    pub fn slint_pixels() -> &'static mut [Rgb565Pixel32] {
+        unsafe { from_raw_parts_mut(FRAME_ADDRESS_SLINT, 267 * 240) }
     }
 }

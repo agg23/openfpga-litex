@@ -17,8 +17,13 @@ use serial::Serial;
 
 use riscv as _;
 
+use crate::slint::create_window;
+
 mod hardware;
+// mod lvgl;
+mod pixel;
 mod serial;
+mod slint;
 mod uart_printer;
 
 global_asm!(include_str!("init.s"));
@@ -126,112 +131,114 @@ extern "C" fn main() -> () {
     println!("b");
     println!("c");
 
-    let mut check_x = 0;
+    create_window();
 
-    loop {
-        address = 0;
+    // let mut check_x = 0;
 
-        for y in 0..240 {
-            for x in 0..267 {
-                // let color = if x >= bar_x && x < bar_x + 10 {
-                //     0xF800
-                // } else {
-                //     0x07FF
-                // };
+    // loop {
+    //     address = 0;
 
-                // let color = if x >= 100 && x < 150 && y >= 200 && y < 250 {
-                //     0xF800
-                // } else {
-                //     0x07FF
-                // };
+    //     for y in 0..240 {
+    //         for x in 0..267 {
+    //             // let color = if x >= bar_x && x < bar_x + 10 {
+    //             //     0xF800
+    //             // } else {
+    //             //     0x07FF
+    //             // };
 
-                let color = match x % 4 {
-                    0 => 0x64D9,
-                    1 => 0xCCCC,
-                    2 => 0xCB4C,
-                    3 => 0x6359,
-                    // _ => 0x64D9,
-                    _ => 0x0000,
-                };
+    //             // let color = if x >= 100 && x < 150 && y >= 200 && y < 250 {
+    //             //     0xF800
+    //             // } else {
+    //             //     0x07FF
+    //             // };
 
-                // let color = if x == 0 {
-                //     0xF800
-                // } else if x == 399 {
-                //     0x001F
-                // } else if y == 0 {
-                //     0x9CC0
-                // } else if y == 359 {
-                //     0x04D3
-                // } else {
-                //     match frame_cycle {
-                //         0 => 0x64D9,
-                //         1 => 0xCCCC,
-                //         2 => 0xCB4C,
-                //         3 => 0x6359,
-                //         _ => 0x64D9,
-                //     }
-                // };
+    //             let color = match x % 4 {
+    //                 0 => 0x64D9,
+    //                 1 => 0xCCCC,
+    //                 2 => 0xCB4C,
+    //                 3 => 0x6359,
+    //                 // _ => 0x64D9,
+    //                 _ => 0x0000,
+    //             };
 
-                // if x == check_x {
-                //     println!("X: {x}, color: {color:x}");
-                // }
+    //             // let color = if x == 0 {
+    //             //     0xF800
+    //             // } else if x == 399 {
+    //             //     0x001F
+    //             // } else if y == 0 {
+    //             //     0x9CC0
+    //             // } else if y == 359 {
+    //             //     0x04D3
+    //             // } else {
+    //             //     match frame_cycle {
+    //             //         0 => 0x64D9,
+    //             //         1 => 0xCCCC,
+    //             //         2 => 0xCB4C,
+    //             //         3 => 0x6359,
+    //             //         _ => 0x64D9,
+    //             //     }
+    //             // };
 
-                Hardware::write_pixel(address + x, color);
-            }
+    //             // if x == check_x {
+    //             //     println!("X: {x}, color: {color:x}");
+    //             // }
 
-            // check_x += 1;
+    //             Hardware::write_pixel(address + x, color);
+    //         }
 
-            // if check_x == 400 {
-            //     check_x = 0;
-            // }
+    //         // check_x += 1;
 
-            address += 267;
-        }
+    //         // if check_x == 400 {
+    //         //     check_x = 0;
+    //         // }
 
-        if forward && bar_x == 400 - 10 {
-            forward = false;
-        } else if !forward && bar_x == 0 {
-            forward = true;
-        }
+    //         address += 267;
+    //     }
 
-        if forward {
-            bar_x += 1;
-        } else {
-            bar_x -= 1;
-        }
+    //     if forward && bar_x == 400 - 10 {
+    //         forward = false;
+    //     } else if !forward && bar_x == 0 {
+    //         forward = true;
+    //     }
 
-        // if even == 3 {
-        //     even = 0;
-        // } else {
-        //     even += 1;
-        // }
-        // even = !even;
+    //     if forward {
+    //         bar_x += 1;
+    //     } else {
+    //         bar_x -= 1;
+    //     }
 
-        let mut status = Hardware::vblank_status();
+    //     // if even == 3 {
+    //     //     even = 0;
+    //     // } else {
+    //     //     even += 1;
+    //     // }
+    //     // even = !even;
 
-        while !status.is_vblank {
-            // Wait until vblank
-            status = Hardware::vblank_status();
-            // println!("ti");
-        }
+    //     let mut status = Hardware::vblank_status();
 
-        println!("V{}", status.vblank_count);
-        // loop {
-        //     if Hardware::is_vblank() {
-        //         break;
-        //     }
-        // }
+    //     while !status.is_vblank {
+    //         // Wait until vblank
+    //         status = Hardware::vblank_status();
+    //         // println!("ti");
+    //     }
 
-        Hardware::flip_framebuffers();
-        // print("Flipping framebuffers\n", &mut serial);
-        // println!("Flip");
+    //     println!("V{}", status.vblank_count);
+    //     // loop {
+    //     //     if Hardware::is_vblank() {
+    //     //         break;
+    //     //     }
+    //     // }
 
-        if frame_cycle == 3 {
-            frame_cycle = 0;
-        } else {
-            frame_cycle += 1;
-        }
-    }
+    //     Hardware::flip_framebuffers();
+    //     // print("Flipping framebuffers\n", &mut serial);
+    //     // println!("Flip");
+
+    //     if frame_cycle == 3 {
+    //         frame_cycle = 0;
+    //     } else {
+    //         frame_cycle += 1;
+    //     }
+    // }
 
     // let end_count = read_mcycle();
 
