@@ -1,0 +1,26 @@
+{
+  "python.analysis.extraPaths": [
+    "vendor/litedram/",
+    "vendor/liteeth/",
+    "vendor/liteiclink/",
+    "vendor/litejesd204b/",
+    "vendor/litepcie/",
+    "vendor/litesata/",
+    "vendor/litescope/",
+    "vendor/litesdcard/",
+    "vendor/litespi/",
+    "vendor/litex/",
+    "vendor/litex-boards/",
+    "vendor/migen/",
+    "vendor/pythondata-cpu-lm32/",
+    "vendor/pythondata-cpu-mor1kx/",
+    "vendor/pythondata-cpu-naxriscv/",
+    "vendor/pythondata-cpu-serv/",
+    "vendor/pythondata-cpu-vexriscv/",
+    "vendor/pythondata-cpu-vexriscv-smp/",
+    "vendor/pythondata-misc-tapcfg/",
+    "vendor/pythondata-misc-usb_ohci/",
+    "vendor/pythondata-software-compiler_rt/",
+    "vendor/pythondata-software-picolibc"
+  ],
+}
