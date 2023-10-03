@@ -16,16 +16,35 @@ class Platform(GenericPlatform):
 
     def __init__(self):
         _io = [
-            ("clk74a", 0, Pins("clk74a")),
+            ("clk_sys", 0, Pins("clk_sys")),
+            ("clk_sys_90deg", 0, Pins("clk_sys_90deg")),
+
+            ("reset", 0, Pins("reset")),
 
             # UART Pins
+            # Automatically connected by internal LiteX UART
             ("serial", 0,
                 Subsignal("tx", Pins("tx")),
                 Subsignal("rx", Pins("rx"))
             ),
 
-            ("test", 0, Pins("Foo")),
-            ("sdram", 0, Pins("Bla foobar"))
+            ("sdram_clock", 0, Pins("G12")),
+            ("sdram", 0,
+                Subsignal("a",     Pins(
+                    "D17 D12 F12 E14 F13 E16 E15 F14",
+                    "J18 G17 C13 F15 J17")),
+                Subsignal("ba",    Pins("C16 E12")),
+                #Subsignal("cs_n",  Pins("")),
+                Subsignal("cke",   Pins("G18")),
+                Subsignal("ras_n", Pins("B11")),
+                Subsignal("cas_n", Pins("B16")),
+                Subsignal("we_n",  Pins("C11")),
+                Subsignal("dq",    Pins(
+                    "C15 B15 A15 B13 A14 B12 A13 A12",
+                    "J13 G15 G16 G13 H13 J19 G11 K20",
+                )),
+                Subsignal("dm", Pins("D13 H18")),
+            ),
         ]
         _connectors = []
 

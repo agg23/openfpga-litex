@@ -32,25 +32,21 @@ from litedram.phy import GENSDRPHY
 
 class _CRG(LiteXModule):
     def __init__(self, platform: analogue_pocket.Platform, sys_clk_freq):
-        self.rst       = Signal()
-        self.cd_sys    = ClockDomain()
-        self.cd_sys_ps = ClockDomain()
+        # LiteX expects a `sys` clock domain, so we can't rename it
+        self.cd_sys       = ClockDomain()
+        self.cd_sys_90deg = ClockDomain()
+
+        clk_sys = platform.request("clk_sys")
+        self.comb += self.cd_sys.clk.eq(clk_sys)
+
+        clk_sys_90deg = platform.request("clk_sys_90deg")
+        self.comb += self.cd_sys_90deg.clk.eq(clk_sys_90deg)
 
         # # #
 
-        # Clk / Rst
-        clk74 = platform.request("clk74a")
-
-        # PLL
-        self.pll = pll = CycloneVPLL()
-        self.comb += pll.reset.eq(self.rst)
-        pll.register_clkin(clk74, 74.25e6)
-        pll.create_clkout(self.cd_sys,    sys_clk_freq)
-        pll.create_clkout(self.cd_sys_ps, sys_clk_freq, phase=90)
-
         # SDRAM clock
-        sdram_clk = ClockSignal("sys_ps")
-        # self.specials += DDROutput(1, 0, platform.request("sdram_clock"), sdram_clk)
+        sdram_clk = clk_sys_90deg
+        self.specials += DDROutput(1, 0, platform.request("sdram_clock"), sdram_clk)
 
         # UART
         # cart = platform.request("cart")
@@ -82,13 +78,13 @@ class BaseSoC(SoCCore):
         # self.add_uart(name="jtag_uart", uart_name="jtag_uart", baudrate=115200, fifo_depth=16)
 
         # SDR SDRAM --------------------------------------------------------------------------------
-        # if not self.integrated_main_ram_size:
-        #     self.sdrphy = GENSDRPHY(platform.request("sdram"), sys_clk_freq)
-        #     self.add_sdram("sdram",
-        #         phy           = self.sdrphy,
-        #         module        = AS4C32M16(sys_clk_freq, "1:1"),
-        #         l2_cache_size = kwargs.get("l2_size", 8192)
-        #     )
+        if not self.integrated_main_ram_size:
+            self.sdrphy = GENSDRPHY(platform.request("sdram"), sys_clk_freq)
+            self.add_sdram("sdram",
+                phy           = self.sdrphy,
+                module        = AS4C32M16(sys_clk_freq, "1:1"),
+                l2_cache_size = kwargs.get("l2_size", 8192)
+            )
 
 # Build --------------------------------------------------------------------------------------------
 
