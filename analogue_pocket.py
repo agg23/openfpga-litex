@@ -16,7 +16,7 @@ from migen import *
 
 from litex.gen import *
 
-import target as analogue_pocket
+import verilog_platform as analogue_pocket
 
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder import *
@@ -50,7 +50,7 @@ class _CRG(LiteXModule):
 
         # SDRAM clock
         sdram_clk = ClockSignal("sys_ps")
-        self.specials += DDROutput(1, 0, platform.request("sdram_clock"), sdram_clk)
+        # self.specials += DDROutput(1, 0, platform.request("sdram_clock"), sdram_clk)
 
         # UART
         # cart = platform.request("cart")
@@ -82,13 +82,13 @@ class BaseSoC(SoCCore):
         # self.add_uart(name="jtag_uart", uart_name="jtag_uart", baudrate=115200, fifo_depth=16)
 
         # SDR SDRAM --------------------------------------------------------------------------------
-        if not self.integrated_main_ram_size:
-            self.sdrphy = GENSDRPHY(platform.request("sdram"), sys_clk_freq)
-            self.add_sdram("sdram",
-                phy           = self.sdrphy,
-                module        = AS4C32M16(sys_clk_freq, "1:1"),
-                l2_cache_size = kwargs.get("l2_size", 8192)
-            )
+        # if not self.integrated_main_ram_size:
+        #     self.sdrphy = GENSDRPHY(platform.request("sdram"), sys_clk_freq)
+        #     self.add_sdram("sdram",
+        #         phy           = self.sdrphy,
+        #         module        = AS4C32M16(sys_clk_freq, "1:1"),
+        #         l2_cache_size = kwargs.get("l2_size", 8192)
+        #     )
 
 # Build --------------------------------------------------------------------------------------------
 
