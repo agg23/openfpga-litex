@@ -100,6 +100,8 @@ def main():
 
     soc = BaseSoC(
         sys_clk_freq = args.sys_clk_freq,
+        # Match up with Rust compiler target
+        cpu_variant = "imac",
         **parser.soc_argdict
     )
     builder = Builder(soc, **parser.builder_argdict)

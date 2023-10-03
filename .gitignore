@@ -1,5 +1,9 @@
 build/
 
+rust/target
+rust/output.txt
+rust/rust.bin
+
 # Python
 __pycache__/
 *.py[cod]

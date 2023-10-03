@@ -14,5 +14,3 @@ for path in directories:
 
 # Set PYTHONPATH so child processes inherit these types
 os.environ["PYTHONPATH"] = ":".join(directories)
-
-print(os.environ["PYTHONPATH"])
