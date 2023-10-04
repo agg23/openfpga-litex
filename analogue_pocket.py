@@ -12,6 +12,9 @@
 # Set up the import paths for the LiteX packages
 import vendor
 
+from litex.soc.cores.video import VideoVGAPHY
+from litex.soc.interconnect import wishbone
+
 from migen import *
 
 from litex.gen import *
@@ -35,12 +38,16 @@ class _CRG(LiteXModule):
         # LiteX expects a `sys` clock domain, so we can't rename it
         self.cd_sys       = ClockDomain()
         self.cd_sys_90deg = ClockDomain()
+        self.cd_vid       = ClockDomain()
 
         clk_sys = platform.request("clk_sys")
         self.comb += self.cd_sys.clk.eq(clk_sys)
 
         clk_sys_90deg = platform.request("clk_sys_90deg")
         self.comb += self.cd_sys_90deg.clk.eq(clk_sys_90deg)
+
+        clk_vid = platform.request("clk_vid")
+        self.comb += self.cd_vid.clk.eq(clk_vid)
 
         # # #
 
@@ -63,7 +70,7 @@ class _CRG(LiteXModule):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
-    def __init__(self, sys_clk_freq=50e6, **kwargs):
+    def __init__(self, sys_clk_freq, **kwargs):
         platform = analogue_pocket.Platform()
 
         # CRG --------------------------------------------------------------------------------------
@@ -86,12 +93,21 @@ class BaseSoC(SoCCore):
                 l2_cache_size = kwargs.get("l2_size", 8192)
             )
 
+        # This only works with modifications to vendor/litex/litex/soc/cores/video.py to remove the SDR and DDR outputs
+        self.submodules.videophy = VideoVGAPHY(platform.request("vga"))
+        # self.add_video_framebuffer(phy=self.videophy, timings="320x200@60Hz", format="rgb565")
+        self.add_video_terminal(phy=self.videophy, timings="320x200@60Hz", clock_domain="vid")
+
+        # testSlave = wishbone.Interface()
+        
+        # self.bus.add_slave("test", testSlave)
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
     from litex.build.parser import LiteXArgumentParser
     parser = LiteXArgumentParser(platform=analogue_pocket.Platform, description="LiteX SoC on Analog Pocket.")
-    parser.add_target_argument("--sys-clk-freq", default=50e6, type=float, help="System clock frequency.")
+    parser.add_target_argument("--sys-clk-freq", default=51_600_000, type=float, help="System clock frequency.")
     args = parser.parse_args()
 
     soc = BaseSoC(

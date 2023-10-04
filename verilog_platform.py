@@ -16,35 +16,41 @@ class Platform(GenericPlatform):
 
     def __init__(self):
         _io = [
-            ("clk_sys", 0, Pins("clk_sys")),
-            ("clk_sys_90deg", 0, Pins("clk_sys_90deg")),
+            ("clk_sys", 0, Pins(1)),
+            ("clk_sys_90deg", 0, Pins(1)),
 
-            ("reset", 0, Pins("reset")),
+            ("clk_vid", 0, Pins(1)),
+
+            ("reset", 0, Pins(1)),
 
             # UART Pins
             # Automatically connected by internal LiteX UART
             ("serial", 0,
-                Subsignal("tx", Pins("tx")),
-                Subsignal("rx", Pins("rx"))
+                Subsignal("tx", Pins(1)),
+                Subsignal("rx", Pins(1))
             ),
 
-            ("sdram_clock", 0, Pins("G12")),
+            ("sdram_clock", 0, Pins(1)),
             ("sdram", 0,
-                Subsignal("a",     Pins(
-                    "D17 D12 F12 E14 F13 E16 E15 F14",
-                    "J18 G17 C13 F15 J17")),
-                Subsignal("ba",    Pins("C16 E12")),
+                Subsignal("a",     Pins(13)),
+                Subsignal("ba",    Pins(2)),
                 #Subsignal("cs_n",  Pins("")),
-                Subsignal("cke",   Pins("G18")),
-                Subsignal("ras_n", Pins("B11")),
-                Subsignal("cas_n", Pins("B16")),
-                Subsignal("we_n",  Pins("C11")),
-                Subsignal("dq",    Pins(
-                    "C15 B15 A15 B13 A14 B12 A13 A12",
-                    "J13 G15 G16 G13 H13 J19 G11 K20",
-                )),
-                Subsignal("dm", Pins("D13 H18")),
+                Subsignal("cke",   Pins(1)),
+                Subsignal("ras_n", Pins(1)),
+                Subsignal("cas_n", Pins(1)),
+                Subsignal("we_n",  Pins(1)),
+                Subsignal("dq",    Pins(16)),
+                Subsignal("dm",    Pins(2)),
             ),
+
+            ("vga", 0,
+                Subsignal("hsync", Pins(1)),
+                Subsignal("vsync", Pins(1)),
+                Subsignal("de",    Pins(1)),
+                Subsignal("r",     Pins(8)),
+                Subsignal("g",     Pins(8)),
+                Subsignal("b",     Pins(8)),
+            )
         ]
         _connectors = []
 
