@@ -35,6 +35,8 @@ from litedram.phy import GENSDRPHY
 
 class _CRG(LiteXModule):
     def __init__(self, platform: analogue_pocket.Platform, sys_clk_freq):
+        # `rst` is a magic CRG signal that is automatically wired to the output of the SoC reset
+        # self.rst          = Signal()
         # LiteX expects a `sys` clock domain, so we can't rename it
         self.cd_sys       = ClockDomain()
         self.cd_sys_90deg = ClockDomain()
@@ -79,6 +81,9 @@ class BaseSoC(SoCCore):
         # SoCCore ----------------------------------------------------------------------------------
         SoCCore.__init__(self, platform, sys_clk_freq, ident="LiteX SoC on Analog Pocket", **kwargs)
 
+        reset = platform.request("reset")
+        self.comb += self.cpu.reset.eq(reset)
+
         # UARTBone
 
         # self.add_uart(name="uart2", uart_name="cart_serial", baudrate=115200)
@@ -95,8 +100,8 @@ class BaseSoC(SoCCore):
 
         # This only works with modifications to vendor/litex/litex/soc/cores/video.py to remove the SDR and DDR outputs
         self.submodules.videophy = VideoVGAPHY(platform.request("vga"))
-        # self.add_video_framebuffer(phy=self.videophy, timings="320x200@60Hz", format="rgb565")
-        self.add_video_terminal(phy=self.videophy, timings="320x200@60Hz", clock_domain="vid")
+        self.add_video_framebuffer(phy=self.videophy, timings="320x200@60Hz", format="rgb888", clock_domain="vid")
+        # self.add_video_terminal(phy=self.videophy, timings="320x200@60Hz", clock_domain="vid")
 
         # testSlave = wishbone.Interface()
         
@@ -116,7 +121,9 @@ def main():
         cpu_variant = "imac",
         **parser.soc_argdict
     )
-    builder = Builder(soc, **parser.builder_argdict)
+    builder_args = parser.builder_argdict
+    builder_args["csr_svd"] = "pocket.svd"
+    builder = Builder(soc, **builder_args)
     if args.build:
         builder.build(**parser.toolchain_argdict)
 

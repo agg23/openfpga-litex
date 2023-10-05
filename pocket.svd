@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-10-02 14:05:06]]></description>
+    <description><![CDATA[Litex SoC 2023-10-04 19:00:55]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -602,6 +602,240 @@ register to disable individual events.]]></description>
                 <value>0</value>
             </interrupt>
         </peripheral>
+        <peripheral>
+            <name>VIDEO_FRAMEBUFFER</name>
+            <baseAddress>0xF0002800</baseAddress>
+            <groupName>VIDEO_FRAMEBUFFER</groupName>
+            <registers>
+                <register>
+                    <name>DMA_BASE</name>
+                    <addressOffset>0x0000</addressOffset>
+                    <resetValue>0x40c00000</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>dma_base</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>DMA_LENGTH</name>
+                    <addressOffset>0x0004</addressOffset>
+                    <resetValue>0x3e800</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>dma_length</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>DMA_ENABLE</name>
+                    <addressOffset>0x0008</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>dma_enable</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>DMA_DONE</name>
+                    <addressOffset>0x000c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>dma_done</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>DMA_LOOP</name>
+                    <addressOffset>0x0010</addressOffset>
+                    <resetValue>0x01</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>dma_loop</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>DMA_OFFSET</name>
+                    <addressOffset>0x0014</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>dma_offset</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+            </registers>
+            <addressBlock>
+                <offset>0</offset>
+                <size>0x18</size>
+                <usage>registers</usage>
+            </addressBlock>
+        </peripheral>
+        <peripheral>
+            <name>VIDEO_FRAMEBUFFER_VTG</name>
+            <baseAddress>0xF0003000</baseAddress>
+            <groupName>VIDEO_FRAMEBUFFER_VTG</groupName>
+            <registers>
+                <register>
+                    <name>ENABLE</name>
+                    <addressOffset>0x0000</addressOffset>
+                    <resetValue>0x01</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>enable</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>HRES</name>
+                    <addressOffset>0x0004</addressOffset>
+                    <resetValue>0x140</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>hres</name>
+                            <msb>11</msb>
+                            <bitRange>[11:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>HSYNC_START</name>
+                    <addressOffset>0x0008</addressOffset>
+                    <resetValue>0x148</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>hsync_start</name>
+                            <msb>11</msb>
+                            <bitRange>[11:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>HSYNC_END</name>
+                    <addressOffset>0x000c</addressOffset>
+                    <resetValue>0x168</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>hsync_end</name>
+                            <msb>11</msb>
+                            <bitRange>[11:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>HSCAN</name>
+                    <addressOffset>0x0010</addressOffset>
+                    <resetValue>0x18f</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>hscan</name>
+                            <msb>11</msb>
+                            <bitRange>[11:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>VRES</name>
+                    <addressOffset>0x0014</addressOffset>
+                    <resetValue>0xc8</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>vres</name>
+                            <msb>11</msb>
+                            <bitRange>[11:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>VSYNC_START</name>
+                    <addressOffset>0x0018</addressOffset>
+                    <resetValue>0xc9</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>vsync_start</name>
+                            <msb>11</msb>
+                            <bitRange>[11:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>VSYNC_END</name>
+                    <addressOffset>0x001c</addressOffset>
+                    <resetValue>0xd1</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>vsync_end</name>
+                            <msb>11</msb>
+                            <bitRange>[11:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>VSCAN</name>
+                    <addressOffset>0x0020</addressOffset>
+                    <resetValue>0xd6</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>vscan</name>
+                            <msb>11</msb>
+                            <bitRange>[11:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+            </registers>
+            <addressBlock>
+                <offset>0</offset>
+                <size>0x24</size>
+                <usage>registers</usage>
+            </addressBlock>
+        </peripheral>
     </peripherals>
     <vendorExtensions>
         <memoryRegions>
@@ -621,13 +855,18 @@ register to disable individual events.]]></description>
                 <size>0x04000000</size>
             </memoryRegion>
             <memoryRegion>
+                <name>VIDEO_FRAMEBUFFER</name>
+                <baseAddress>0x40C00000</baseAddress>
+                <size>0x00800000</size>
+            </memoryRegion>
+            <memoryRegion>
                 <name>CSR</name>
                 <baseAddress>0xF0000000</baseAddress>
                 <size>0x00010000</size>
             </memoryRegion>
         </memoryRegions>
         <constants>
-            <constant name="CONFIG_CLOCK_FREQUENCY" value="50000000" />
+            <constant name="CONFIG_CLOCK_FREQUENCY" value="51600000" />
             <constant name="CONFIG_CPU_HAS_INTERRUPT" value="None" />
             <constant name="CONFIG_CPU_RESET_ADDR" value="0" />
             <constant name="CONFIG_CPU_HAS_DCACHE" value="None" />
@@ -637,6 +876,10 @@ register to disable individual events.]]></description>
             <constant name="CONFIG_CPU_HUMAN_NAME" value="VexRiscv_IMAC" />
             <constant name="CONFIG_CPU_NOP" value="nop" />
             <constant name="CONFIG_L2_SIZE" value="8192" />
+            <constant name="VIDEO_FRAMEBUFFER_BASE" value="1086324736" />
+            <constant name="VIDEO_FRAMEBUFFER_HRES" value="320" />
+            <constant name="VIDEO_FRAMEBUFFER_VRES" value="200" />
+            <constant name="VIDEO_FRAMEBUFFER_DEPTH" value="32" />
             <constant name="CONFIG_CSR_DATA_WIDTH" value="32" />
             <constant name="CONFIG_CSR_ALIGNMENT" value="32" />
             <constant name="CONFIG_BUS_STANDARD" value="WISHBONE" />

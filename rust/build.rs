@@ -15,7 +15,7 @@ fn main() {
     let mut f = File::create(&dest_path.join("regions.ld")).expect("Could not create file");
     f.write_all(include_bytes!(concat!(
         env!("BUILD_DIR"),
-        "/analogue_pocket/software/include/generated/regions.ld"
+        "/litex/software/include/generated/regions.ld"
     )))
     .expect("Could not write file");
 
