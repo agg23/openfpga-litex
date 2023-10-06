@@ -100,7 +100,7 @@ class BaseSoC(SoCCore):
 
         # This only works with modifications to vendor/litex/litex/soc/cores/video.py to remove the SDR and DDR outputs
         self.submodules.videophy = VideoVGAPHY(platform.request("vga"))
-        self.add_video_framebuffer(phy=self.videophy, timings="320x200@60Hz", format="rgb888", clock_domain="vid")
+        self.add_video_framebuffer(phy=self.videophy, timings="320x200@60Hz", format="rgb565", clock_domain="vid")
         # self.add_video_terminal(phy=self.videophy, timings="320x200@60Hz", clock_domain="vid")
 
         # testSlave = wishbone.Interface()
@@ -115,11 +115,14 @@ def main():
     parser.add_target_argument("--sys-clk-freq", default=51_600_000, type=float, help="System clock frequency.")
     args = parser.parse_args()
 
+    soc_args = parser.soc_argdict
+    soc_args["uart_baudrate"] = 2000000
+
     soc = BaseSoC(
         sys_clk_freq = args.sys_clk_freq,
         # Match up with Rust compiler target
         cpu_variant = "imac",
-        **parser.soc_argdict
+        **soc_args
     )
     builder_args = parser.builder_argdict
     builder_args["csr_svd"] = "pocket.svd"

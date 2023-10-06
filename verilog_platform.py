@@ -47,9 +47,9 @@ class Platform(GenericPlatform):
                 Subsignal("hsync", Pins(1)),
                 Subsignal("vsync", Pins(1)),
                 Subsignal("de",    Pins(1)),
-                Subsignal("r",     Pins(8)),
-                Subsignal("g",     Pins(8)),
-                Subsignal("b",     Pins(8)),
+                Subsignal("r",     Pins(5)),
+                Subsignal("g",     Pins(6)),
+                Subsignal("b",     Pins(5)),
             )
         ]
         _connectors = []

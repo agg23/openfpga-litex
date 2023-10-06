@@ -10,7 +10,8 @@ rootdir = os.path.dirname(__file__)
 directories = [rootdir + "/" + directory_name for directory_name in listdirs(rootdir)]
 
 for path in directories:
-    sys.path.append(path)
+    # Some things (LiteX) don't like to play nice with PYTHONPATH, so we override them by inserting at the beginning
+    sys.path.insert(0, path)
 
 # Set PYTHONPATH so child processes inherit these types
 os.environ["PYTHONPATH"] = ":".join(directories)

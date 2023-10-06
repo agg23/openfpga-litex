@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-10-04 19:00:55]]></description>
+    <description><![CDATA[Litex SoC 2023-10-06 09:05:19]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -624,7 +624,7 @@ register to disable individual events.]]></description>
                 <register>
                     <name>DMA_LENGTH</name>
                     <addressOffset>0x0004</addressOffset>
-                    <resetValue>0x3e800</resetValue>
+                    <resetValue>0x1f400</resetValue>
                     <size>32</size>
                     <fields>
                         <field>
@@ -879,7 +879,7 @@ register to disable individual events.]]></description>
             <constant name="VIDEO_FRAMEBUFFER_BASE" value="1086324736" />
             <constant name="VIDEO_FRAMEBUFFER_HRES" value="320" />
             <constant name="VIDEO_FRAMEBUFFER_VRES" value="200" />
-            <constant name="VIDEO_FRAMEBUFFER_DEPTH" value="32" />
+            <constant name="VIDEO_FRAMEBUFFER_DEPTH" value="16" />
             <constant name="CONFIG_CSR_DATA_WIDTH" value="32" />
             <constant name="CONFIG_CSR_ALIGNMENT" value="32" />
             <constant name="CONFIG_BUS_STANDARD" value="WISHBONE" />
