@@ -393,6 +393,34 @@ fn main() -> ! {
         window.draw_if_needed(|renderer| {
             renderer.render(buffer, 320);
 
+            let ui = shared_ui.borrow();
+
+            let ui_positioner = ui.global::<UIPositioner>();
+
+            let mut x = ui_positioner.get_x();
+            let mut y = ui_positioner.get_y();
+
+            let cont1_key = peripherals.MAIN.cont1_key.read().bits();
+
+            if cont1_key & 0x1 != 0 {
+                // Up
+                y -= 1.0;
+            } else if cont1_key & 0x2 != 0 {
+                // Down
+                y += 1.0;
+            }
+
+            if cont1_key & 0x4 != 0 {
+                // Left
+                x -= 1.0;
+            } else if cont1_key & 0x8 != 0 {
+                // Right
+                x += 1.0;
+            }
+
+            ui_positioner.set_x(x);
+            ui_positioner.set_y(y);
+
             *draws_since_last_tick.borrow_mut() += 1;
 
             window.request_redraw();

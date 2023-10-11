@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-10-10 16:29:07]]></description>
+    <description><![CDATA[Litex SoC 2023-10-11 09:59:49]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -107,8 +107,34 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
             </addressBlock>
         </peripheral>
         <peripheral>
-            <name>SDRAM</name>
+            <name>MAIN</name>
             <baseAddress>0xF0001000</baseAddress>
+            <groupName>MAIN</groupName>
+            <registers>
+                <register>
+                    <name>CONT1_KEY</name>
+                    <addressOffset>0x0000</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>cont1_key</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+            </registers>
+            <addressBlock>
+                <offset>0</offset>
+                <size>0x4</size>
+                <usage>registers</usage>
+            </addressBlock>
+        </peripheral>
+        <peripheral>
+            <name>SDRAM</name>
+            <baseAddress>0xF0001800</baseAddress>
             <groupName>SDRAM</groupName>
             <registers>
                 <register>
@@ -435,7 +461,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
         </peripheral>
         <peripheral>
             <name>TIMER0</name>
-            <baseAddress>0xF0001800</baseAddress>
+            <baseAddress>0xF0002000</baseAddress>
             <groupName>TIMER0</groupName>
             <registers>
                 <register>
@@ -627,7 +653,7 @@ register to disable individual events.]]></description>
         </peripheral>
         <peripheral>
             <name>UART</name>
-            <baseAddress>0xF0002000</baseAddress>
+            <baseAddress>0xF0002800</baseAddress>
             <groupName>UART</groupName>
             <registers>
                 <register>
@@ -789,7 +815,7 @@ register to disable individual events.]]></description>
         </peripheral>
         <peripheral>
             <name>VIDEO_FRAMEBUFFER</name>
-            <baseAddress>0xF0002800</baseAddress>
+            <baseAddress>0xF0003000</baseAddress>
             <groupName>VIDEO_FRAMEBUFFER</groupName>
             <registers>
                 <register>
@@ -885,7 +911,7 @@ register to disable individual events.]]></description>
         </peripheral>
         <peripheral>
             <name>VIDEO_FRAMEBUFFER_VTG</name>
-            <baseAddress>0xF0003000</baseAddress>
+            <baseAddress>0xF0003800</baseAddress>
             <groupName>VIDEO_FRAMEBUFFER_VTG</groupName>
             <registers>
                 <register>
@@ -1043,6 +1069,11 @@ register to disable individual events.]]></description>
                 <name>VIDEO_FRAMEBUFFER</name>
                 <baseAddress>0x40C00000</baseAddress>
                 <size>0x00800000</size>
+            </memoryRegion>
+            <memoryRegion>
+                <name>TEST</name>
+                <baseAddress>0x80000000</baseAddress>
+                <size>0x00100000</size>
             </memoryRegion>
             <memoryRegion>
                 <name>CSR</name>

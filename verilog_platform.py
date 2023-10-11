@@ -51,7 +51,23 @@ class Platform(GenericPlatform):
                 Subsignal("r",     Pins(5)),
                 Subsignal("g",     Pins(6)),
                 Subsignal("b",     Pins(5)),
-            )
+            ),
+
+            ("wishbone", 0,
+                Subsignal("adr",   Pins(30)),
+                Subsignal("dat_w", Pins(32)),
+                Subsignal("dat_r", Pins(32)),
+                Subsignal("sel",   Pins(4)),
+                Subsignal("cyc",   Pins(1)),
+                Subsignal("stb",   Pins(1)),
+                Subsignal("ack",   Pins(1)),
+                Subsignal("we",    Pins(1)),
+                Subsignal("cti",   Pins(3)),
+                Subsignal("bte",   Pins(2)),
+                Subsignal("err",   Pins(1)),
+            ),
+
+            ("cont1_key", 0, Pins(32)),
         ]
         _connectors = []
 

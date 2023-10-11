@@ -11,6 +11,8 @@
 
 # Set up the import paths for the LiteX packages
 import vendor
+from litex.soc.integration.soc import SoCRegion
+from litex.soc.interconnect.csr import CSRStatus
 
 from litex.soc.cores.video import VideoVGAPHY
 from litex.soc.interconnect import wishbone
@@ -113,9 +115,21 @@ class BaseSoC(SoCCore):
         self.add_video_framebuffer(phy=self.videophy, timings="320x200@60Hz", format="rgb565", clock_domain="vid")
         # self.add_video_terminal(phy=self.videophy, timings="320x200@60Hz", clock_domain="vid")
 
-        # testSlave = wishbone.Interface()
+        self.cont1_key = CSRStatus(size=32)
+
+        cont1_key_pads = platform.request("cont1_key")
+        self.comb += self.cont1_key.status.eq(cont1_key_pads)
+
+        testSlave = wishbone.Interface()
+        testRegion = SoCRegion(0x8000_0000, 0x10_0000, cached = False)
         
-        # self.bus.add_slave("test", testSlave)
+        self.bus.add_slave("test", testSlave, testRegion)
+
+        # testSlave.connect_to_pads
+
+        # For some reason this doesn't make the comb assignments itself?
+        # Master, because the internal wishbone is a slave, and the Verilog one is "master"
+        self.comb += testSlave.connect_to_pads(platform.request("wishbone"), mode="master")
 
 # Build --------------------------------------------------------------------------------------------
 
