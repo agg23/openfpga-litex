@@ -1,0 +1,2 @@
+set_global_assignment -name VERILOG_FILE   [file join $::quartus(qip_path) "litex.v"]
+set_global_assignment -name VERILOG_FILE   [file join $::quartus(qip_path) "VexRiscv_IMAC.v"]
