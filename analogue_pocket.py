@@ -29,24 +29,33 @@ from litex.build.io import DDROutput
 from litex.soc.cores.clock import CycloneVPLL
 
 from litedram.modules import AS4C32M16
-from litedram.phy import GENSDRPHY
+from litedram.phy.gensdrphy import HalfRateGENSDRPHY
 
 # CRG ----------------------------------------------------------------------------------------------
 
 class _CRG(LiteXModule):
     def __init__(self, platform: analogue_pocket.Platform, sys_clk_freq):
         # `rst` is a magic CRG signal that is automatically wired to the output of the SoC reset
-        # self.rst          = Signal()
+        self.rst          = Signal()
         # LiteX expects a `sys` clock domain, so we can't rename it
-        self.cd_sys       = ClockDomain()
-        self.cd_sys_90deg = ClockDomain()
-        self.cd_vid       = ClockDomain()
+        self.cd_sys         = ClockDomain()
+        # LiteX also expects a `sys2x` clock domain when using double rate SDRAM, and it can't be renamed
+        self.cd_sys2x       = ClockDomain()
+        self.cd_sys2x_90deg = ClockDomain()
+        self.cd_vid         = ClockDomain()
+
+        reset_pin = platform.request("reset")
 
         clk_sys = platform.request("clk_sys")
         self.comb += self.cd_sys.clk.eq(clk_sys)
+        self.comb += self.cd_sys.rst.eq(self.rst | reset_pin)
 
-        clk_sys_90deg = platform.request("clk_sys_90deg")
-        self.comb += self.cd_sys_90deg.clk.eq(clk_sys_90deg)
+        clk_sys2x = platform.request("clk_sys2x")
+        self.comb += self.cd_sys2x.clk.eq(clk_sys2x)
+        self.comb += self.cd_sys2x.rst.eq(self.rst | reset_pin)
+
+        clk_sys2x_90deg = platform.request("clk_sys2x_90deg")
+        self.comb += self.cd_sys2x_90deg.clk.eq(clk_sys2x_90deg)
 
         clk_vid = platform.request("clk_vid")
         self.comb += self.cd_vid.clk.eq(clk_vid)
@@ -54,7 +63,7 @@ class _CRG(LiteXModule):
         # # #
 
         # SDRAM clock
-        sdram_clk = clk_sys_90deg
+        sdram_clk = clk_sys2x_90deg
         self.specials += DDROutput(1, 0, platform.request("sdram_clock"), sdram_clk)
 
         # UART
@@ -81,8 +90,9 @@ class BaseSoC(SoCCore):
         # SoCCore ----------------------------------------------------------------------------------
         SoCCore.__init__(self, platform, sys_clk_freq, ident="LiteX SoC on Analog Pocket", **kwargs)
 
-        reset = platform.request("reset")
-        self.comb += self.cpu.reset.eq(reset)
+        # reset = platform.request("reset")
+        # # self.comb += self.cpu.reset.eq(self.crg.rst)
+        # self.comb += self.cpu.reset.eq(reset)
 
         # UARTBone
 
@@ -91,10 +101,10 @@ class BaseSoC(SoCCore):
 
         # SDR SDRAM --------------------------------------------------------------------------------
         if not self.integrated_main_ram_size:
-            self.sdrphy = GENSDRPHY(platform.request("sdram"), sys_clk_freq)
+            self.sdrphy = HalfRateGENSDRPHY(platform.request("sdram"), sys_clk_freq)
             self.add_sdram("sdram",
                 phy           = self.sdrphy,
-                module        = AS4C32M16(sys_clk_freq, "1:1"),
+                module        = AS4C32M16(sys_clk_freq, "1:2"),
                 l2_cache_size = kwargs.get("l2_size", 8192)
             )
 
@@ -117,6 +127,7 @@ def main():
 
     soc_args = parser.soc_argdict
     soc_args["uart_baudrate"] = 2000000
+    soc_args["timer_uptime"] = True
 
     soc = BaseSoC(
         sys_clk_freq = args.sys_clk_freq,

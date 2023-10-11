@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-10-06 09:05:19]]></description>
+    <description><![CDATA[Litex SoC 2023-10-10 16:29:07]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -287,10 +287,149 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                         </field>
                     </fields>
                 </register>
+                <register>
+                    <name>DFII_PI1_COMMAND</name>
+                    <description><![CDATA[Control DFI signals on a single phase]]></description>
+                    <addressOffset>0x001c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>cs</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                            <description><![CDATA[DFI chip select bus]]></description>
+                        </field>
+                        <field>
+                            <name>we</name>
+                            <msb>1</msb>
+                            <bitRange>[1:1]</bitRange>
+                            <lsb>1</lsb>
+                            <description><![CDATA[DFI write enable bus]]></description>
+                        </field>
+                        <field>
+                            <name>cas</name>
+                            <msb>2</msb>
+                            <bitRange>[2:2]</bitRange>
+                            <lsb>2</lsb>
+                            <description><![CDATA[DFI column address strobe bus]]></description>
+                        </field>
+                        <field>
+                            <name>ras</name>
+                            <msb>3</msb>
+                            <bitRange>[3:3]</bitRange>
+                            <lsb>3</lsb>
+                            <description><![CDATA[DFI row address strobe bus]]></description>
+                        </field>
+                        <field>
+                            <name>wren</name>
+                            <msb>4</msb>
+                            <bitRange>[4:4]</bitRange>
+                            <lsb>4</lsb>
+                            <description><![CDATA[DFI write data enable bus]]></description>
+                        </field>
+                        <field>
+                            <name>rden</name>
+                            <msb>5</msb>
+                            <bitRange>[5:5]</bitRange>
+                            <lsb>5</lsb>
+                            <description><![CDATA[DFI read data enable bus]]></description>
+                        </field>
+                        <field>
+                            <name>cs_top</name>
+                            <msb>6</msb>
+                            <bitRange>[6:6]</bitRange>
+                            <lsb>6</lsb>
+                            <description><![CDATA[DFI chip select bus for top half only]]></description>
+                        </field>
+                        <field>
+                            <name>cs_bottom</name>
+                            <msb>7</msb>
+                            <bitRange>[7:7]</bitRange>
+                            <lsb>7</lsb>
+                            <description><![CDATA[DFI chip select bus for bottom half only]]></description>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>DFII_PI1_COMMAND_ISSUE</name>
+                    <addressOffset>0x0020</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>dfii_pi1_command_issue</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>DFII_PI1_ADDRESS</name>
+                    <description><![CDATA[DFI address bus]]></description>
+                    <addressOffset>0x0024</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>dfii_pi1_address</name>
+                            <msb>12</msb>
+                            <bitRange>[12:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>DFII_PI1_BADDRESS</name>
+                    <description><![CDATA[DFI bank address bus]]></description>
+                    <addressOffset>0x0028</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>dfii_pi1_baddress</name>
+                            <msb>1</msb>
+                            <bitRange>[1:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>DFII_PI1_WRDATA</name>
+                    <description><![CDATA[DFI write data bus]]></description>
+                    <addressOffset>0x002c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>dfii_pi1_wrdata</name>
+                            <msb>15</msb>
+                            <bitRange>[15:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>DFII_PI1_RDDATA</name>
+                    <description><![CDATA[DFI read data bus]]></description>
+                    <addressOffset>0x0030</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>dfii_pi1_rddata</name>
+                            <msb>15</msb>
+                            <bitRange>[15:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
             </registers>
             <addressBlock>
                 <offset>0</offset>
-                <size>0x1c</size>
+                <size>0x34</size>
                 <usage>registers</usage>
             </addressBlock>
         </peripheral>
@@ -429,10 +568,56 @@ register to disable individual events.]]></description>
                         </field>
                     </fields>
                 </register>
+                <register>
+                    <name>UPTIME_LATCH</name>
+                    <description><![CDATA[Write a ``1`` to latch current Uptime cycles to ``uptime_cycles`` register.]]></description>
+                    <addressOffset>0x0020</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>uptime_latch</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>UPTIME_CYCLES1</name>
+                    <description><![CDATA[Bits 32-63 of `TIMER0_UPTIME_CYCLES`. Latched Uptime since power-up (in
+``sys_clk`` cycles).]]></description>
+                    <addressOffset>0x0024</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>uptime_cycles</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>UPTIME_CYCLES0</name>
+                    <description><![CDATA[Bits 0-31 of `TIMER0_UPTIME_CYCLES`.]]></description>
+                    <addressOffset>0x0028</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>uptime_cycles</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
             </registers>
             <addressBlock>
                 <offset>0</offset>
-                <size>0x20</size>
+                <size>0x2c</size>
                 <usage>registers</usage>
             </addressBlock>
             <interrupt>

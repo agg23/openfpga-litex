@@ -17,7 +17,8 @@ class Platform(GenericPlatform):
     def __init__(self):
         _io = [
             ("clk_sys", 0, Pins(1)),
-            ("clk_sys_90deg", 0, Pins(1)),
+            ("clk_sys2x", 0, Pins(1)),
+            ("clk_sys2x_90deg", 0, Pins(1)),
 
             ("clk_vid", 0, Pins(1)),
 
