@@ -621,6 +621,18 @@ module core_top (
     end
   end
 
+  wire ack;
+  wire [29:0] addr;
+  wire [1:0] bte;
+  wire [2:0] cti;
+  wire cyc;
+  wire [31:0] data_read;
+  wire [31:0] data_write;
+  wire err;
+  wire [3:0] sel;
+  wire stb;
+  wire we;
+
   litex litex (
       .clk_sys(clk_sys),
       .clk_sys2x(clk_sys_150),
@@ -630,6 +642,18 @@ module core_top (
       .reset(~reset_n || ioctl_download || reset_timer > 0),
 
       .cont1_key(cont1_key),
+
+      .wishbone_ack(ack),
+      .wishbone_adr(addr),
+      .wishbone_bte(bte),
+      .wishbone_cti(cti),
+      .wishbone_cyc(cyc),
+      .wishbone_dat_r(data_read),
+      .wishbone_dat_w(data_write),
+      .wishbone_err(err),
+      .wishbone_sel(sel),
+      .wishbone_stb(stb),
+      .wishbone_we(we),
 
       .vga_r(rgb565[15:11]),
       .vga_g(rgb565[10:5]),
@@ -650,6 +674,23 @@ module core_top (
       .sdram_dq(dram_dq),
       .sdram_ras_n(dram_ras_n),
       .sdram_we_n(dram_we_n)
+  );
+
+  wishbone wishbone (
+      .clk  (clk_sys),
+      .reset(~reset_n || ioctl_download || reset_timer > 0),
+
+      .addr(addr),
+      .bte(bte),
+      .cti(cti),
+      .cyc(cyc),
+      .data_write(data_write),
+      .data_read(data_read),
+      .sel(sel),
+      .stb(stb),
+      .we(we),
+      .ack(ack),
+      .err(err)
   );
 
   ////////////////////////////////////////////////////////////////////////////////////////

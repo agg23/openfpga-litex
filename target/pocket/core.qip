@@ -8,6 +8,7 @@ set_global_assignment -name SYSTEMVERILOG_FILE        [file join $::quartus(qip_
 set_global_assignment -name SYSTEMVERILOG_FILE        [file join $::quartus(qip_path) "sram.sv"]
 set_global_assignment -name SYSTEMVERILOG_FILE        [file join $::quartus(qip_path) "sync_fifo.sv"]
 set_global_assignment -name SIGNALTAP_FILE            [file join $::quartus(qip_path) "stp1.stp"]
+set_global_assignment -name SYSTEMVERILOG_FILE        [file join $::quartus(qip_path) "wishbone.sv"]
 
 set_global_assignment -name SYSTEMVERILOG_FILE        [file join $::quartus(qip_path) "../../../../analogue-pocket-utils/ip/mem/dual_psram.sv"]
 set_global_assignment -name SYSTEMVERILOG_FILE        [file join $::quartus(qip_path) "../../../../analogue-pocket-utils/ip/mem/psram.sv"]
