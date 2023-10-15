@@ -125,11 +125,17 @@ class BaseSoC(SoCCore):
         
         self.bus.add_slave("test", testSlave, testRegion)
 
-        # testSlave.connect_to_pads
+        # # testSlave.connect_to_pads
 
-        # For some reason this doesn't make the comb assignments itself?
-        # Master, because the internal wishbone is a slave, and the Verilog one is "master"
+        # # For some reason this doesn't make the comb assignments itself?
+        # # Master, because the internal wishbone is a slave, and the Verilog one is "master"
         self.comb += testSlave.connect_to_pads(platform.request("wishbone"), mode="master")
+
+        test_master = wishbone.Interface()
+
+        self.bus.add_master("test2", test_master)
+
+        self.comb += test_master.connect_to_pads(platform.request("wishbone_master"), mode="slave")
 
 # Build --------------------------------------------------------------------------------------------
 

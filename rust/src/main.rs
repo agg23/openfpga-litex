@@ -188,9 +188,19 @@ fn main() -> ! {
 
     window.set_size(slint::PhysicalSize::new(320, 200));
 
-    // for _ in 0..500 {
-    //     println!("Printing");
-    // }
+    const WISHBONE_ADDRESS: *mut u32 = 0x8000_0000 as *mut u32;
+
+    for i in 0..16 {
+        let value = unsafe { WISHBONE_ADDRESS.add(i).read_volatile() };
+        println!("Read: {i}: {:x}", value);
+
+        unsafe { WISHBONE_ADDRESS.add(i).write_volatile(16 - (i as u32)) };
+    }
+
+    for i in 0..16 {
+        let value = unsafe { WISHBONE_ADDRESS.add(i).read_volatile() };
+        println!("Write: {i}: {:x}", value);
+    }
 
     // FB Off
     unsafe {
@@ -381,7 +391,11 @@ fn main() -> ! {
             let fps_readout = ui.global::<FPSReadout>();
             fps_readout.set_text(format!("{value}").into());
 
-            println!("Timer tick {value}");
+            println!("FPS: {value}");
+
+            let current_value = unsafe { MAIN_RAM_BASE.read_volatile() };
+
+            println!("Mem value: {current_value:x}");
 
             *value = 0;
         },
