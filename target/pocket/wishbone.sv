@@ -1,11 +1,12 @@
 module wishbone (
+    input wire clk_74a,
     input wire clk,
 
     input wire reset,
 
     input wire [29:0] addr,
     // Wishbone registered feedback flags
-    // Burst tyle extension. Specifies the type of burst
+    // Burst style extension. Specifies the type of burst
     input wire [1:0] bte,
     // Cycle type identifier. Indicates what kind of burst cycle is being used
     input wire [2:0] cti,

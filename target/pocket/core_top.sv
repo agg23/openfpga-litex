@@ -261,29 +261,29 @@ module core_top (
   assign port_tran_sd_dir        = 1'b0;  // SD is input and not used
 
   // tie off the rest of the pins we are not using
-  // assign cram0_a                 = 'h0;
-  // assign cram0_dq                = {16{1'bZ}};
-  // assign cram0_clk               = 0;
-  // assign cram0_adv_n             = 1;
-  // assign cram0_cre               = 0;
-  // assign cram0_ce0_n             = 1;
-  // assign cram0_ce1_n             = 1;
-  // assign cram0_oe_n              = 1;
-  // assign cram0_we_n              = 1;
-  // assign cram0_ub_n              = 1;
-  // assign cram0_lb_n              = 1;
+  assign cram0_a                 = 'h0;
+  assign cram0_dq                = {16{1'bZ}};
+  assign cram0_clk               = 0;
+  assign cram0_adv_n             = 1;
+  assign cram0_cre               = 0;
+  assign cram0_ce0_n             = 1;
+  assign cram0_ce1_n             = 1;
+  assign cram0_oe_n              = 1;
+  assign cram0_we_n              = 1;
+  assign cram0_ub_n              = 1;
+  assign cram0_lb_n              = 1;
 
-  // assign cram1_a                 = 'h0;
-  // assign cram1_dq                = {16{1'bZ}};
-  // assign cram1_clk               = 0;
-  // assign cram1_adv_n             = 1;
-  // assign cram1_cre               = 0;
-  // assign cram1_ce0_n             = 1;
-  // assign cram1_ce1_n             = 1;
-  // assign cram1_oe_n              = 1;
-  // assign cram1_we_n              = 1;
-  // assign cram1_ub_n              = 1;
-  // assign cram1_lb_n              = 1;
+  assign cram1_a                 = 'h0;
+  assign cram1_dq                = {16{1'bZ}};
+  assign cram1_clk               = 0;
+  assign cram1_adv_n             = 1;
+  assign cram1_cre               = 0;
+  assign cram1_ce0_n             = 1;
+  assign cram1_ce1_n             = 1;
+  assign cram1_oe_n              = 1;
+  assign cram1_we_n              = 1;
+  assign cram1_ub_n              = 1;
+  assign cram1_lb_n              = 1;
 
   // assign dram_a                  = 'h0;
   // assign dram_ba                 = 'h0;
@@ -592,10 +592,13 @@ module core_top (
   // );
 
   wire        reset_button_s;
+  wire        trigger_button_s;
 
-  synch_3 reset_button_synch (
-      cont1_key[15],
-      reset_button_s,
+  synch_3 #(
+      .WIDTH(2)
+  ) reset_button_synch (
+      {cont1_key[14], cont1_key[15]},
+      {trigger_button_s, reset_button_s},
       clk_sys
   );
 
@@ -633,6 +636,18 @@ module core_top (
   wire stb;
   wire we;
 
+  wire master_ack;
+  wire [29:0] master_addr;
+  wire [1:0] master_bte;
+  wire [2:0] master_cti;
+  wire master_cyc;
+  wire [31:0] master_data_read;
+  wire [31:0] master_data_write;
+  wire master_err;
+  wire [3:0] master_sel;
+  wire master_stb;
+  wire master_we;
+
   litex litex (
       .clk_sys(clk_sys),
       .clk_sys2x(clk_sys_150),
@@ -654,6 +669,18 @@ module core_top (
       .wishbone_sel(sel),
       .wishbone_stb(stb),
       .wishbone_we(we),
+
+      .wishbone_master_ack(master_ack),
+      .wishbone_master_adr(master_addr),
+      .wishbone_master_bte(master_bte),
+      .wishbone_master_cti(master_cti),
+      .wishbone_master_cyc(master_cyc),
+      .wishbone_master_dat_r(master_data_read),
+      .wishbone_master_dat_w(master_data_write),
+      .wishbone_master_err(master_err),
+      .wishbone_master_sel(master_sel),
+      .wishbone_master_stb(master_stb),
+      .wishbone_master_we(master_we),
 
       .vga_r(rgb565[15:11]),
       .vga_g(rgb565[10:5]),
@@ -691,6 +718,25 @@ module core_top (
       .we(we),
       .ack(ack),
       .err(err)
+  );
+
+  wishbone_master wishbone_master (
+      .clk  (clk_sys),
+      .reset(~reset_n || ioctl_download || reset_timer > 0),
+
+      .trigger_button(trigger_button_s),
+
+      .addr(master_addr),
+      .bte(master_bte),
+      .cti(master_cti),
+      .cyc(master_cyc),
+      .data_write(master_data_write),
+      .data_read(master_data_read),
+      .sel(master_sel),
+      .stb(master_stb),
+      .we(master_we),
+      .ack(master_ack),
+      .err(master_err)
   );
 
   ////////////////////////////////////////////////////////////////////////////////////////
