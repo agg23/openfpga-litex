@@ -12,7 +12,7 @@
 # Set up the import paths for the LiteX packages
 import vendor
 from litex.soc.integration.soc import SoCRegion
-from litex.soc.interconnect.csr import CSRStatus
+from litex.soc.interconnect.csr import CSR, CSRStatus, CSRStorage
 
 from litex.soc.cores.video import VideoVGAPHY
 from litex.soc.interconnect import wishbone
@@ -115,10 +115,8 @@ class BaseSoC(SoCCore):
         self.add_video_framebuffer(phy=self.videophy, timings="320x200@60Hz", format="rgb565", clock_domain="vid")
         # self.add_video_terminal(phy=self.videophy, timings="320x200@60Hz", clock_domain="vid")
 
-        self.cont1_key = CSRStatus(size=32)
-
-        cont1_key_pads = platform.request("cont1_key")
-        self.comb += self.cont1_key.status.eq(cont1_key_pads)
+        self.add_controller_csr(platform)
+        self.add_apf_bridge_csr(platform)
 
         testSlave = wishbone.Interface()
         testRegion = SoCRegion(0x8000_0000, 0x10_0000, cached = False)
@@ -136,6 +134,32 @@ class BaseSoC(SoCCore):
         self.bus.add_master("test2", test_master)
 
         self.comb += test_master.connect_to_pads(platform.request("wishbone_master"), mode="slave")
+
+    def add_controller_csr(self, platform: analogue_pocket.Platform):
+        self.cont1_key = CSRStatus(size=32)
+
+        cont1_key_pads = platform.request("cont1_key")
+        self.comb += self.cont1_key.status.eq(cont1_key_pads)
+
+    def add_apf_bridge_csr(self, platform: analogue_pocket.Platform):
+        bridge_pins = platform.request("apf_bridge")
+
+        self.bridge_request_read = CSR(1)
+        self.comb += bridge_pins.request_read.eq(self.bridge_request_read.re)
+
+        self.bridge_slot_id = CSRStorage(16)
+        self.bridge_data_offset = CSRStorage(32)
+        # self.bridge_local_address = CSRStorage(32)
+        self.bridge_length = CSRStorage(32)
+        self.ram_data_address = CSRStorage(32)
+
+        self.comb += [
+            bridge_pins.slot_id.eq(self.bridge_slot_id.storage),
+            bridge_pins.data_offset.eq(self.bridge_data_offset.storage),
+            # bridge_pins.local_address.eq(self.bridge_local_address.storage),
+            bridge_pins.length.eq(self.bridge_length.storage),
+            bridge_pins.ram_data_address.eq(self.ram_data_address.storage)
+        ]
 
 # Build --------------------------------------------------------------------------------------------
 

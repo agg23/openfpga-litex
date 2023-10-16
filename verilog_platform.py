@@ -82,6 +82,17 @@ class Platform(GenericPlatform):
             ),
 
             ("cont1_key", 0, Pins(32)),
+
+            ("apf_bridge", 0,
+                Subsignal("request_read", Pins(1)),
+
+                Subsignal("slot_id", Pins(16)),
+                Subsignal("data_offset", Pins(32)),
+                # Subsignal("local_address", Pins(32)),
+                Subsignal("length", Pins(32)),
+
+                Subsignal("ram_data_address", Pins(32))
+            ),
         ]
         _connectors = []
 

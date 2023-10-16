@@ -141,7 +141,8 @@ const TEST_PIXEL_BUFFER_ADDRESS: *mut Rgb565Pixel = 0x40C0_0000 as *mut Rgb565Pi
 // const TEST_PIXEL_BUFFER_ADDRESS: *mut Rgba8Pixel = 0x40C0_0000 as *mut Rgba8Pixel;
 
 const L2_CACHE_SIZE: usize = 8192;
-const MAIN_RAM_BASE: *mut u32 = 0x40000000 as *mut u32;
+const MAIN_RAM_BASE: *mut u32 = 0x4000_0000 as *mut u32;
+const TEST_WORD_ADDRESS: *mut u32 = 0x4030_0000 as *mut u32;
 
 // Cloned from libbase system.c
 fn flush_l2_cache() {
@@ -234,6 +235,29 @@ fn main() -> ! {
             .VIDEO_FRAMEBUFFER
             .dma_enable
             .write(|w| w.bits(1));
+    }
+
+    unsafe {
+        peripherals.MAIN.bridge_data_offset.write(|w| w.bits(0));
+
+        peripherals.MAIN.bridge_length.write(|w| w.bits(0x1F400));
+        peripherals
+            .MAIN
+            .ram_data_address
+            .write(|w| w.bits(TEST_BUFFER_ADDRESS as u32));
+        peripherals.MAIN.bridge_slot_id.write(|w| w.bits(0));
+
+        let value = peripherals.MAIN.bridge_length.read().bits();
+
+        println!("Length: {value}");
+
+        let value = peripherals.MAIN.ram_data_address.read().bits();
+
+        println!("Address: {value:x}");
+
+        let value = peripherals.MAIN.bridge_slot_id.read().bits();
+
+        println!("Slot: {value}");
     }
 
     // unsafe {
@@ -393,7 +417,8 @@ fn main() -> ! {
 
             println!("FPS: {value}");
 
-            let current_value = unsafe { MAIN_RAM_BASE.read_volatile() };
+            // let current_value = unsafe { MAIN_RAM_BASE.read_volatile() };
+            let current_value = unsafe { TEST_WORD_ADDRESS.read_volatile() };
 
             println!("Mem value: {current_value:x}");
 
@@ -401,11 +426,17 @@ fn main() -> ! {
         },
     );
 
+    let mut first_render = true;
+
     loop {
         slint::platform::update_timers_and_animations();
 
         window.draw_if_needed(|renderer| {
-            renderer.render(buffer, 320);
+            if first_render {
+                renderer.render(buffer, 320);
+
+                first_render = false;
+            }
 
             let ui = shared_ui.borrow();
 
@@ -430,6 +461,50 @@ fn main() -> ! {
             } else if cont1_key & 0x8 != 0 {
                 // Right
                 x += 1.0;
+            }
+
+            if cont1_key & 0x10 != 0 {
+                // A
+                println!("A");
+                unsafe {
+                    peripherals.MAIN.bridge_data_offset.write(|w| w.bits(0));
+
+                    peripherals.MAIN.bridge_request_read.write(|w| w.bits(1));
+                };
+            } else if cont1_key & 0x20 != 0 {
+                // B
+                unsafe {
+                    println!("B");
+
+                    peripherals
+                        .MAIN
+                        .bridge_data_offset
+                        .write(|w| w.bits(0x1F400));
+
+                    peripherals.MAIN.bridge_request_read.write(|w| w.bits(1));
+                };
+            } else if cont1_key & 0x40 != 0 {
+                // X
+                unsafe {
+                    println!("X");
+                    peripherals
+                        .MAIN
+                        .bridge_data_offset
+                        .write(|w| w.bits(2 * 0x1F400));
+
+                    peripherals.MAIN.bridge_request_read.write(|w| w.bits(1));
+                };
+            } else if cont1_key & 0x80 != 0 {
+                // Y
+                unsafe {
+                    println!("Y");
+                    peripherals
+                        .MAIN
+                        .bridge_data_offset
+                        .write(|w| w.bits(3 * 0x1F400));
+
+                    peripherals.MAIN.bridge_request_read.write(|w| w.bits(1));
+                };
             }
 
             ui_positioner.set_x(x);
