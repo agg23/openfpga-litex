@@ -384,19 +384,19 @@ module core_top (
   // bridge target commands
   // synchronous to clk_74a
 
-  reg target_dataslot_read;
-  reg target_dataslot_write;
-  reg target_dataslot_getfile;  // require additional param/resp structs to be mapped
-  reg target_dataslot_openfile;  // require additional param/resp structs to be mapped
+  wire target_dataslot_read;
+  wire target_dataslot_write;
+  wire target_dataslot_getfile;  // require additional param/resp structs to be mapped
+  wire target_dataslot_openfile;  // require additional param/resp structs to be mapped
 
   wire target_dataslot_ack;
   wire target_dataslot_done;
   wire [2:0] target_dataslot_err;
 
-  reg [15:0] target_dataslot_id;
-  reg [31:0] target_dataslot_slotoffset;
-  reg [31:0] target_dataslot_bridgeaddr;
-  reg [31:0] target_dataslot_length;
+  wire [15:0] target_dataslot_id;
+  wire [31:0] target_dataslot_slotoffset;
+  wire [31:0] target_dataslot_bridgeaddr;
+  wire [31:0] target_dataslot_length;
 
   wire    [31:0]  target_buffer_param_struct; // to be mapped/implemented when using some Target commands
   wire    [31:0]  target_buffer_resp_struct;  // to be mapped/implemented when using some Target commands
@@ -648,6 +648,50 @@ module core_top (
   wire master_stb;
   wire master_we;
 
+  wire apf_bridge_request_read;
+  wire [31:0] apf_bridge_data_offset;
+  wire [31:0] apf_bridge_length;
+  wire [15:0] apf_bridge_slot_id;
+
+  reg [2:0] apf_bridge_request_read_counter = 0;
+
+  reg prev_apf_bridge_request_read = 0;
+
+  always @(posedge clk_sys) begin
+    prev_apf_bridge_request_read <= apf_bridge_request_read;
+
+    if (apf_bridge_request_read && ~prev_apf_bridge_request_read) begin
+      apf_bridge_request_read_counter <= 3'h7;
+    end
+
+    if (apf_bridge_request_read_counter > 3'h0) begin
+      apf_bridge_request_read_counter <= apf_bridge_request_read_counter - 3'h1;
+    end
+  end
+
+  wire apf_bridge_request_read_lengthened = apf_bridge_request_read_counter > 3'h0 /* synthesis preserve */;
+
+  synch_3 #(
+      .WIDTH(81)
+  ) bridge_s (
+      {
+        apf_bridge_request_read_lengthened,
+        apf_bridge_data_offset,
+        apf_bridge_length,
+        apf_bridge_slot_id
+      },
+      {
+        target_dataslot_read, target_dataslot_slotoffset, target_dataslot_length, target_dataslot_id
+      },
+      clk_74a
+  );
+
+
+  // Always have bridge read/write from 0
+  assign target_dataslot_bridgeaddr = 32'h0;
+
+  wire [31:0] ram_data_address  /* synthesis preserve */;
+
   litex litex (
       .clk_sys(clk_sys),
       .clk_sys2x(clk_sys_150),
@@ -657,6 +701,13 @@ module core_top (
       .reset(~reset_n || ioctl_download || reset_timer > 0),
 
       .cont1_key(cont1_key),
+
+      .apf_bridge_request_read(apf_bridge_request_read),
+
+      .apf_bridge_data_offset(apf_bridge_data_offset),
+      .apf_bridge_length(apf_bridge_length),
+      .apf_bridge_ram_data_address(ram_data_address),
+      .apf_bridge_slot_id(apf_bridge_slot_id),
 
       .wishbone_ack(ack),
       .wishbone_adr(addr),
@@ -720,11 +771,36 @@ module core_top (
       .err(err)
   );
 
-  wishbone_master wishbone_master (
-      .clk  (clk_sys),
-      .reset(~reset_n || ioctl_download || reset_timer > 0),
+  // wishbone_master wishbone_master (
+  //     .clk  (clk_sys),
+  //     .reset(~reset_n || ioctl_download || reset_timer > 0),
 
-      .trigger_button(trigger_button_s),
+  //     .trigger_button(trigger_button_s),
+
+  //     .addr(master_addr),
+  //     .bte(master_bte),
+  //     .cti(master_cti),
+  //     .cyc(master_cyc),
+  //     .data_write(master_data_write),
+  //     .data_read(master_data_read),
+  //     .sel(master_sel),
+  //     .stb(master_stb),
+  //     .we(master_we),
+  //     .ack(master_ack),
+  //     .err(master_err)
+  // );
+
+  apf_wishbone_master apf_wishbone_master (
+      .clk_74a(clk_74a),
+      .clk_sys(clk_sys),
+      .reset  (~reset_n || ioctl_download || reset_timer > 0),
+
+      .bridge_addr(bridge_addr),
+      .bridge_wr_data(bridge_wr_data),
+      .bridge_wr(bridge_wr),
+      .bridge_endian_little(bridge_endian_little),
+
+      .ram_data_address(ram_data_address),
 
       .addr(master_addr),
       .bte(master_bte),
