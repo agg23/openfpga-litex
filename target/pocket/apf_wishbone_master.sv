@@ -11,6 +11,8 @@ module apf_wishbone_master (
 
     input wire [31:0] ram_data_address,
 
+    output wire [26:0] current_address,
+
     output wire [29:0] addr,
     // Wishbone registered feedback flags
     // Burst style extension. Specifies the type of burst
@@ -33,6 +35,8 @@ module apf_wishbone_master (
 );
 
   wire [25:0] write_addr;
+
+  assign current_address = write_addr;
 
   // TODO: Add read address
   // assign addr = we ? {6'h0, write_addr} + ram_data_address[31:2] : 30'h0;

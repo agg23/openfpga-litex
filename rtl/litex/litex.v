@@ -9,7 +9,7 @@
 // Filename   : litex.v
 // Device     : 5CEBA4F23C8
 // LiteX sha1 : cd821877
-// Date       : 2023-10-15 16:29:22
+// Date       : 2023-10-17 12:03:38
 //------------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -19,7 +19,10 @@
 //------------------------------------------------------------------------------
 
 module litex (
+    input  wire          apf_bridge_complete_trigger,
+    input  wire   [31:0] apf_bridge_current_address,
     output wire   [31:0] apf_bridge_data_offset,
+    input  wire   [31:0] apf_bridge_file_size,
     output wire   [31:0] apf_bridge_length,
     output wire   [31:0] apf_bridge_ram_data_address,
     output wire          apf_bridge_request_read,
@@ -422,8 +425,14 @@ reg           basesoc_wishbone_err = 1'd0;
 wire    [3:0] basesoc_wishbone_sel;
 wire          basesoc_wishbone_stb;
 wire          basesoc_wishbone_we;
+reg           bridge_current_address_re = 1'd0;
+wire   [31:0] bridge_current_address_status;
+wire          bridge_current_address_we;
 reg           bridge_data_offset_re = 1'd0;
 reg    [31:0] bridge_data_offset_storage = 32'd0;
+reg           bridge_file_size_re = 1'd0;
+wire   [31:0] bridge_file_size_status;
+wire          bridge_file_size_we;
 reg           bridge_length_re = 1'd0;
 reg    [31:0] bridge_length_storage = 32'd0;
 wire          bridge_request_read_r;
@@ -432,6 +441,9 @@ reg           bridge_request_read_w = 1'd0;
 reg           bridge_request_read_we = 1'd0;
 reg           bridge_slot_id_re = 1'd0;
 reg    [15:0] bridge_slot_id_storage = 16'd0;
+reg           bridge_status_re = 1'd0;
+reg           bridge_status_status = 1'd0;
+wire          bridge_status_we;
 reg           cont1_key_re = 1'd0;
 wire   [31:0] cont1_key_status;
 wire          cont1_key_we;
@@ -450,10 +462,18 @@ reg           csr_bankarray_csrbank0_scratch0_re = 1'd0;
 wire   [31:0] csr_bankarray_csrbank0_scratch0_w;
 reg           csr_bankarray_csrbank0_scratch0_we = 1'd0;
 wire          csr_bankarray_csrbank0_sel;
+wire   [31:0] csr_bankarray_csrbank1_bridge_current_address_r;
+reg           csr_bankarray_csrbank1_bridge_current_address_re = 1'd0;
+wire   [31:0] csr_bankarray_csrbank1_bridge_current_address_w;
+reg           csr_bankarray_csrbank1_bridge_current_address_we = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_bridge_data_offset0_r;
 reg           csr_bankarray_csrbank1_bridge_data_offset0_re = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_bridge_data_offset0_w;
 reg           csr_bankarray_csrbank1_bridge_data_offset0_we = 1'd0;
+wire   [31:0] csr_bankarray_csrbank1_bridge_file_size_r;
+reg           csr_bankarray_csrbank1_bridge_file_size_re = 1'd0;
+wire   [31:0] csr_bankarray_csrbank1_bridge_file_size_w;
+reg           csr_bankarray_csrbank1_bridge_file_size_we = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_bridge_length0_r;
 reg           csr_bankarray_csrbank1_bridge_length0_re = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_bridge_length0_w;
@@ -462,6 +482,10 @@ wire   [15:0] csr_bankarray_csrbank1_bridge_slot_id0_r;
 reg           csr_bankarray_csrbank1_bridge_slot_id0_re = 1'd0;
 wire   [15:0] csr_bankarray_csrbank1_bridge_slot_id0_w;
 reg           csr_bankarray_csrbank1_bridge_slot_id0_we = 1'd0;
+wire          csr_bankarray_csrbank1_bridge_status_r;
+reg           csr_bankarray_csrbank1_bridge_status_re = 1'd0;
+wire          csr_bankarray_csrbank1_bridge_status_w;
+reg           csr_bankarray_csrbank1_bridge_status_we = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_cont1_key_r;
 reg           csr_bankarray_csrbank1_cont1_key_re = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_cont1_key_w;
@@ -874,6 +898,7 @@ wire   [31:0] port_wdata_payload_data;
 wire    [3:0] port_wdata_payload_we;
 wire          port_wdata_ready;
 wire          port_wdata_valid;
+reg           prev_bridge_status_in = 1'd0;
 reg           ram_data_address_re = 1'd0;
 reg    [31:0] ram_data_address_storage = 32'd0;
 reg    [15:0] rddata_d = 16'd0;
@@ -1962,16 +1987,16 @@ reg           vtg_vsync_start_re = 1'd0;
 reg    [11:0] vtg_vsync_start_storage = 12'd201;
 wire          wait_1;
 reg           wb_sdram_ack = 1'd0;
-wire   [29:0] wb_sdram_adr /* synthesis preserve */;
+wire   [29:0] wb_sdram_adr;
 wire    [1:0] wb_sdram_bte;
-wire    [2:0] wb_sdram_cti /* synthesis keep */;
-wire          wb_sdram_cyc /* synthesis preserve */;
-reg    [31:0] wb_sdram_dat_r = 32'd0 /* synthesis preserve */;
-wire   [31:0] wb_sdram_dat_w  /* synthesis keep */;
+wire    [2:0] wb_sdram_cti;
+wire          wb_sdram_cyc;
+reg    [31:0] wb_sdram_dat_r = 32'd0;
+wire   [31:0] wb_sdram_dat_w;
 reg           wb_sdram_err = 1'd0;
-wire    [3:0] wb_sdram_sel /* synthesis preserve */;
-wire          wb_sdram_stb /* synthesis keep */;
-wire          wb_sdram_we /* synthesis keep */;
+wire    [3:0] wb_sdram_sel;
+wire          wb_sdram_stb;
+wire          wb_sdram_we;
 reg           wishbone_bridge_aborted = 1'd0;
 reg           wishbone_bridge_aborted_fsm_next_value = 1'd0;
 reg           wishbone_bridge_aborted_fsm_next_value_ce = 1'd0;
@@ -2093,6 +2118,8 @@ assign apf_bridge_slot_id = bridge_slot_id_storage;
 assign apf_bridge_data_offset = bridge_data_offset_storage;
 assign apf_bridge_length = bridge_length_storage;
 assign apf_bridge_ram_data_address = ram_data_address_storage;
+assign bridge_file_size_status = apf_bridge_file_size;
+assign bridge_current_address_status = apf_bridge_current_address;
 assign wishbone_adr = testSlave_adr;
 assign wishbone_dat_w = testSlave_dat_w;
 assign testSlave_dat_r = wishbone_dat_r;
@@ -4549,12 +4576,45 @@ always @(*) begin
         csr_bankarray_csrbank1_ram_data_address0_we <= (~csr_bankarray_interface1_bank_bus_we);
     end
 end
+assign csr_bankarray_csrbank1_bridge_file_size_r = csr_bankarray_interface1_bank_bus_dat_w[31:0];
+always @(*) begin
+    csr_bankarray_csrbank1_bridge_file_size_re <= 1'd0;
+    csr_bankarray_csrbank1_bridge_file_size_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 3'd6))) begin
+        csr_bankarray_csrbank1_bridge_file_size_re <= csr_bankarray_interface1_bank_bus_we;
+        csr_bankarray_csrbank1_bridge_file_size_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
+assign csr_bankarray_csrbank1_bridge_status_r = csr_bankarray_interface1_bank_bus_dat_w[0];
+always @(*) begin
+    csr_bankarray_csrbank1_bridge_status_re <= 1'd0;
+    csr_bankarray_csrbank1_bridge_status_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 3'd7))) begin
+        csr_bankarray_csrbank1_bridge_status_re <= csr_bankarray_interface1_bank_bus_we;
+        csr_bankarray_csrbank1_bridge_status_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
+assign csr_bankarray_csrbank1_bridge_current_address_r = csr_bankarray_interface1_bank_bus_dat_w[31:0];
+always @(*) begin
+    csr_bankarray_csrbank1_bridge_current_address_re <= 1'd0;
+    csr_bankarray_csrbank1_bridge_current_address_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 4'd8))) begin
+        csr_bankarray_csrbank1_bridge_current_address_re <= csr_bankarray_interface1_bank_bus_we;
+        csr_bankarray_csrbank1_bridge_current_address_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
 assign csr_bankarray_csrbank1_cont1_key_w = cont1_key_status[31:0];
 assign cont1_key_we = csr_bankarray_csrbank1_cont1_key_we;
 assign csr_bankarray_csrbank1_bridge_slot_id0_w = bridge_slot_id_storage[15:0];
 assign csr_bankarray_csrbank1_bridge_data_offset0_w = bridge_data_offset_storage[31:0];
 assign csr_bankarray_csrbank1_bridge_length0_w = bridge_length_storage[31:0];
 assign csr_bankarray_csrbank1_ram_data_address0_w = ram_data_address_storage[31:0];
+assign csr_bankarray_csrbank1_bridge_file_size_w = bridge_file_size_status[31:0];
+assign bridge_file_size_we = csr_bankarray_csrbank1_bridge_file_size_we;
+assign csr_bankarray_csrbank1_bridge_status_w = bridge_status_status;
+assign bridge_status_we = csr_bankarray_csrbank1_bridge_status_we;
+assign csr_bankarray_csrbank1_bridge_current_address_w = bridge_current_address_status[31:0];
+assign bridge_current_address_we = csr_bankarray_csrbank1_bridge_current_address_we;
 assign csr_bankarray_csrbank2_sel = (csr_bankarray_interface2_bank_bus_adr[13:9] == 2'd3);
 assign csr_bankarray_csrbank2_dfii_control0_r = csr_bankarray_interface2_bank_bus_dat_w[3:0];
 always @(*) begin
@@ -5953,6 +6013,13 @@ always @(posedge sdrio_clk) begin
 end
 
 always @(posedge sys_clk) begin
+    prev_bridge_status_in <= apf_bridge_complete_trigger;
+    if ((apf_bridge_complete_trigger & (~prev_bridge_status_in))) begin
+        bridge_status_status <= 1'd1;
+    end
+    if (bridge_status_we) begin
+        bridge_status_status <= 1'd0;
+    end
     case (grant)
         1'd0: begin
             if ((~request[0])) begin
@@ -6776,6 +6843,15 @@ always @(posedge sys_clk) begin
             3'd5: begin
                 csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_ram_data_address0_w;
             end
+            3'd6: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_bridge_file_size_w;
+            end
+            3'd7: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_bridge_status_w;
+            end
+            4'd8: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_bridge_current_address_w;
+            end
         endcase
     end
     cont1_key_re <= csr_bankarray_csrbank1_cont1_key_re;
@@ -6795,6 +6871,9 @@ always @(posedge sys_clk) begin
         ram_data_address_storage[31:0] <= csr_bankarray_csrbank1_ram_data_address0_r;
     end
     ram_data_address_re <= csr_bankarray_csrbank1_ram_data_address0_re;
+    bridge_file_size_re <= csr_bankarray_csrbank1_bridge_file_size_re;
+    bridge_status_re <= csr_bankarray_csrbank1_bridge_status_re;
+    bridge_current_address_re <= csr_bankarray_csrbank1_bridge_current_address_re;
     csr_bankarray_interface2_bank_bus_dat_r <= 1'd0;
     if (csr_bankarray_csrbank2_sel) begin
         case (csr_bankarray_interface2_bank_bus_adr[8:0])
@@ -7300,6 +7379,11 @@ always @(posedge sys_clk) begin
         bridge_length_re <= 1'd0;
         ram_data_address_storage <= 32'd0;
         ram_data_address_re <= 1'd0;
+        bridge_file_size_re <= 1'd0;
+        bridge_status_status <= 1'd0;
+        bridge_status_re <= 1'd0;
+        bridge_current_address_re <= 1'd0;
+        prev_bridge_status_in <= 1'd0;
         basesoc_we <= 1'd0;
         grant <= 2'd0;
         slave_sel_r <= 5'd0;
@@ -8467,5 +8551,5 @@ ALTDDIO_IN #(
 endmodule
 
 // -----------------------------------------------------------------------------
-//  Auto-Generated by LiteX on 2023-10-15 16:29:22.
+//  Auto-Generated by LiteX on 2023-10-17 12:03:38.
 //------------------------------------------------------------------------------

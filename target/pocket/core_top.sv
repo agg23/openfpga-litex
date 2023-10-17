@@ -404,9 +404,9 @@ module core_top (
   // bridge data slot access
   // synchronous to clk_74a
 
-  wire [9:0] datatable_addr;
-  wire datatable_wren;
-  wire [31:0] datatable_data;
+  reg [9:0] datatable_addr;
+  reg datatable_wren;
+  reg [31:0] datatable_data;
   wire [31:0] datatable_q;
 
   core_bridge_cmd icb (
@@ -490,7 +490,19 @@ module core_top (
 
   );
 
+  reg [31:0] active_file_size = 0;
 
+  always @(posedge clk_74a) begin
+    if (~pll_core_locked) begin
+      datatable_addr <= 0;
+      datatable_data <= 0;
+      datatable_wren <= 0;
+    end else begin
+      // Read asset size for data slot index set by ID
+      datatable_addr   <= target_dataslot_id[9:0] * 10'h2 + 10'h1;
+      active_file_size <= datatable_q;
+    end
+  end
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // Data loading
@@ -671,9 +683,20 @@ module core_top (
 
   wire apf_bridge_request_read_lengthened = apf_bridge_request_read_counter > 3'h0 /* synthesis preserve */;
 
+  wire [31:0] active_file_size_s;
+  wire target_dataslot_done_s;
+
+  synch_3 #(
+      .WIDTH(33)
+  ) from_bridge_s (
+      {active_file_size, target_dataslot_done},
+      {active_file_size_s, target_dataslot_done_s},
+      clk_sys
+  );
+
   synch_3 #(
       .WIDTH(81)
-  ) bridge_s (
+  ) to_bridge_s (
       {
         apf_bridge_request_read_lengthened,
         apf_bridge_data_offset,
@@ -691,6 +714,7 @@ module core_top (
   assign target_dataslot_bridgeaddr = 32'h0;
 
   wire [31:0] ram_data_address  /* synthesis preserve */;
+  wire [25:0] current_address;
 
   litex litex (
       .clk_sys(clk_sys),
@@ -708,6 +732,9 @@ module core_top (
       .apf_bridge_length(apf_bridge_length),
       .apf_bridge_ram_data_address(ram_data_address),
       .apf_bridge_slot_id(apf_bridge_slot_id),
+      .apf_bridge_file_size(active_file_size_s),
+      .apf_bridge_current_address(current_address),
+      .apf_bridge_complete_trigger(target_dataslot_done_s),
 
       .wishbone_ack(ack),
       .wishbone_adr(addr),
@@ -801,6 +828,8 @@ module core_top (
       .bridge_endian_little(bridge_endian_little),
 
       .ram_data_address(ram_data_address),
+
+      .current_address(current_address),
 
       .addr(master_addr),
       .bte(master_bte),
