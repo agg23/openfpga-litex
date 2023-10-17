@@ -91,7 +91,12 @@ class Platform(GenericPlatform):
                 # Subsignal("local_address", Pins(32)),
                 Subsignal("length", Pins(32)),
 
-                Subsignal("ram_data_address", Pins(32))
+                Subsignal("ram_data_address", Pins(32)),
+
+                Subsignal("file_size", Pins(32)),
+
+                Subsignal("current_address", Pins(32)),
+                Subsignal("complete_trigger", Pins(1))
             ),
         ]
         _connectors = []

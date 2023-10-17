@@ -153,12 +153,39 @@ class BaseSoC(SoCCore):
         self.bridge_length = CSRStorage(32)
         self.ram_data_address = CSRStorage(32)
 
+        self.bridge_file_size = CSRStatus(32)
+
+        # Will go high when operation completes. Goes low after read
+        self.bridge_status = CSRStatus(1)
+
+        self.bridge_current_address = CSRStatus(32)
+
+        self.prev_bridge_status_in = Signal()
+
+        self.sync += [
+            self.prev_bridge_status_in.eq(bridge_pins.complete_trigger),
+
+            If(bridge_pins.complete_trigger & ~self.prev_bridge_status_in,
+                # Push status high
+                self.bridge_status.status.eq(1)
+            ),
+
+            If(self.bridge_status.we,
+                # Read, clear status
+                self.bridge_status.status.eq(0)
+            )
+        ]
+
         self.comb += [
             bridge_pins.slot_id.eq(self.bridge_slot_id.storage),
             bridge_pins.data_offset.eq(self.bridge_data_offset.storage),
             # bridge_pins.local_address.eq(self.bridge_local_address.storage),
             bridge_pins.length.eq(self.bridge_length.storage),
-            bridge_pins.ram_data_address.eq(self.ram_data_address.storage)
+            bridge_pins.ram_data_address.eq(self.ram_data_address.storage),
+
+            self.bridge_file_size.status.eq(bridge_pins.file_size),
+
+            self.bridge_current_address.status.eq(bridge_pins.current_address)
         ]
 
 # Build --------------------------------------------------------------------------------------------

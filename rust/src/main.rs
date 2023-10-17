@@ -258,6 +258,10 @@ fn main() -> ! {
         let value = peripherals.MAIN.bridge_slot_id.read().bits();
 
         println!("Slot: {value}");
+
+        let value = peripherals.MAIN.bridge_file_size.read().bits();
+
+        println!("File length: {value:x}");
     }
 
     // unsafe {
@@ -427,6 +431,7 @@ fn main() -> ! {
     );
 
     let mut first_render = true;
+    let mut last_address = 0;
 
     loop {
         slint::platform::update_timers_and_animations();
@@ -505,6 +510,20 @@ fn main() -> ! {
 
                     peripherals.MAIN.bridge_request_read.write(|w| w.bits(1));
                 };
+            }
+
+            let current_address = peripherals.MAIN.bridge_current_address.read().bits();
+
+            if current_address != last_address {
+                last_address = current_address;
+
+                println!("Address: {current_address:x}")
+            }
+
+            let status = peripherals.MAIN.bridge_status.read().bits();
+
+            if status > 0 {
+                println!("Finished write");
             }
 
             ui_positioner.set_x(x);
