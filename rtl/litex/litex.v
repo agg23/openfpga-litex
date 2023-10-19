@@ -9,7 +9,7 @@
 // Filename   : litex.v
 // Device     : 5CEBA4F23C8
 // LiteX sha1 : cd821877
-// Date       : 2023-10-17 12:03:38
+// Date       : 2023-10-18 10:15:54
 //------------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -19,6 +19,10 @@
 //------------------------------------------------------------------------------
 
 module litex (
+    input  wire   [11:0] apf_audio_buffer_fill,
+    output wire   [31:0] apf_audio_bus_out,
+    output wire          apf_audio_bus_wr,
+    output wire          apf_audio_playback_en,
     input  wire          apf_bridge_complete_trigger,
     input  wire   [31:0] apf_bridge_current_address,
     output wire   [31:0] apf_bridge_data_offset,
@@ -94,6 +98,15 @@ reg           array_muxed6 = 1'd0;
 reg     [1:0] array_muxed7 = 2'd0;
 reg    [12:0] array_muxed8 = 13'd0;
 reg           array_muxed9 = 1'd0;
+reg           audio_buffer_fill_re = 1'd0;
+wire   [11:0] audio_buffer_fill_status;
+wire          audio_buffer_fill_we;
+wire   [31:0] audio_out_r;
+reg           audio_out_re = 1'd0;
+reg    [31:0] audio_out_w = 32'd0;
+reg           audio_out_we = 1'd0;
+reg           audio_playback_en_re = 1'd0;
+reg           audio_playback_en_storage = 1'd0;
 reg    [13:0] basesoc_adr = 14'd0;
 reg    [13:0] basesoc_adr_wishbone2csr_next_value1 = 14'd0;
 reg           basesoc_adr_wishbone2csr_next_value_ce1 = 1'd0;
@@ -158,6 +171,8 @@ wire    [3:0] basesoc_ibus_sel;
 wire          basesoc_ibus_stb;
 wire          basesoc_ibus_we;
 reg    [31:0] basesoc_interrupt = 32'd0;
+reg     [1:0] basesoc_litedramdmareader_next_state = 2'd0;
+reg     [1:0] basesoc_litedramdmareader_state = 2'd0;
 reg           basesoc_litedramnativeportconverter_next_state = 1'd0;
 reg           basesoc_litedramnativeportconverter_state = 1'd0;
 reg           basesoc_locked0 = 1'd0;
@@ -199,6 +214,8 @@ reg     [1:0] basesoc_refresher_state = 2'd0;
 wire          basesoc_reset;
 reg           basesoc_reset_re = 1'd0;
 reg     [1:0] basesoc_reset_storage = 2'd0;
+reg     [1:0] basesoc_resetinserter_next_state = 2'd0;
+reg     [1:0] basesoc_resetinserter_state = 2'd0;
 wire          basesoc_roundrobin0_ce;
 reg           basesoc_roundrobin0_grant = 1'd0;
 wire    [1:0] basesoc_roundrobin0_request;
@@ -407,8 +424,6 @@ wire    [7:0] basesoc_uart_uart_source_payload_data;
 wire          basesoc_uart_uart_source_ready;
 wire          basesoc_uart_uart_source_valid;
 reg    [31:0] basesoc_vexriscv = 32'd0;
-reg     [1:0] basesoc_videoframebuffer_next_state = 2'd0;
-reg     [1:0] basesoc_videoframebuffer_state = 2'd0;
 reg           basesoc_we = 1'd0;
 reg           basesoc_we_wishbone2csr_next_value2 = 1'd0;
 reg           basesoc_we_wishbone2csr_next_value_ce2 = 1'd0;
@@ -462,6 +477,14 @@ reg           csr_bankarray_csrbank0_scratch0_re = 1'd0;
 wire   [31:0] csr_bankarray_csrbank0_scratch0_w;
 reg           csr_bankarray_csrbank0_scratch0_we = 1'd0;
 wire          csr_bankarray_csrbank0_sel;
+wire   [11:0] csr_bankarray_csrbank1_audio_buffer_fill_r;
+reg           csr_bankarray_csrbank1_audio_buffer_fill_re = 1'd0;
+wire   [11:0] csr_bankarray_csrbank1_audio_buffer_fill_w;
+reg           csr_bankarray_csrbank1_audio_buffer_fill_we = 1'd0;
+wire          csr_bankarray_csrbank1_audio_playback_en0_r;
+reg           csr_bankarray_csrbank1_audio_playback_en0_re = 1'd0;
+wire          csr_bankarray_csrbank1_audio_playback_en0_w;
+reg           csr_bankarray_csrbank1_audio_playback_en0_we = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_bridge_current_address_r;
 reg           csr_bankarray_csrbank1_bridge_current_address_re = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_bridge_current_address_w;
@@ -841,6 +864,8 @@ reg     [2:0] impl_multiregimpl10_regs0 = 3'd0;
 reg     [2:0] impl_multiregimpl10_regs1 = 3'd0;
 reg     [2:0] impl_multiregimpl11_regs0 = 3'd0;
 reg     [2:0] impl_multiregimpl11_regs1 = 3'd0;
+reg           impl_multiregimpl12_regs0 = 1'd0;
+reg           impl_multiregimpl12_regs1 = 1'd0;
 reg           impl_multiregimpl1_regs0 = 1'd0;
 reg           impl_multiregimpl1_regs1 = 1'd0;
 reg    [11:0] impl_multiregimpl2_regs0 = 12'd0;
@@ -1737,9 +1762,6 @@ reg           vid_rst = 1'd0;
 reg     [2:0] videoframebuffer0 = 3'd0;
 reg     [1:0] videoframebuffer1 = 2'd0;
 reg     [2:0] videoframebuffer2 = 3'd0;
-wire   [23:0] videoframebuffer_base;
-reg           videoframebuffer_base_re = 1'd0;
-reg    [31:0] videoframebuffer_base_storage = 32'd1086324736;
 wire   [17:0] videoframebuffer_cdc_cdc_asyncfifo_din;
 wire   [17:0] videoframebuffer_cdc_cdc_asyncfifo_dout;
 wire          videoframebuffer_cdc_cdc_asyncfifo_re;
@@ -1889,31 +1911,35 @@ reg           videoframebuffer_dma_source_source_last = 1'd0;
 wire   [31:0] videoframebuffer_dma_source_source_payload_data;
 wire          videoframebuffer_dma_source_source_ready;
 reg           videoframebuffer_dma_source_source_valid = 1'd0;
-reg           videoframebuffer_done_re = 1'd0;
-reg           videoframebuffer_done_status = 1'd0;
-wire          videoframebuffer_done_we;
-reg           videoframebuffer_enable_re = 1'd0;
-reg           videoframebuffer_enable_storage = 1'd0;
-wire   [23:0] videoframebuffer_length;
-reg           videoframebuffer_length_re = 1'd0;
-reg    [31:0] videoframebuffer_length_storage = 32'd128000;
-reg           videoframebuffer_loop_re = 1'd0;
-reg           videoframebuffer_loop_storage = 1'd1;
-reg    [23:0] videoframebuffer_offset = 24'd0;
-reg           videoframebuffer_offset_re = 1'd0;
-wire   [31:0] videoframebuffer_offset_status;
-reg    [23:0] videoframebuffer_offset_videoframebuffer_next_value = 24'd0;
-reg           videoframebuffer_offset_videoframebuffer_next_value_ce = 1'd0;
-wire          videoframebuffer_offset_we;
-wire          videoframebuffer_reset;
+wire          videoframebuffer_fsm_reset;
+wire   [23:0] videoframebuffer_litedramdmareader_base;
+reg           videoframebuffer_litedramdmareader_base_re = 1'd0;
+reg    [31:0] videoframebuffer_litedramdmareader_base_storage = 32'd1086324736;
+reg           videoframebuffer_litedramdmareader_done_re = 1'd0;
+reg           videoframebuffer_litedramdmareader_done_status = 1'd0;
+wire          videoframebuffer_litedramdmareader_done_we;
+reg           videoframebuffer_litedramdmareader_enable_re = 1'd0;
+reg           videoframebuffer_litedramdmareader_enable_storage = 1'd0;
+wire   [23:0] videoframebuffer_litedramdmareader_length;
+reg           videoframebuffer_litedramdmareader_length_re = 1'd0;
+reg    [31:0] videoframebuffer_litedramdmareader_length_storage = 32'd128000;
+reg           videoframebuffer_litedramdmareader_loop_re = 1'd0;
+reg           videoframebuffer_litedramdmareader_loop_storage = 1'd1;
+reg    [23:0] videoframebuffer_litedramdmareader_offset = 24'd0;
+reg           videoframebuffer_litedramdmareader_offset_re = 1'd0;
+wire   [31:0] videoframebuffer_litedramdmareader_offset_status;
+reg    [23:0] videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value = 24'd0;
+reg           videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value_ce = 1'd0;
+wire          videoframebuffer_litedramdmareader_offset_we;
+wire          videoframebuffer_litedramdmareader_reset;
 reg           videoframebuffer_source_first = 1'd0;
 reg           videoframebuffer_source_last = 1'd0;
 wire    [7:0] videoframebuffer_source_payload_b;
-wire          videoframebuffer_source_payload_de;
+reg           videoframebuffer_source_payload_de = 1'd0;
 wire    [7:0] videoframebuffer_source_payload_g;
-wire          videoframebuffer_source_payload_hsync;
+reg           videoframebuffer_source_payload_hsync = 1'd0;
 wire    [7:0] videoframebuffer_source_payload_r;
-wire          videoframebuffer_source_payload_vsync;
+reg           videoframebuffer_source_payload_vsync = 1'd0;
 wire          videoframebuffer_source_ready;
 reg           videoframebuffer_source_valid = 1'd0;
 wire          videoframebuffer_underflow;
@@ -2120,6 +2146,10 @@ assign apf_bridge_length = bridge_length_storage;
 assign apf_bridge_ram_data_address = ram_data_address_storage;
 assign bridge_file_size_status = apf_bridge_file_size;
 assign bridge_current_address_status = apf_bridge_current_address;
+assign apf_audio_bus_out = audio_out_r;
+assign apf_audio_bus_wr = audio_out_re;
+assign apf_audio_playback_en = audio_playback_en_storage;
+assign audio_buffer_fill_status = apf_audio_buffer_fill;
 assign wishbone_adr = testSlave_adr;
 assign wishbone_dat_w = testSlave_dat_w;
 assign testSlave_dat_r = wishbone_dat_r;
@@ -4224,20 +4254,6 @@ assign videoframebuffer_conv_source_source_ready = videoframebuffer_cdc_sink_sin
 assign videoframebuffer_cdc_sink_sink_first = videoframebuffer_conv_source_source_first;
 assign videoframebuffer_cdc_sink_sink_last = videoframebuffer_conv_source_source_last;
 assign videoframebuffer_cdc_sink_sink_payload_data = videoframebuffer_conv_source_source_payload_data;
-always @(*) begin
-    videoframebuffer_cdc_source_source_ready <= 1'd0;
-    videoframebuffer_source_valid <= 1'd0;
-    videoframebuffer_vtg_sink_ready <= 1'd0;
-    videoframebuffer_vtg_sink_ready <= 1'd1;
-    if ((videoframebuffer_vtg_sink_valid & videoframebuffer_vtg_sink_payload_de)) begin
-        videoframebuffer_source_valid <= videoframebuffer_cdc_source_source_valid;
-        videoframebuffer_cdc_source_source_ready <= videoframebuffer_source_ready;
-        videoframebuffer_vtg_sink_ready <= (videoframebuffer_source_valid & videoframebuffer_source_ready);
-    end
-end
-assign videoframebuffer_source_payload_hsync = videoframebuffer_vtg_sink_payload_hsync;
-assign videoframebuffer_source_payload_vsync = videoframebuffer_vtg_sink_payload_vsync;
-assign videoframebuffer_source_payload_de = videoframebuffer_vtg_sink_payload_de;
 assign videoframebuffer_source_payload_r = {videoframebuffer_cdc_source_source_payload_data[15:11], videoframebuffer0};
 assign videoframebuffer_source_payload_g = {videoframebuffer_cdc_source_source_payload_data[10:5], videoframebuffer1};
 assign videoframebuffer_source_payload_b = {videoframebuffer_cdc_source_source_payload_data[4:0], videoframebuffer2};
@@ -4266,11 +4282,11 @@ always @(*) begin
 end
 assign videoframebuffer_dma_fifo_source_ready = (videoframebuffer_dma_source_source_ready | (~videoframebuffer_dma_enable));
 assign videoframebuffer_dma_res_fifo_source_ready = (videoframebuffer_dma_fifo_source_valid & videoframebuffer_dma_fifo_source_ready);
-assign videoframebuffer_dma_enable = videoframebuffer_enable_storage;
-assign videoframebuffer_base = videoframebuffer_base_storage[31:2];
-assign videoframebuffer_length = videoframebuffer_length_storage[31:2];
-assign videoframebuffer_offset_status = videoframebuffer_offset;
-assign videoframebuffer_reset = (~videoframebuffer_enable_storage);
+assign videoframebuffer_dma_enable = videoframebuffer_litedramdmareader_enable_storage;
+assign videoframebuffer_litedramdmareader_base = videoframebuffer_litedramdmareader_base_storage[31:2];
+assign videoframebuffer_litedramdmareader_length = videoframebuffer_litedramdmareader_length_storage[31:2];
+assign videoframebuffer_litedramdmareader_offset_status = videoframebuffer_litedramdmareader_offset;
+assign videoframebuffer_litedramdmareader_reset = (~videoframebuffer_litedramdmareader_enable_storage);
 assign videoframebuffer_dma_res_fifo_syncfifo_din = {videoframebuffer_dma_res_fifo_fifo_in_last, videoframebuffer_dma_res_fifo_fifo_in_first, videoframebuffer_dma_res_fifo_fifo_in_payload_dummy};
 assign {videoframebuffer_dma_res_fifo_fifo_out_last, videoframebuffer_dma_res_fifo_fifo_out_first, videoframebuffer_dma_res_fifo_fifo_out_payload_dummy} = videoframebuffer_dma_res_fifo_syncfifo_dout;
 assign videoframebuffer_dma_res_fifo_sink_ready = videoframebuffer_dma_res_fifo_syncfifo_writable;
@@ -4329,39 +4345,39 @@ assign videoframebuffer_dma_fifo_rdport_re = videoframebuffer_dma_fifo_do_read;
 assign videoframebuffer_dma_fifo_syncfifo_writable = (videoframebuffer_dma_fifo_level0 != 15'd16384);
 assign videoframebuffer_dma_fifo_syncfifo_readable = (videoframebuffer_dma_fifo_level0 != 1'd0);
 always @(*) begin
-    basesoc_videoframebuffer_next_state <= 2'd0;
+    basesoc_litedramdmareader_next_state <= 2'd0;
     videoframebuffer_dma_sink_sink_last <= 1'd0;
     videoframebuffer_dma_sink_sink_payload_address <= 24'd0;
     videoframebuffer_dma_sink_sink_valid <= 1'd0;
-    videoframebuffer_done_status <= 1'd0;
-    videoframebuffer_offset_videoframebuffer_next_value <= 24'd0;
-    videoframebuffer_offset_videoframebuffer_next_value_ce <= 1'd0;
-    basesoc_videoframebuffer_next_state <= basesoc_videoframebuffer_state;
-    case (basesoc_videoframebuffer_state)
+    videoframebuffer_litedramdmareader_done_status <= 1'd0;
+    videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value <= 24'd0;
+    videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value_ce <= 1'd0;
+    basesoc_litedramdmareader_next_state <= basesoc_litedramdmareader_state;
+    case (basesoc_litedramdmareader_state)
         1'd1: begin
             videoframebuffer_dma_sink_sink_valid <= 1'd1;
-            videoframebuffer_dma_sink_sink_last <= (videoframebuffer_offset == (videoframebuffer_length - 1'd1));
-            videoframebuffer_dma_sink_sink_payload_address <= (videoframebuffer_base + videoframebuffer_offset);
+            videoframebuffer_dma_sink_sink_last <= (videoframebuffer_litedramdmareader_offset == (videoframebuffer_litedramdmareader_length - 1'd1));
+            videoframebuffer_dma_sink_sink_payload_address <= (videoframebuffer_litedramdmareader_base + videoframebuffer_litedramdmareader_offset);
             if (videoframebuffer_dma_sink_sink_ready) begin
-                videoframebuffer_offset_videoframebuffer_next_value <= (videoframebuffer_offset + 1'd1);
-                videoframebuffer_offset_videoframebuffer_next_value_ce <= 1'd1;
+                videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value <= (videoframebuffer_litedramdmareader_offset + 1'd1);
+                videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value_ce <= 1'd1;
                 if (videoframebuffer_dma_sink_sink_last) begin
-                    if (videoframebuffer_loop_storage) begin
-                        videoframebuffer_offset_videoframebuffer_next_value <= 1'd0;
-                        videoframebuffer_offset_videoframebuffer_next_value_ce <= 1'd1;
+                    if (videoframebuffer_litedramdmareader_loop_storage) begin
+                        videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value <= 1'd0;
+                        videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value_ce <= 1'd1;
                     end else begin
-                        basesoc_videoframebuffer_next_state <= 2'd2;
+                        basesoc_litedramdmareader_next_state <= 2'd2;
                     end
                 end
             end
         end
         2'd2: begin
-            videoframebuffer_done_status <= 1'd1;
+            videoframebuffer_litedramdmareader_done_status <= 1'd1;
         end
         default: begin
-            videoframebuffer_offset_videoframebuffer_next_value <= 1'd0;
-            videoframebuffer_offset_videoframebuffer_next_value_ce <= 1'd1;
-            basesoc_videoframebuffer_next_state <= 1'd1;
+            videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value <= 1'd0;
+            videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value_ce <= 1'd1;
+            basesoc_litedramdmareader_next_state <= 1'd1;
         end
     endcase
 end
@@ -4437,6 +4453,41 @@ always @(*) begin
     end
 end
 assign videoframebuffer_cdc_cdc_graycounter1_q_next = (videoframebuffer_cdc_cdc_graycounter1_q_next_binary ^ videoframebuffer_cdc_cdc_graycounter1_q_next_binary[2:1]);
+always @(*) begin
+    basesoc_resetinserter_next_state <= 2'd0;
+    videoframebuffer_cdc_source_source_ready <= 1'd0;
+    videoframebuffer_source_payload_de <= 1'd0;
+    videoframebuffer_source_payload_hsync <= 1'd0;
+    videoframebuffer_source_payload_vsync <= 1'd0;
+    videoframebuffer_source_valid <= 1'd0;
+    videoframebuffer_vtg_sink_ready <= 1'd0;
+    basesoc_resetinserter_next_state <= basesoc_resetinserter_state;
+    case (basesoc_resetinserter_state)
+        1'd1: begin
+            videoframebuffer_cdc_source_source_ready <= 1'd1;
+            if ((videoframebuffer_cdc_source_source_valid & videoframebuffer_cdc_source_source_last)) begin
+                basesoc_resetinserter_next_state <= 2'd2;
+            end
+        end
+        2'd2: begin
+            videoframebuffer_vtg_sink_ready <= 1'd1;
+            if ((videoframebuffer_vtg_sink_valid & videoframebuffer_vtg_sink_payload_de)) begin
+                videoframebuffer_source_valid <= videoframebuffer_cdc_source_source_valid;
+                videoframebuffer_cdc_source_source_ready <= videoframebuffer_source_ready;
+                videoframebuffer_vtg_sink_ready <= (videoframebuffer_source_valid & videoframebuffer_source_ready);
+            end
+            videoframebuffer_source_payload_hsync <= videoframebuffer_vtg_sink_payload_hsync;
+            videoframebuffer_source_payload_vsync <= videoframebuffer_vtg_sink_payload_vsync;
+            videoframebuffer_source_payload_de <= videoframebuffer_vtg_sink_payload_de;
+        end
+        default: begin
+            videoframebuffer_vtg_sink_ready <= 1'd1;
+            if ((videoframebuffer_vtg_sink_valid & videoframebuffer_vtg_sink_last)) begin
+                basesoc_resetinserter_next_state <= 1'd1;
+            end
+        end
+    endcase
+end
 always @(*) begin
     basesoc_adr_wishbone2csr_next_value1 <= 14'd0;
     basesoc_adr_wishbone2csr_next_value_ce1 <= 1'd0;
@@ -4603,6 +4654,33 @@ always @(*) begin
         csr_bankarray_csrbank1_bridge_current_address_we <= (~csr_bankarray_interface1_bank_bus_we);
     end
 end
+assign audio_out_r = csr_bankarray_interface1_bank_bus_dat_w[31:0];
+always @(*) begin
+    audio_out_re <= 1'd0;
+    audio_out_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 4'd9))) begin
+        audio_out_re <= csr_bankarray_interface1_bank_bus_we;
+        audio_out_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
+assign csr_bankarray_csrbank1_audio_playback_en0_r = csr_bankarray_interface1_bank_bus_dat_w[0];
+always @(*) begin
+    csr_bankarray_csrbank1_audio_playback_en0_re <= 1'd0;
+    csr_bankarray_csrbank1_audio_playback_en0_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 4'd10))) begin
+        csr_bankarray_csrbank1_audio_playback_en0_re <= csr_bankarray_interface1_bank_bus_we;
+        csr_bankarray_csrbank1_audio_playback_en0_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
+assign csr_bankarray_csrbank1_audio_buffer_fill_r = csr_bankarray_interface1_bank_bus_dat_w[11:0];
+always @(*) begin
+    csr_bankarray_csrbank1_audio_buffer_fill_re <= 1'd0;
+    csr_bankarray_csrbank1_audio_buffer_fill_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 4'd11))) begin
+        csr_bankarray_csrbank1_audio_buffer_fill_re <= csr_bankarray_interface1_bank_bus_we;
+        csr_bankarray_csrbank1_audio_buffer_fill_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
 assign csr_bankarray_csrbank1_cont1_key_w = cont1_key_status[31:0];
 assign cont1_key_we = csr_bankarray_csrbank1_cont1_key_we;
 assign csr_bankarray_csrbank1_bridge_slot_id0_w = bridge_slot_id_storage[15:0];
@@ -4615,6 +4693,9 @@ assign csr_bankarray_csrbank1_bridge_status_w = bridge_status_status;
 assign bridge_status_we = csr_bankarray_csrbank1_bridge_status_we;
 assign csr_bankarray_csrbank1_bridge_current_address_w = bridge_current_address_status[31:0];
 assign bridge_current_address_we = csr_bankarray_csrbank1_bridge_current_address_we;
+assign csr_bankarray_csrbank1_audio_playback_en0_w = audio_playback_en_storage;
+assign csr_bankarray_csrbank1_audio_buffer_fill_w = audio_buffer_fill_status[11:0];
+assign audio_buffer_fill_we = csr_bankarray_csrbank1_audio_buffer_fill_we;
 assign csr_bankarray_csrbank2_sel = (csr_bankarray_interface2_bank_bus_adr[13:9] == 2'd3);
 assign csr_bankarray_csrbank2_dfii_control0_r = csr_bankarray_interface2_bank_bus_dat_w[3:0];
 always @(*) begin
@@ -5043,14 +5124,14 @@ always @(*) begin
         csr_bankarray_csrbank5_dma_offset_we <= (~csr_bankarray_interface5_bank_bus_we);
     end
 end
-assign csr_bankarray_csrbank5_dma_base0_w = videoframebuffer_base_storage[31:0];
-assign csr_bankarray_csrbank5_dma_length0_w = videoframebuffer_length_storage[31:0];
-assign csr_bankarray_csrbank5_dma_enable0_w = videoframebuffer_enable_storage;
-assign csr_bankarray_csrbank5_dma_done_w = videoframebuffer_done_status;
-assign videoframebuffer_done_we = csr_bankarray_csrbank5_dma_done_we;
-assign csr_bankarray_csrbank5_dma_loop0_w = videoframebuffer_loop_storage;
-assign csr_bankarray_csrbank5_dma_offset_w = videoframebuffer_offset_status[31:0];
-assign videoframebuffer_offset_we = csr_bankarray_csrbank5_dma_offset_we;
+assign csr_bankarray_csrbank5_dma_base0_w = videoframebuffer_litedramdmareader_base_storage[31:0];
+assign csr_bankarray_csrbank5_dma_length0_w = videoframebuffer_litedramdmareader_length_storage[31:0];
+assign csr_bankarray_csrbank5_dma_enable0_w = videoframebuffer_litedramdmareader_enable_storage;
+assign csr_bankarray_csrbank5_dma_done_w = videoframebuffer_litedramdmareader_done_status;
+assign videoframebuffer_litedramdmareader_done_we = csr_bankarray_csrbank5_dma_done_we;
+assign csr_bankarray_csrbank5_dma_loop0_w = videoframebuffer_litedramdmareader_loop_storage;
+assign csr_bankarray_csrbank5_dma_offset_w = videoframebuffer_litedramdmareader_offset_status[31:0];
+assign videoframebuffer_litedramdmareader_offset_we = csr_bankarray_csrbank5_dma_offset_we;
 assign csr_bankarray_csrbank6_sel = (csr_bankarray_interface6_bank_bus_adr[13:9] == 3'd7);
 assign csr_bankarray_csrbank6_enable0_r = csr_bankarray_interface6_bank_bus_dat_w[0];
 always @(*) begin
@@ -5987,6 +6068,7 @@ assign vtg_vsync_end = impl_multiregimpl8_regs1;
 assign vtg_vscan = impl_multiregimpl9_regs1;
 assign videoframebuffer_cdc_cdc_produce_rdomain = impl_multiregimpl10_regs1;
 assign videoframebuffer_cdc_cdc_consume_wdomain = impl_multiregimpl11_regs1;
+assign videoframebuffer_fsm_reset = impl_multiregimpl12_regs1;
 
 
 //------------------------------------------------------------------------------
@@ -6771,13 +6853,13 @@ always @(posedge sys_clk) begin
             videoframebuffer_dma_fifo_level0 <= (videoframebuffer_dma_fifo_level0 - 1'd1);
         end
     end
-    basesoc_videoframebuffer_state <= basesoc_videoframebuffer_next_state;
-    if (videoframebuffer_offset_videoframebuffer_next_value_ce) begin
-        videoframebuffer_offset <= videoframebuffer_offset_videoframebuffer_next_value;
+    basesoc_litedramdmareader_state <= basesoc_litedramdmareader_next_state;
+    if (videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value_ce) begin
+        videoframebuffer_litedramdmareader_offset <= videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value;
     end
-    if (videoframebuffer_reset) begin
-        videoframebuffer_offset <= 24'd0;
-        basesoc_videoframebuffer_state <= 2'd0;
+    if (videoframebuffer_litedramdmareader_reset) begin
+        videoframebuffer_litedramdmareader_offset <= 24'd0;
+        basesoc_litedramdmareader_state <= 2'd0;
     end
     if ((videoframebuffer_conv_converter_source_valid & videoframebuffer_conv_converter_source_ready)) begin
         if (videoframebuffer_conv_converter_last) begin
@@ -6852,6 +6934,15 @@ always @(posedge sys_clk) begin
             4'd8: begin
                 csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_bridge_current_address_w;
             end
+            4'd9: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= audio_out_w;
+            end
+            4'd10: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_audio_playback_en0_w;
+            end
+            4'd11: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_audio_buffer_fill_w;
+            end
         endcase
     end
     cont1_key_re <= csr_bankarray_csrbank1_cont1_key_re;
@@ -6874,6 +6965,11 @@ always @(posedge sys_clk) begin
     bridge_file_size_re <= csr_bankarray_csrbank1_bridge_file_size_re;
     bridge_status_re <= csr_bankarray_csrbank1_bridge_status_re;
     bridge_current_address_re <= csr_bankarray_csrbank1_bridge_current_address_re;
+    if (csr_bankarray_csrbank1_audio_playback_en0_re) begin
+        audio_playback_en_storage <= csr_bankarray_csrbank1_audio_playback_en0_r;
+    end
+    audio_playback_en_re <= csr_bankarray_csrbank1_audio_playback_en0_re;
+    audio_buffer_fill_re <= csr_bankarray_csrbank1_audio_buffer_fill_re;
     csr_bankarray_interface2_bank_bus_dat_r <= 1'd0;
     if (csr_bankarray_csrbank2_sel) begin
         case (csr_bankarray_interface2_bank_bus_adr[8:0])
@@ -7091,23 +7187,23 @@ always @(posedge sys_clk) begin
         endcase
     end
     if (csr_bankarray_csrbank5_dma_base0_re) begin
-        videoframebuffer_base_storage[31:0] <= csr_bankarray_csrbank5_dma_base0_r;
+        videoframebuffer_litedramdmareader_base_storage[31:0] <= csr_bankarray_csrbank5_dma_base0_r;
     end
-    videoframebuffer_base_re <= csr_bankarray_csrbank5_dma_base0_re;
+    videoframebuffer_litedramdmareader_base_re <= csr_bankarray_csrbank5_dma_base0_re;
     if (csr_bankarray_csrbank5_dma_length0_re) begin
-        videoframebuffer_length_storage[31:0] <= csr_bankarray_csrbank5_dma_length0_r;
+        videoframebuffer_litedramdmareader_length_storage[31:0] <= csr_bankarray_csrbank5_dma_length0_r;
     end
-    videoframebuffer_length_re <= csr_bankarray_csrbank5_dma_length0_re;
+    videoframebuffer_litedramdmareader_length_re <= csr_bankarray_csrbank5_dma_length0_re;
     if (csr_bankarray_csrbank5_dma_enable0_re) begin
-        videoframebuffer_enable_storage <= csr_bankarray_csrbank5_dma_enable0_r;
+        videoframebuffer_litedramdmareader_enable_storage <= csr_bankarray_csrbank5_dma_enable0_r;
     end
-    videoframebuffer_enable_re <= csr_bankarray_csrbank5_dma_enable0_re;
-    videoframebuffer_done_re <= csr_bankarray_csrbank5_dma_done_re;
+    videoframebuffer_litedramdmareader_enable_re <= csr_bankarray_csrbank5_dma_enable0_re;
+    videoframebuffer_litedramdmareader_done_re <= csr_bankarray_csrbank5_dma_done_re;
     if (csr_bankarray_csrbank5_dma_loop0_re) begin
-        videoframebuffer_loop_storage <= csr_bankarray_csrbank5_dma_loop0_r;
+        videoframebuffer_litedramdmareader_loop_storage <= csr_bankarray_csrbank5_dma_loop0_r;
     end
-    videoframebuffer_loop_re <= csr_bankarray_csrbank5_dma_loop0_re;
-    videoframebuffer_offset_re <= csr_bankarray_csrbank5_dma_offset_re;
+    videoframebuffer_litedramdmareader_loop_re <= csr_bankarray_csrbank5_dma_loop0_re;
+    videoframebuffer_litedramdmareader_offset_re <= csr_bankarray_csrbank5_dma_offset_re;
     csr_bankarray_interface6_bank_bus_dat_r <= 1'd0;
     if (csr_bankarray_csrbank6_sel) begin
         case (csr_bankarray_interface6_bank_bus_adr[8:0])
@@ -7356,17 +7452,17 @@ always @(posedge sys_clk) begin
         videoframebuffer_dma_fifo_level0 <= 15'd0;
         videoframebuffer_dma_fifo_produce <= 14'd0;
         videoframebuffer_dma_fifo_consume <= 14'd0;
-        videoframebuffer_base_storage <= 32'd1086324736;
-        videoframebuffer_base_re <= 1'd0;
-        videoframebuffer_length_storage <= 32'd128000;
-        videoframebuffer_length_re <= 1'd0;
-        videoframebuffer_enable_storage <= 1'd0;
-        videoframebuffer_enable_re <= 1'd0;
-        videoframebuffer_done_re <= 1'd0;
-        videoframebuffer_loop_storage <= 1'd1;
-        videoframebuffer_loop_re <= 1'd0;
-        videoframebuffer_offset_re <= 1'd0;
-        videoframebuffer_offset <= 24'd0;
+        videoframebuffer_litedramdmareader_base_storage <= 32'd1086324736;
+        videoframebuffer_litedramdmareader_base_re <= 1'd0;
+        videoframebuffer_litedramdmareader_length_storage <= 32'd128000;
+        videoframebuffer_litedramdmareader_length_re <= 1'd0;
+        videoframebuffer_litedramdmareader_enable_storage <= 1'd0;
+        videoframebuffer_litedramdmareader_enable_re <= 1'd0;
+        videoframebuffer_litedramdmareader_done_re <= 1'd0;
+        videoframebuffer_litedramdmareader_loop_storage <= 1'd1;
+        videoframebuffer_litedramdmareader_loop_re <= 1'd0;
+        videoframebuffer_litedramdmareader_offset_re <= 1'd0;
+        videoframebuffer_litedramdmareader_offset <= 24'd0;
         videoframebuffer_conv_converter_mux <= 1'd0;
         videoframebuffer_cdc_cdc_graycounter0_q <= 3'd0;
         videoframebuffer_cdc_cdc_graycounter0_q_binary <= 3'd0;
@@ -7384,6 +7480,9 @@ always @(posedge sys_clk) begin
         bridge_status_re <= 1'd0;
         bridge_current_address_re <= 1'd0;
         prev_bridge_status_in <= 1'd0;
+        audio_playback_en_storage <= 1'd0;
+        audio_playback_en_re <= 1'd0;
+        audio_buffer_fill_re <= 1'd0;
         basesoc_we <= 1'd0;
         grant <= 2'd0;
         slave_sel_r <= 5'd0;
@@ -7412,7 +7511,7 @@ always @(posedge sys_clk) begin
         basesoc_fullmemorywe_state <= 2'd0;
         basesoc_litedramnativeportconverter_state <= 1'd0;
         basesoc_fsm_state <= 2'd0;
-        basesoc_videoframebuffer_state <= 2'd0;
+        basesoc_litedramdmareader_state <= 2'd0;
         basesoc_wishbone2csr_state <= 2'd0;
     end
     impl_multiregimpl0_regs0 <= serial_rx;
@@ -7479,6 +7578,10 @@ always @(posedge vid_clk) begin
     end
     videoframebuffer_cdc_cdc_graycounter1_q_binary <= videoframebuffer_cdc_cdc_graycounter1_q_next_binary;
     videoframebuffer_cdc_cdc_graycounter1_q <= videoframebuffer_cdc_cdc_graycounter1_q_next;
+    basesoc_resetinserter_state <= basesoc_resetinserter_next_state;
+    if (videoframebuffer_fsm_reset) begin
+        basesoc_resetinserter_state <= 2'd0;
+    end
     if (vid_rst) begin
         vtg_source_payload_hsync <= 1'd0;
         vtg_source_payload_vsync <= 1'd0;
@@ -7491,6 +7594,7 @@ always @(posedge vid_clk) begin
         videoframebuffer_cdc_cdc_graycounter1_q <= 3'd0;
         videoframebuffer_cdc_cdc_graycounter1_q_binary <= 3'd0;
         basesoc_clockdomainsrenamer_state <= 1'd0;
+        basesoc_resetinserter_state <= 2'd0;
     end
     impl_multiregimpl1_regs0 <= vtg_enable_storage;
     impl_multiregimpl1_regs1 <= impl_multiregimpl1_regs0;
@@ -7512,6 +7616,8 @@ always @(posedge vid_clk) begin
     impl_multiregimpl9_regs1 <= impl_multiregimpl9_regs0;
     impl_multiregimpl10_regs0 <= videoframebuffer_cdc_cdc_graycounter0_q;
     impl_multiregimpl10_regs1 <= impl_multiregimpl10_regs0;
+    impl_multiregimpl12_regs0 <= videoframebuffer_litedramdmareader_reset;
+    impl_multiregimpl12_regs1 <= impl_multiregimpl12_regs0;
 end
 
 
@@ -8551,5 +8657,5 @@ ALTDDIO_IN #(
 endmodule
 
 // -----------------------------------------------------------------------------
-//  Auto-Generated by LiteX on 2023-10-17 12:03:38.
+//  Auto-Generated by LiteX on 2023-10-18 10:15:54.
 //------------------------------------------------------------------------------

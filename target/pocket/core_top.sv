@@ -709,6 +709,7 @@ module core_top (
       clk_74a
   );
 
+  wire reset = ~reset_n || ioctl_download || reset_timer > 0;
 
   // Always have bridge read/write from 0
   assign target_dataslot_bridgeaddr = 32'h0;
@@ -716,13 +717,18 @@ module core_top (
   wire [31:0] ram_data_address  /* synthesis preserve */;
   wire [25:0] current_address;
 
+  wire [31:0] audio_bus_out;
+  wire audio_bus_wr;
+  wire audio_playback_en;
+  wire [11:0] audio_buffer_fill;
+
   litex litex (
       .clk_sys(clk_sys),
       .clk_sys2x(clk_sys_150),
       .clk_sys2x_90deg(clk_sys_90deg),
       .clk_vid(clk_vid_10),
 
-      .reset(~reset_n || ioctl_download || reset_timer > 0),
+      .reset(reset),
 
       .cont1_key(cont1_key),
 
@@ -735,6 +741,11 @@ module core_top (
       .apf_bridge_file_size(active_file_size_s),
       .apf_bridge_current_address(current_address),
       .apf_bridge_complete_trigger(target_dataslot_done_s),
+
+      .apf_audio_bus_out(audio_bus_out),
+      .apf_audio_bus_wr(audio_bus_wr),
+      .apf_audio_playback_en(audio_playback_en),
+      .apf_audio_buffer_fill(audio_buffer_fill),
 
       .wishbone_ack(ack),
       .wishbone_adr(addr),
@@ -782,8 +793,9 @@ module core_top (
   );
 
   wishbone wishbone (
-      .clk  (clk_sys),
-      .reset(~reset_n || ioctl_download || reset_timer > 0),
+      .clk(clk_sys),
+
+      .reset(reset),
 
       .addr(addr),
       .bte(bte),
@@ -820,7 +832,8 @@ module core_top (
   apf_wishbone_master apf_wishbone_master (
       .clk_74a(clk_74a),
       .clk_sys(clk_sys),
-      .reset  (~reset_n || ioctl_download || reset_timer > 0),
+
+      .reset(reset),
 
       .bridge_addr(bridge_addr),
       .bridge_wr_data(bridge_wr_data),
@@ -842,6 +855,24 @@ module core_top (
       .we(master_we),
       .ack(master_ack),
       .err(master_err)
+  );
+
+  audio audio (
+      .clk_74b(clk_74b),
+      .clk_sys(clk_sys),
+
+      .reset(reset),
+
+      .audio_bus_in(audio_bus_out),
+      .audio_bus_wr(audio_bus_wr),
+
+      .audio_playback_en(audio_playback_en),
+
+      .audio_buffer_fill(audio_buffer_fill),
+
+      .audio_mclk(audio_mclk),
+      .audio_lrck(audio_lrck),
+      .audio_dac (audio_dac)
   );
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -934,21 +965,21 @@ module core_top (
   ////////////////////////////////////////////////////////////////////////////////////////
   // Sound
 
-  wire [14:0] audio_l = 15'h0;
+  // wire [14:0] audio_l = 15'h0;
 
-  sound_i2s #(
-      .CHANNEL_WIDTH(15)
-  ) sound_i2s (
-      .clk_74a  (clk_74a),
-      .clk_audio(clk_sys),
+  // sound_i2s #(
+  //     .CHANNEL_WIDTH(15)
+  // ) sound_i2s (
+  //     .clk_74a  (clk_74a),
+  //     .clk_audio(clk_sys),
 
-      .audio_l(audio_l),
-      .audio_r(audio_l),
+  //     .audio_l(audio_l),
+  //     .audio_r(audio_l),
 
-      .audio_mclk(audio_mclk),
-      .audio_lrck(audio_lrck),
-      .audio_dac (audio_dac)
-  );
+  //     .audio_mclk(audio_mclk),
+  //     .audio_lrck(audio_lrck),
+  //     .audio_dac (audio_dac)
+  // );
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // PLL
