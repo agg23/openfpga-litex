@@ -264,143 +264,6 @@ fn main() -> ! {
         println!("File length: {value:x}");
     }
 
-    // unsafe {
-    //     peripherals
-    //         .VIDEO_FRAMEBUFFER
-    //         .dma_enable
-    //         .write(|w| w.bits(0));
-    //     peripherals
-    //         .VIDEO_FRAMEBUFFER_VTG
-    //         .enable
-    //         .write(|w| w.bits(0));
-    //     // peripherals
-    //     //     .VIDEO_FRAMEBUFFER
-    //     //     .dma_base
-    //     //     .write(|w| w.bits(TEST_PIXEL_BUFFER_ADDRESS as u32));
-    //     // peripherals
-    //     //     .VIDEO_FRAMEBUFFER
-    //     //     .dma_offset
-    //     //     .write(|w| w.bits(0));
-    // };
-
-    // println!("Starting framebuffer");
-
-    // flush_l2_cache();
-
-    // unsafe {
-    //     peripherals
-    //         .VIDEO_FRAMEBUFFER_VTG
-    //         .enable
-    //         .write(|w| w.bits(1));
-    //     peripherals
-    //         .VIDEO_FRAMEBUFFER
-    //         .dma_enable
-    //         .write(|w| w.bits(1));
-    // };
-    // let mut render_index = 0;
-    // let mut white = true;
-
-    // loop {
-    //     for y in 0..200 {
-    //         let row_offset = (y / 8 + render_index) % 4;
-
-    //         // let pixel = Rgb565Pixel(if white {
-    //         //     0xFFFF
-    //         // } else {
-    //         //     match row_offset {
-    //         //         0 => 0x73b8,
-    //         //         1 => 0xe0b2,
-    //         //         2 => 0xf6c4,
-    //         //         _ => 0x0ea5,
-    //         //     }
-    //         // });
-
-    //         let pixel = if white {
-    //             Rgba8Pixel {
-    //                 r: 0xFF,
-    //                 g: 0xFF,
-    //                 b: 0xFF,
-    //                 a: 0xFF,
-    //             }
-    //         } else {
-    //             match row_offset {
-    //                 0 => Rgba8Pixel {
-    //                     r: 0x73,
-    //                     g: 0x75,
-    //                     b: 0xc5,
-    //                     a: 0xFF,
-    //                 },
-    //                 1 => Rgba8Pixel {
-    //                     r: 0xe6,
-    //                     g: 0x14,
-    //                     b: 0x94,
-    //                     a: 0xFF,
-    //                 },
-    //                 2 => Rgba8Pixel {
-    //                     r: 0xf7,
-    //                     g: 0xdb,
-    //                     b: 0x21,
-    //                     a: 0xFF,
-    //                 },
-    //                 _ => Rgba8Pixel {
-    //                     r: 0x08,
-    //                     g: 0xd7,
-    //                     b: 0x29,
-    //                     a: 0xFF,
-    //                 },
-    //             }
-    //         };
-
-    //         for x in 0..320 {
-    //             buffer[y * 320 + x] = pixel;
-
-    //             // for _ in 0..3000 {
-    //             //     unsafe {
-    //             //         asm!("nop");
-    //             //     }
-    //             // }
-    //         }
-
-    //         println!("{y}");
-    //     }
-
-    //     let mut spin_count = 0;
-
-    //     println!("Pausing for {render_index}");
-
-    //     // for _ in 0..10000000 {
-    //     //     unsafe {
-    //     //         asm!("nop");
-    //     //     }
-    //     // }
-
-    //     white = !white;
-
-    //     // if render_index < 3 {
-    //     //     render_index += 1;
-    //     // } else {
-    //     //     render_index = 0;
-    //     // }
-    // }
-
-    // println!("Beginning event loop");
-
-    // slint::platform::update_timers_and_animations();
-
-    // window.draw_if_needed(|renderer| {
-    //     renderer.render(buffer, 320);
-    // });
-
-    // println!("Rendered");
-
-    // window.request_redraw();
-
-    // window.draw_if_needed(|renderer| {
-    //     renderer.render(buffer, 320);
-    // });
-
-    // println!("Rendered 2");
-
     let timer = Timer::default();
 
     let shared_ui = Rc::new(RefCell::new(ui));
@@ -432,6 +295,7 @@ fn main() -> ! {
 
     let mut first_render = true;
     let mut last_address = 0;
+    let mut button_pressed = false;
 
     loop {
         slint::platform::update_timers_and_animations();
@@ -510,6 +374,54 @@ fn main() -> ! {
 
                     peripherals.MAIN.bridge_request_read.write(|w| w.bits(1));
                 };
+            }
+
+            if cont1_key & 0x100 != 0 {
+                if !button_pressed {
+                    button_pressed = true;
+
+                    unsafe {
+                        peripherals
+                            .VIDEO_FRAMEBUFFER_VTG
+                            .enable
+                            .write(|w| w.bits(0));
+                        peripherals
+                            .VIDEO_FRAMEBUFFER
+                            .dma_enable
+                            .write(|w| w.bits(0));
+
+                        peripherals
+                            .VIDEO_FRAMEBUFFER
+                            .dma_offset
+                            .write(|w| w.bits(0));
+                    }
+
+                    println!("FB Off");
+
+                    // Set read page
+                    unsafe {
+                        peripherals
+                            .VIDEO_FRAMEBUFFER
+                            .dma_base
+                            .write(|w| w.bits(TEST_BUFFER_INTERNAL_ADDRESS));
+                    }
+
+                    // FB On
+                    unsafe {
+                        peripherals
+                            .VIDEO_FRAMEBUFFER_VTG
+                            .enable
+                            .write(|w| w.bits(1));
+                        peripherals
+                            .VIDEO_FRAMEBUFFER
+                            .dma_enable
+                            .write(|w| w.bits(1));
+                    }
+
+                    println!("FB On");
+                }
+            } else {
+                button_pressed = false;
             }
 
             let current_address = peripherals.MAIN.bridge_current_address.read().bits();

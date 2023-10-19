@@ -98,6 +98,15 @@ class Platform(GenericPlatform):
                 Subsignal("current_address", Pins(32)),
                 Subsignal("complete_trigger", Pins(1))
             ),
+
+            ("apf_audio", 0,
+                Subsignal("bus_out", Pins(32)),
+                Subsignal("bus_wr", Pins(1)),
+
+                Subsignal("playback_en", Pins(1)),
+
+                Subsignal("buffer_fill", Pins(12)) 
+            )
         ]
         _connectors = []
 

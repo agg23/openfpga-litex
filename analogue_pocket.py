@@ -117,6 +117,7 @@ class BaseSoC(SoCCore):
 
         self.add_controller_csr(platform)
         self.add_apf_bridge_csr(platform)
+        self.add_apf_audio_csr(platform)
 
         testSlave = wishbone.Interface()
         testRegion = SoCRegion(0x8000_0000, 0x10_0000, cached = False)
@@ -186,6 +187,23 @@ class BaseSoC(SoCCore):
             self.bridge_file_size.status.eq(bridge_pins.file_size),
 
             self.bridge_current_address.status.eq(bridge_pins.current_address)
+        ]
+
+    def add_apf_audio_csr(self, platform: analogue_pocket.Platform):
+        audio_pins = platform.request("apf_audio")
+
+        self.audio_out = CSR(32)
+        self.audio_playback_en = CSRStorage(1)
+
+        self.audio_buffer_fill = CSRStatus(12)
+
+        self.comb += [
+            audio_pins.bus_out.eq(self.audio_out.r),
+            audio_pins.bus_wr.eq(self.audio_out.re),
+
+            audio_pins.playback_en.eq(self.audio_playback_en.storage),
+
+            self.audio_buffer_fill.status.eq(audio_pins.buffer_fill)
         ]
 
 # Build --------------------------------------------------------------------------------------------

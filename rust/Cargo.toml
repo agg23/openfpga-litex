@@ -5,6 +5,10 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "audio"
+path = "src/audio.rs"
+
 [dependencies]
 embedded-alloc = "0.5.0"
 embedded-hal = "0.2.7"
