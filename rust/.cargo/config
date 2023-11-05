@@ -11,3 +11,6 @@ target = "riscv32imac-unknown-none-elf"
 
 [env]
 BUILD_DIR = "../build"
+
+# Set up rmp3
+CC_riscv32imac_unknown_none_elf = "riscv64-unknown-elf-gcc"

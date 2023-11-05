@@ -1778,6 +1778,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "rmp3"
+version = "0.3.1"
+dependencies = [
+ "cc",
+ "libc",
+]
+
+[[package]]
 name = "rowan"
 version = "0.15.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1811,6 +1819,7 @@ dependencies = [
  "num-traits",
  "riscv",
  "riscv-rt",
+ "rmp3",
  "slint",
  "slint-build",
 ]
