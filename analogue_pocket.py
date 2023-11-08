@@ -166,14 +166,15 @@ class BaseSoC(SoCCore):
         self.sync += [
             self.prev_bridge_status_in.eq(bridge_pins.complete_trigger),
 
-            If(bridge_pins.complete_trigger & ~self.prev_bridge_status_in,
-                # Push status high
-                self.bridge_status.status.eq(1)
-            ),
-
+            # Read clear must apply before write set, because otherwise you can miss a signal
             If(self.bridge_status.we,
                 # Read, clear status
                 self.bridge_status.status.eq(0)
+            ),
+
+            If(bridge_pins.complete_trigger & ~self.prev_bridge_status_in,
+                # Push status high
+                self.bridge_status.status.eq(1)
             )
         ]
 
