@@ -8,6 +8,7 @@ module audio (
     input wire audio_bus_wr,
 
     input wire audio_playback_en,
+    input wire audio_flush,
 
     output wire [11:0] audio_buffer_fill,
 
@@ -57,7 +58,7 @@ module audio (
       .rdempty(empty),
       .wrusedw(audio_buffer_fill),
 
-      .aclr(reset)
+      .aclr(reset || audio_flush)
       // .eccstatus(),
       // .rdfull(),
       // .rdusedw(),

@@ -720,7 +720,14 @@ module core_top (
   wire [31:0] audio_bus_out;
   wire audio_bus_wr;
   wire audio_playback_en;
+  wire audio_flush;
   wire [11:0] audio_buffer_fill;
+
+  reg prev_target_dataslot_done_s = 0;
+
+  always @(posedge clk_sys) begin
+    prev_target_dataslot_done_s <= target_dataslot_done_s;
+  end
 
   litex litex (
       .clk_sys(clk_sys),
@@ -740,11 +747,13 @@ module core_top (
       .apf_bridge_slot_id(apf_bridge_slot_id),
       .apf_bridge_file_size(active_file_size_s),
       .apf_bridge_current_address(current_address),
-      .apf_bridge_complete_trigger(target_dataslot_done_s),
+      // Pulse complete on rising edge of done
+      .apf_bridge_complete_trigger(target_dataslot_done_s && ~prev_target_dataslot_done_s),
 
       .apf_audio_bus_out(audio_bus_out),
       .apf_audio_bus_wr(audio_bus_wr),
       .apf_audio_playback_en(audio_playback_en),
+      .apf_audio_flush(audio_flush),
       .apf_audio_buffer_fill(audio_buffer_fill),
 
       .wishbone_ack(ack),
@@ -867,6 +876,7 @@ module core_top (
       .audio_bus_wr(audio_bus_wr),
 
       .audio_playback_en(audio_playback_en),
+      .audio_flush(audio_flush),
 
       .audio_buffer_fill(audio_buffer_fill),
 
