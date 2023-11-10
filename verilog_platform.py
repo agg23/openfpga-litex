@@ -104,8 +104,9 @@ class Platform(GenericPlatform):
                 Subsignal("bus_wr", Pins(1)),
 
                 Subsignal("playback_en", Pins(1)),
+                Subsignal("flush", Pins(1)),
 
-                Subsignal("buffer_fill", Pins(12)) 
+                Subsignal("buffer_fill", Pins(12))
             )
         ]
         _connectors = []

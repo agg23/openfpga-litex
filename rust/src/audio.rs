@@ -70,7 +70,10 @@ fn panic(info: &PanicInfo) -> ! {
 #[global_allocator]
 static HEAP: Heap = Heap::empty();
 
-const MP3_HEAP_ADDRESS: *mut u8 = 0x4030_0000 as *mut u8;
+const MP3_BANK_ADDRESS_A: *mut u8 = 0x4030_0000 as *mut u8;
+const MP3_BANK_ADDRESS_B: *mut u8 = 0x4040_0000 as *mut u8;
+
+const READ_LENGTH: usize = 0x10000;
 
 fn combine_u32(low: u32, high: u32) -> u64 {
     ((high as u64) << 32) | (low as u64)
@@ -115,41 +118,88 @@ fn main() -> ! {
     let mut decoder = RawDecoder::new();
     let mut mp3_sample_buffer = [Sample::default(); MAX_SAMPLES_PER_FRAME];
 
-    let file_size = File::size(0);
-    let mut file_offset = 0;
-    let mut started_playback = false;
+    let file_size = File::size(0) as usize;
 
-    let read_length = 0x4000;
+    let mut bank_start_offset = 0;
     let mut read_offset = 0;
 
-    File::request_read(0, read_length, MP3_HEAP_ADDRESS as u32, 0);
+    let mut current_bank_offset = 0;
+    let mut inactive_bank_offset = READ_LENGTH - MAX_SAMPLES_PER_FRAME;
+
+    println!("Starting");
+
+    File::request_read(0, READ_LENGTH as u32, MP3_BANK_ADDRESS_A as u32, 0);
 
     File::block_op_complete();
 
+    File::request_read(
+        inactive_bank_offset as u32,
+        READ_LENGTH as u32,
+        MP3_BANK_ADDRESS_B as u32,
+        0,
+    );
+
     // We have data in the buffer ready to be used
-    let read_data = unsafe { from_raw_parts(MP3_HEAP_ADDRESS, read_length as usize) };
+    let read_data_a = unsafe { from_raw_parts(MP3_BANK_ADDRESS_A, READ_LENGTH) };
+    let read_data_b = unsafe { from_raw_parts(MP3_BANK_ADDRESS_B, READ_LENGTH) };
+
+    let mut use_b_bank = false;
 
     loop {
-        println!("Reading frame block");
-        let start = get_cycle_count();
+        let read_data = if use_b_bank { read_data_b } else { read_data_a };
 
         if let Some((frame, bytes_consumed)) =
             decoder.next(&read_data[read_offset..], &mut mp3_sample_buffer)
         {
-            let end = get_cycle_count();
-
-            // Immediately start requesting the next batch of audio
-            file_offset += bytes_consumed as u32;
             read_offset += bytes_consumed;
 
-            println!("Consumed {bytes_consumed:x} over {} nanos", end - start);
+            if READ_LENGTH - read_offset + bank_start_offset < MAX_SAMPLES_PER_FRAME {
+                // Samples includes both channels, so 1152 * 2
+                // Not enough space for one more frame in this bank, so we're going to switch banks and request new data
 
-            if read_length as usize - read_offset < 1152 {
-                // Not enough space for one more frame in this sample
-                // We need new data
-                println!("Reading at 0x{file_offset:x}");
-                File::request_read(file_offset, read_length, MP3_HEAP_ADDRESS as u32, 0);
-                read_offset = 0;
+                // Make sure previous reads are complete
+                File::block_op_complete();
+
+                // End of bank. See how far into the other bank we are
+                // We will start at this new offset in the swapped bank
+                bank_start_offset = (current_bank_offset + read_offset) - inactive_bank_offset;
+                read_offset = bank_start_offset;
+
+                use_b_bank = !use_b_bank;
+
+                current_bank_offset = inactive_bank_offset;
+                inactive_bank_offset =
+                    current_bank_offset + read_offset + READ_LENGTH - MAX_SAMPLES_PER_FRAME;
+
+                let storage_address = if use_b_bank {
+                    // Request A bank
+                    MP3_BANK_ADDRESS_A
+                } else {
+                    MP3_BANK_ADDRESS_B
+                };
+
+                let distance_from_end = file_size as i32 - inactive_bank_offset as i32;
+                // Poor std's min
+                let read_length = if distance_from_end >= READ_LENGTH as i32 {
+                    READ_LENGTH as i32
+                } else {
+                    distance_from_end
+                };
+
+                // TODO: For some reason the very last block doesn't completely read. Cannot figure out why
+                // this is happening. Hardware seems to be working correctly, but there's basically no
+                // software here. Maybe Wishbone issue?
+
+                if read_length > 0 {
+                    println!("Fetching {read_length:x} for {inactive_bank_offset:x}");
+
+                    File::request_read(
+                        inactive_bank_offset as u32,
+                        read_length as u32,
+                        storage_address as u32,
+                        0,
+                    );
+                }
             }
 
             match frame {
@@ -174,12 +224,7 @@ fn main() -> ! {
                         unsafe { peripherals.MAIN.audio_out.write(|w| w.bits(value)) };
                     }
 
-                    println!("Wrote frame block of {} samples", audio.sample_count());
-
-                    if !started_playback {
-                        unsafe { peripherals.MAIN.audio_playback_en.write(|w| w.bits(1)) };
-                        started_playback = true;
-                    }
+                    unsafe { peripherals.MAIN.audio_playback_en.write(|w| w.bits(1)) };
                 }
                 rmp3::Frame::Other(_) => {
                     // Skip
@@ -187,57 +232,15 @@ fn main() -> ! {
                 }
             }
 
-            if file_offset >= file_size {
+            if current_bank_offset + read_offset >= file_size {
                 break;
-            }
-
-            // We will do nothing if we didn't start a read
-            if read_offset == 0 {
-                let start = get_cycle_count();
-                File::block_op_complete();
-                let end = get_cycle_count();
-
-                println!("Waited for {} nanos", end - start);
             }
         } else {
             println!("Failed to read frame");
         }
     }
 
-    // for i in 0..4095 {
-    //     let high = (i / 20) % 2 == 0;
-
-    //     let value = if high { 0x0FFF_0FFF } else { 0x1000_1000 };
-
-    //     unsafe { peripherals.MAIN.audio_out.write(|w| w.bits(value)) };
-    // }
-
-    // // println!("{}", peripherals.MAIN.audio_buffer_fill.read().bits());
-
-    // unsafe { peripherals.MAIN.audio_playback_en.write(|w| w.bits(1)) };
-
-    // // println!("{}", peripherals.MAIN.audio_buffer_fill.read().bits());
-
-    // loop {
-    //     let buffer_fill = peripherals.MAIN.audio_buffer_fill.read().bits();
-
-    //     if buffer_fill < 500 {
-    //         let to_fill = 4096 - buffer_fill;
-
-    //         for i in 0..to_fill {
-    //             let high = if peripherals.MAIN.cont1_key.read().bits() & 0x10 != 0 {
-    //                 // A
-    //                 (i / 20) % 2 == 0
-    //             } else {
-    //                 (i / 10) % 2 == 0
-    //             };
-
-    //             let value = if high { 0x7FFF_7FFF } else { 0x8000_8000 };
-
-    //             unsafe { peripherals.MAIN.audio_out.write(|w| w.bits(value)) };
-    //         }
-    //     }
-    // }
+    println!("Finished reading");
 
     loop {}
 }

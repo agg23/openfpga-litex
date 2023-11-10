@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-11-04 12:58:55]]></description>
+    <description><![CDATA[Litex SoC 2023-11-08 09:44:01]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -266,8 +266,22 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                     </fields>
                 </register>
                 <register>
-                    <name>AUDIO_BUFFER_FILL</name>
+                    <name>AUDIO_BUFFER_FLUSH</name>
                     <addressOffset>0x002c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>audio_buffer_flush</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>AUDIO_BUFFER_FILL</name>
+                    <addressOffset>0x0030</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -282,7 +296,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
             </registers>
             <addressBlock>
                 <offset>0</offset>
-                <size>0x30</size>
+                <size>0x34</size>
                 <usage>registers</usage>
             </addressBlock>
         </peripheral>
@@ -802,7 +816,7 @@ register to disable individual events.]]></description>
             </addressBlock>
             <interrupt>
                 <name>timer0</name>
-                <value>1</value>
+                <value>2</value>
             </interrupt>
         </peripheral>
         <peripheral>
@@ -964,7 +978,7 @@ register to disable individual events.]]></description>
             </addressBlock>
             <interrupt>
                 <name>uart</name>
-                <value>0</value>
+                <value>1</value>
             </interrupt>
         </peripheral>
         <peripheral>
@@ -1205,6 +1219,16 @@ register to disable individual events.]]></description>
     <vendorExtensions>
         <memoryRegions>
             <memoryRegion>
+                <name>PLIC</name>
+                <baseAddress>0xF0C00000</baseAddress>
+                <size>0x00400000</size>
+            </memoryRegion>
+            <memoryRegion>
+                <name>CLINT</name>
+                <baseAddress>0xF0010000</baseAddress>
+                <size>0x00010000</size>
+            </memoryRegion>
+            <memoryRegion>
                 <name>ROM</name>
                 <baseAddress>0x00000000</baseAddress>
                 <size>0x00020000</size>
@@ -1239,11 +1263,22 @@ register to disable individual events.]]></description>
             <constant name="CONFIG_CLOCK_FREQUENCY" value="51600000" />
             <constant name="CONFIG_CPU_HAS_INTERRUPT" value="None" />
             <constant name="CONFIG_CPU_RESET_ADDR" value="0" />
-            <constant name="CONFIG_CPU_HAS_DCACHE" value="None" />
-            <constant name="CONFIG_CPU_HAS_ICACHE" value="None" />
-            <constant name="CONFIG_CPU_TYPE_VEXRISCV" value="None" />
-            <constant name="CONFIG_CPU_VARIANT_IMAC" value="None" />
-            <constant name="CONFIG_CPU_HUMAN_NAME" value="VexRiscv_IMAC" />
+            <constant name="CONFIG_CPU_COUNT" value="1" />
+            <constant name="CONFIG_CPU_ISA" value="rv32i2p0_mafdc" />
+            <constant name="CONFIG_CPU_MMU" value="sv32" />
+            <constant name="CONFIG_CPU_DCACHE_SIZE" value="4096" />
+            <constant name="CONFIG_CPU_DCACHE_WAYS" value="1" />
+            <constant name="CONFIG_CPU_DCACHE_BLOCK_SIZE" value="64" />
+            <constant name="CONFIG_CPU_ICACHE_SIZE" value="4096" />
+            <constant name="CONFIG_CPU_ICACHE_WAYS" value="1" />
+            <constant name="CONFIG_CPU_ICACHE_BLOCK_SIZE" value="64" />
+            <constant name="CONFIG_CPU_DTLB_SIZE" value="4" />
+            <constant name="CONFIG_CPU_DTLB_WAYS" value="4" />
+            <constant name="CONFIG_CPU_ITLB_SIZE" value="4" />
+            <constant name="CONFIG_CPU_ITLB_WAYS" value="4" />
+            <constant name="CONFIG_CPU_TYPE_VEXRISCV_SMP" value="None" />
+            <constant name="CONFIG_CPU_VARIANT_STANDARD" value="None" />
+            <constant name="CONFIG_CPU_HUMAN_NAME" value="VexRiscv SMP-STANDARD" />
             <constant name="CONFIG_CPU_NOP" value="nop" />
             <constant name="CONFIG_L2_SIZE" value="8192" />
             <constant name="VIDEO_FRAMEBUFFER_BASE" value="1086324736" />
@@ -1256,8 +1291,8 @@ register to disable individual events.]]></description>
             <constant name="CONFIG_BUS_DATA_WIDTH" value="32" />
             <constant name="CONFIG_BUS_ADDRESS_WIDTH" value="32" />
             <constant name="CONFIG_BUS_BURSTING" value="0" />
-            <constant name="TIMER0_INTERRUPT" value="1" />
-            <constant name="UART_INTERRUPT" value="0" />
+            <constant name="TIMER0_INTERRUPT" value="2" />
+            <constant name="UART_INTERRUPT" value="1" />
         </constants>
     </vendorExtensions>
 </device>

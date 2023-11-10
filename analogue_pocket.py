@@ -161,10 +161,10 @@ class BaseSoC(SoCCore):
 
         self.bridge_current_address = CSRStatus(32)
 
-        self.prev_bridge_status_in = Signal()
+        self.prev_bridge_complete_trigger = Signal()
 
         self.sync += [
-            self.prev_bridge_status_in.eq(bridge_pins.complete_trigger),
+            self.prev_bridge_complete_trigger.eq(bridge_pins.complete_trigger),
 
             # Read clear must apply before write set, because otherwise you can miss a signal
             If(self.bridge_status.we,
@@ -172,7 +172,7 @@ class BaseSoC(SoCCore):
                 self.bridge_status.status.eq(0)
             ),
 
-            If(bridge_pins.complete_trigger & ~self.prev_bridge_status_in,
+            If(bridge_pins.complete_trigger & ~self.prev_bridge_complete_trigger,
                 # Push status high
                 self.bridge_status.status.eq(1)
             )
@@ -195,6 +195,7 @@ class BaseSoC(SoCCore):
 
         self.audio_out = CSR(32)
         self.audio_playback_en = CSRStorage(1)
+        self.audio_buffer_flush = CSR(1)
 
         self.audio_buffer_fill = CSRStatus(12)
 
@@ -203,6 +204,7 @@ class BaseSoC(SoCCore):
             audio_pins.bus_wr.eq(self.audio_out.re),
 
             audio_pins.playback_en.eq(self.audio_playback_en.storage),
+            audio_pins.flush.eq(self.audio_buffer_flush.re),
 
             self.audio_buffer_fill.status.eq(audio_pins.buffer_fill)
         ]

@@ -301,11 +301,11 @@ fn main() -> ! {
         slint::platform::update_timers_and_animations();
 
         window.draw_if_needed(|renderer| {
-            if first_render {
-                renderer.render(buffer, 320);
+            // if first_render {
+            renderer.render(buffer, 320);
 
-                first_render = false;
-            }
+            first_render = false;
+            // }
 
             let ui = shared_ui.borrow();
 
