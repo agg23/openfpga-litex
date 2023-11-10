@@ -211,18 +211,25 @@ class BaseSoC(SoCCore):
 
 def main():
     from litex.build.parser import LiteXArgumentParser
+    import sys
+    # LiteX directly reaches into sys.argv multiple times, so we have to inject all of our changed arguments at top level
+    sys.argv.extend(["--cpu-type=vexriscv_smp", "--with-fpu", "--with-rvc", "--uart-baudrate=2000000", "--timer-uptime"])
+
     parser = LiteXArgumentParser(platform=analogue_pocket.Platform, description="LiteX SoC on Analog Pocket.")
     parser.add_target_argument("--sys-clk-freq", default=51_600_000, type=float, help="System clock frequency.")
     args = parser.parse_args()
 
     soc_args = parser.soc_argdict
-    soc_args["uart_baudrate"] = 2000000
-    soc_args["timer_uptime"] = True
+    # soc_args["cpu_type"] = "vexriscv_smp"
+
+    # soc_args["uart_baudrate"] = 2000000
+    # soc_args["timer_uptime"] = True
 
     soc = BaseSoC(
         sys_clk_freq = args.sys_clk_freq,
         # Match up with Rust compiler target
-        cpu_variant = "imac",
+        # with_fpu = True,
+        # cpu_variant = "imac",
         **soc_args
     )
     builder_args = parser.builder_argdict
