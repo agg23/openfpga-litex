@@ -31,4 +31,11 @@ fn main() {
             .embed_resources(slint_build::EmbedResourcesKind::EmbedForSoftwareRenderer),
     )
     .unwrap();
+
+    slint_build::compile_with_config(
+        "ui/audio.slint",
+        slint_build::CompilerConfiguration::new()
+            .embed_resources(slint_build::EmbedResourcesKind::EmbedForSoftwareRenderer),
+    )
+    .unwrap();
 }

@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+use ::slint::platform::software_renderer::{MinimalSoftwareWindow, RepaintBufferType};
 use alloc::format;
 use core::arch::asm;
 use core::cell::RefCell;
@@ -12,6 +13,7 @@ use embedded_hal::prelude::_embedded_hal_blocking_serial_Write;
 use hardware::file::File;
 use num_traits::float::Float;
 use rmp3::{RawDecoder, Sample, MAX_SAMPLES_PER_FRAME};
+use slint::platform::software_renderer::Rgb565Pixel;
 
 extern crate alloc;
 
@@ -22,14 +24,14 @@ use litex_pac as pac;
 use riscv_rt::entry;
 
 mod hardware;
+mod ui;
 
+// Definition is required for uart_printer.rs to work
 hal::uart! {
     UART: pac::UART,
 }
 
-hal::timer! {
-    TIMER: pac::TIMER0,
-}
+slint::include_modules!();
 
 // const TEST_ADDR: *mut u32 = (0xF0001800 + 0x0028) as *mut u32;
 
@@ -56,6 +58,8 @@ fn fmaxf(a: f32, b: f32) -> f32 {
 }
 
 use core::mem::MaybeUninit;
+
+use crate::ui::SlintPlatform;
 const HEAP_SIZE: usize = 200 * 1024;
 static mut HEAP_MEM: [MaybeUninit<u8>; HEAP_SIZE] = [MaybeUninit::uninit(); HEAP_SIZE];
 
@@ -69,6 +73,8 @@ fn panic(info: &PanicInfo) -> ! {
 
 #[global_allocator]
 static HEAP: Heap = Heap::empty();
+
+const FRAMEBUFFER_ADDRESS: *mut Rgb565Pixel = 0x40C0_0000 as *mut Rgb565Pixel;
 
 const MP3_BANK_ADDRESS_A: *mut u8 = 0x4030_0000 as *mut u8;
 const MP3_BANK_ADDRESS_B: *mut u8 = 0x4040_0000 as *mut u8;
@@ -106,6 +112,28 @@ fn get_cycle_count() -> u64 {
     (CYCLE_PERIOD_NANOS * (uptime_cycles as f64)).floor() as u64
 }
 
+fn render_init() {
+    let buffer = unsafe { from_raw_parts_mut(FRAMEBUFFER_ADDRESS, 320 * 200) };
+
+    let window = MinimalSoftwareWindow::new(RepaintBufferType::NewBuffer);
+    slint::platform::set_platform(Box::new(SlintPlatform::new(window.clone()))).unwrap();
+
+    println!("Creating UI");
+
+    // Setup the UI.
+    let ui = AudioUI::new().unwrap();
+
+    ui.show().unwrap();
+
+    window.set_size(slint::PhysicalSize::new(320, 200));
+
+    slint::platform::update_timers_and_animations();
+
+    window.draw_if_needed(|renderer| {
+        renderer.render(buffer, 320);
+    });
+}
+
 // This is the entry point for the application.
 // It is not allowed to return.
 #[entry]
@@ -114,6 +142,10 @@ fn main() -> ! {
 
     // Initialize the allocator BEFORE you use it
     unsafe { HEAP.init(HEAP_MEM.as_ptr() as usize, HEAP_SIZE) };
+
+    println!("Rendering");
+
+    render_init();
 
     let mut decoder = RawDecoder::new();
     let mut mp3_sample_buffer = [Sample::default(); MAX_SAMPLES_PER_FRAME];
