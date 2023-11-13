@@ -9,7 +9,7 @@
 // Filename   : litex.v
 // Device     : 5CEBA4F23C8
 // LiteX sha1 : 71ae8fe8
-// Date       : 2023-11-08 09:44:31
+// Date       : 2023-11-12 13:31:03
 //------------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -1030,7 +1030,7 @@ wire          litedramnativeport2_wdata_valid;
 reg           phase_sel = 1'd0;
 reg           phase_sys = 1'd0;
 reg           phase_sys2x = 1'd0;
-reg           prev_bridge_status_in = 1'd0;
+reg           prev_bridge_complete_trigger = 1'd0;
 reg           ram_data_address_re = 1'd0;
 reg    [31:0] ram_data_address_storage = 32'd0;
 reg    [15:0] rddata_d = 16'd0;
@@ -1767,7 +1767,7 @@ wire          sdram_tfawcon_valid;
 reg     [4:0] sdram_time0 = 5'd0;
 reg     [3:0] sdram_time1 = 4'd0;
 wire    [8:0] sdram_timer_count0;
-reg     [8:0] sdram_timer_count1 = 9'd403;
+reg     [8:0] sdram_timer_count1 = 9'd413;
 wire          sdram_timer_done0;
 wire          sdram_timer_done1;
 wire          sdram_timer_wait;
@@ -2029,7 +2029,7 @@ reg           videoframebuffer_litedramdmareader_enable_re = 1'd0;
 reg           videoframebuffer_litedramdmareader_enable_storage = 1'd0;
 wire   [23:0] videoframebuffer_litedramdmareader_length;
 reg           videoframebuffer_litedramdmareader_length_re = 1'd0;
-reg    [31:0] videoframebuffer_litedramdmareader_length_storage = 32'd128000;
+reg    [31:0] videoframebuffer_litedramdmareader_length_storage = 32'd127680;
 reg           videoframebuffer_litedramdmareader_loop_re = 1'd0;
 reg           videoframebuffer_litedramdmareader_loop_storage = 1'd1;
 reg    [23:0] videoframebuffer_litedramdmareader_offset = 24'd0;
@@ -2069,16 +2069,16 @@ reg           vtg_hactive_clockdomainsrenamer_next_value0 = 1'd0;
 reg           vtg_hactive_clockdomainsrenamer_next_value_ce0 = 1'd0;
 wire   [11:0] vtg_hres;
 reg           vtg_hres_re = 1'd0;
-reg    [11:0] vtg_hres_storage = 12'd320;
+reg    [11:0] vtg_hres_storage = 12'd266;
 wire   [11:0] vtg_hscan;
 reg           vtg_hscan_re = 1'd0;
-reg    [11:0] vtg_hscan_storage = 12'd399;
+reg    [11:0] vtg_hscan_storage = 12'd345;
 wire   [11:0] vtg_hsync_end;
 reg           vtg_hsync_end_re = 1'd0;
-reg    [11:0] vtg_hsync_end_storage = 12'd360;
+reg    [11:0] vtg_hsync_end_storage = 12'd306;
 wire   [11:0] vtg_hsync_start;
 reg           vtg_hsync_start_re = 1'd0;
-reg    [11:0] vtg_hsync_start_storage = 12'd328;
+reg    [11:0] vtg_hsync_start_storage = 12'd274;
 wire          vtg_reset;
 reg           vtg_source_first = 1'd0;
 reg           vtg_source_last = 1'd0;
@@ -2108,16 +2108,16 @@ reg           vtg_vactive_clockdomainsrenamer_next_value1 = 1'd0;
 reg           vtg_vactive_clockdomainsrenamer_next_value_ce1 = 1'd0;
 wire   [11:0] vtg_vres;
 reg           vtg_vres_re = 1'd0;
-reg    [11:0] vtg_vres_storage = 12'd200;
+reg    [11:0] vtg_vres_storage = 12'd240;
 wire   [11:0] vtg_vscan;
 reg           vtg_vscan_re = 1'd0;
-reg    [11:0] vtg_vscan_storage = 12'd214;
+reg    [11:0] vtg_vscan_storage = 12'd254;
 wire   [11:0] vtg_vsync_end;
 reg           vtg_vsync_end_re = 1'd0;
-reg    [11:0] vtg_vsync_end_storage = 12'd209;
+reg    [11:0] vtg_vsync_end_storage = 12'd249;
 wire   [11:0] vtg_vsync_start;
 reg           vtg_vsync_start_re = 1'd0;
-reg    [11:0] vtg_vsync_start_storage = 12'd201;
+reg    [11:0] vtg_vsync_start_storage = 12'd241;
 wire          wait_1;
 reg           wb_sdram_ack = 1'd0;
 wire   [29:0] wb_sdram_adr;
@@ -6324,11 +6324,11 @@ always @(posedge sdrio_clk) begin
 end
 
 always @(posedge sys_clk) begin
-    prev_bridge_status_in <= apf_bridge_complete_trigger;
+    prev_bridge_complete_trigger <= apf_bridge_complete_trigger;
     if (bridge_status_we) begin
         bridge_status_status <= 1'd0;
     end
-    if ((apf_bridge_complete_trigger & (~prev_bridge_status_in))) begin
+    if ((apf_bridge_complete_trigger & (~prev_bridge_complete_trigger))) begin
         bridge_status_status <= 1'd1;
     end
     case (grant)
@@ -6368,9 +6368,9 @@ always @(posedge sys_clk) begin
     if (((basesoc_ram_bus_ram_bus_cyc & basesoc_ram_bus_ram_bus_stb) & ((~basesoc_ram_bus_ram_bus_ack) | basesoc_ram_adr_burst))) begin
         basesoc_ram_bus_ram_bus_ack <= 1'd1;
     end
-    {basesoc_tx_tick, basesoc_tx_phase} <= 28'd166471600;
+    {basesoc_tx_tick, basesoc_tx_phase} <= 28'd162257925;
     if (basesoc_tx_enable) begin
-        {basesoc_tx_tick, basesoc_tx_phase} <= (basesoc_tx_phase + 28'd166471600);
+        {basesoc_tx_tick, basesoc_tx_phase} <= (basesoc_tx_phase + 28'd162257925);
     end
     basesoc_rs232phytx_state <= basesoc_rs232phytx_next_state;
     if (basesoc_tx_count_rs232phytx_next_value_ce0) begin
@@ -6385,7 +6385,7 @@ always @(posedge sys_clk) begin
     basesoc_rx_rx_d <= basesoc_rx_rx;
     {basesoc_rx_tick, basesoc_rx_phase} <= 32'd2147483648;
     if (basesoc_rx_enable) begin
-        {basesoc_rx_tick, basesoc_rx_phase} <= (basesoc_rx_phase + 28'd166471600);
+        {basesoc_rx_tick, basesoc_rx_phase} <= (basesoc_rx_phase + 28'd162257925);
     end
     basesoc_rs232phyrx_state <= basesoc_rs232phyrx_next_state;
     if (basesoc_rx_count_rs232phyrx_next_value_ce0) begin
@@ -6485,7 +6485,7 @@ always @(posedge sys_clk) begin
     if ((sdram_timer_wait & (~sdram_timer_done0))) begin
         sdram_timer_count1 <= (sdram_timer_count1 - 1'd1);
     end else begin
-        sdram_timer_count1 <= 9'd403;
+        sdram_timer_count1 <= 9'd413;
     end
     sdram_postponer_req_o <= 1'd0;
     if (sdram_postponer_req_i) begin
@@ -7755,7 +7755,7 @@ always @(posedge sys_clk) begin
         sdram_cmd_payload_cas <= 1'd0;
         sdram_cmd_payload_ras <= 1'd0;
         sdram_cmd_payload_we <= 1'd0;
-        sdram_timer_count1 <= 9'd403;
+        sdram_timer_count1 <= 9'd413;
         sdram_postponer_req_o <= 1'd0;
         sdram_postponer_count <= 1'd0;
         sdram_sequencer_done1 <= 1'd0;
@@ -7818,21 +7818,21 @@ always @(posedge sys_clk) begin
         wishbone_bridge_aborted <= 1'd0;
         vtg_enable_storage <= 1'd1;
         vtg_enable_re <= 1'd0;
-        vtg_hres_storage <= 12'd320;
+        vtg_hres_storage <= 12'd266;
         vtg_hres_re <= 1'd0;
-        vtg_hsync_start_storage <= 12'd328;
+        vtg_hsync_start_storage <= 12'd274;
         vtg_hsync_start_re <= 1'd0;
-        vtg_hsync_end_storage <= 12'd360;
+        vtg_hsync_end_storage <= 12'd306;
         vtg_hsync_end_re <= 1'd0;
-        vtg_hscan_storage <= 12'd399;
+        vtg_hscan_storage <= 12'd345;
         vtg_hscan_re <= 1'd0;
-        vtg_vres_storage <= 12'd200;
+        vtg_vres_storage <= 12'd240;
         vtg_vres_re <= 1'd0;
-        vtg_vsync_start_storage <= 12'd201;
+        vtg_vsync_start_storage <= 12'd241;
         vtg_vsync_start_re <= 1'd0;
-        vtg_vsync_end_storage <= 12'd209;
+        vtg_vsync_end_storage <= 12'd249;
         vtg_vsync_end_re <= 1'd0;
-        vtg_vscan_storage <= 12'd214;
+        vtg_vscan_storage <= 12'd254;
         vtg_vscan_re <= 1'd0;
         videoframebuffer_dma_res_fifo_level <= 15'd0;
         videoframebuffer_dma_res_fifo_produce <= 14'd0;
@@ -7843,7 +7843,7 @@ always @(posedge sys_clk) begin
         videoframebuffer_dma_fifo_consume <= 14'd0;
         videoframebuffer_litedramdmareader_base_storage <= 32'd1086324736;
         videoframebuffer_litedramdmareader_base_re <= 1'd0;
-        videoframebuffer_litedramdmareader_length_storage <= 32'd128000;
+        videoframebuffer_litedramdmareader_length_storage <= 32'd127680;
         videoframebuffer_litedramdmareader_length_re <= 1'd0;
         videoframebuffer_litedramdmareader_enable_storage <= 1'd0;
         videoframebuffer_litedramdmareader_enable_re <= 1'd0;
@@ -7868,7 +7868,7 @@ always @(posedge sys_clk) begin
         bridge_status_status <= 1'd0;
         bridge_status_re <= 1'd0;
         bridge_current_address_re <= 1'd0;
-        prev_bridge_status_in <= 1'd0;
+        prev_bridge_complete_trigger <= 1'd0;
         audio_playback_en_storage <= 1'd0;
         audio_playback_en_re <= 1'd0;
         audio_buffer_fill_re <= 1'd0;
@@ -9084,5 +9084,5 @@ ALTDDIO_IN #(
 endmodule
 
 // -----------------------------------------------------------------------------
-//  Auto-Generated by LiteX on 2023-11-08 09:44:31.
+//  Auto-Generated by LiteX on 2023-11-12 13:31:04.
 //------------------------------------------------------------------------------
