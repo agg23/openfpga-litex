@@ -202,6 +202,13 @@ input   wire            user2,
 inout   wire            bist,
 output  wire            vpll_feed,
 
+`ifdef JTAG_UART
+input  wire             altera_reserved_tck,
+input  wire             altera_reserved_tdi,
+output wire             altera_reserved_tdo,
+input  wire             altera_reserved_tms,
+`endif
+
 ///////////////////////////////////////////////////
 // RFU internal i2c bus (DNU)
 
@@ -456,6 +463,13 @@ core_top ic (
     .bridge_wr              ( bridge_wr ),
     .bridge_wr_data         ( bridge_wr_data ),
 
+`ifdef JTAG_UART
+    .altera_reserved_tck(altera_reserved_tck),
+    .altera_reserved_tdi(altera_reserved_tdi),
+    .altera_reserved_tdo(altera_reserved_tdo),
+    .altera_reserved_tms(altera_reserved_tms),
+`endif
+
     .cont1_key              ( cont1_key ),
     .cont2_key              ( cont2_key ),
     .cont3_key              ( cont3_key ),
@@ -468,7 +482,6 @@ core_top ic (
     .cont2_trig             ( cont2_trig ),
     .cont3_trig             ( cont3_trig ),
     .cont4_trig             ( cont4_trig )
-
 );
 
 endmodule

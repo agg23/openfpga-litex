@@ -222,7 +222,12 @@ module core_top (
     input wire [15:0] cont1_trig,
     input wire [15:0] cont2_trig,
     input wire [15:0] cont3_trig,
-    input wire [15:0] cont4_trig
+    input wire [15:0] cont4_trig,
+
+    input  wire altera_reserved_tck,
+    input  wire altera_reserved_tdi,
+    output wire altera_reserved_tdo,
+    input  wire altera_reserved_tms
 
 );
 
@@ -787,8 +792,17 @@ module core_top (
       .vga_vsync(vsync),
       .vga_de(de),
 
+      // Altera JTAG UART
+`ifdef JTAG_UART
+      .altera_reserved_tck(altera_reserved_tck),
+      .altera_reserved_tdi(altera_reserved_tdi),
+      .altera_reserved_tdo(altera_reserved_tdo),
+      .altera_reserved_tms(altera_reserved_tms),
+`else
+      // Dev cart UART
       .serial_rx(uart_rx),
       .serial_tx(uart_tx),
+`endif
 
       .sdram_a(dram_a),
       .sdram_ba(dram_ba),
@@ -1037,11 +1051,11 @@ module core_top (
       .refclk(clk_74a),
       .rst   (0),
 
-      .outclk_0(clk_sys_150),
-      .outclk_1(clk_sys_90deg),
-      .outclk_2(clk_vid_10),
-      .outclk_3(clk_vid_10_90deg),
-      .outclk_4(clk_sys),
+      .outclk_0(clk_sys),
+      .outclk_1(clk_sys_150),
+      .outclk_2(clk_sys_90deg),
+      .outclk_3(clk_vid_10),
+      .outclk_4(clk_vid_10_90deg),
       // .outclk_4(clk_vid_actual_4),
 
       .locked(pll_core_locked)
