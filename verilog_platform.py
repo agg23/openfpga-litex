@@ -81,7 +81,22 @@ class Platform(GenericPlatform):
                 Subsignal("err",   Pins(1)),
             ),
 
-            ("cont1_key", 0, Pins(32)),
+            ("apf_input", 0,
+                Subsignal("cont1_key", 0, Pins(32)),
+                Subsignal("cont2_key", 0, Pins(32)),
+                Subsignal("cont3_key", 0, Pins(32)),
+                Subsignal("cont4_key", 0, Pins(32)),
+
+                Subsignal("cont1_joy", 0, Pins(32)),
+                Subsignal("cont2_joy", 0, Pins(32)),
+                Subsignal("cont3_joy", 0, Pins(32)),
+                Subsignal("cont4_joy", 0, Pins(32)),
+
+                Subsignal("cont1_trig", 0, Pins(32)),
+                Subsignal("cont2_trig", 0, Pins(32)),
+                Subsignal("cont3_trig", 0, Pins(32)),
+                Subsignal("cont4_trig", 0, Pins(32)),
+            ),
 
             ("apf_bridge", 0,
                 Subsignal("request_read", Pins(1)),

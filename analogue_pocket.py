@@ -14,8 +14,7 @@ import vendor
 from litex.soc.integration.soc import SoCRegion
 from litex.soc.interconnect.csr import CSR, CSRStatus, CSRStorage
 
-from litex.soc.cores.video import VideoVGAPHY
-from litex.soc.interconnect import wishbone
+from litex.soc.interconnect import stream, wishbone
 
 from migen import *
 
@@ -27,8 +26,6 @@ from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder import *
 
 from litex.build.io import DDROutput
-
-from litex.soc.cores.clock import CycloneVPLL
 
 from litedram.modules import AS4C32M16
 from litedram.phy.gensdrphy import HalfRateGENSDRPHY
@@ -70,17 +67,50 @@ class _CRG(LiteXModule):
         sdram_clk = clk_sys2x_90deg
         self.specials += DDROutput(1, 0, platform.request("sdram_clock"), sdram_clk)
 
-        # UART
-        # cart = platform.request("cart")
-        # self.comb += cart.tran_bank0_dir.eq(1)
+# VideoPHY -----------------------------------------------------------------------------------------
 
-        # self.comb += cart.tran_pin31_dir.eq(0)
+class VideoPocketPHY(LiteXModule):
+    # This is copied and modified from VideoGenericPHY in `video.py`
+    def __init__(self, pads, clock_domain="sys", with_clk_ddr_output=True):
+        video_data_layout = [
+            # Synchronization signals.
+            ("hsync", 1),
+            ("vsync", 1),
+            ("de",    1),
+            # Data signals.
+            ("r",     8),
+            ("g",     8),
+            ("b",     8),
+        ]
 
-        # platform.add_extension([
-        #     ("cart_serial", 0, 
-        #         Subsignal("tx", cart.tran_bank0[2]), 
-        #         Subsignal("rx", cart.tran_pin31)
-        #     )])
+        self.sink = sink = stream.Endpoint(video_data_layout)
+
+        # # #
+
+        # Always ack Sink, no backpressure.
+        self.comb += sink.ready.eq(1)
+        # Drive Controls.
+        self.comb += pads.de.eq(sink.de)
+        self.comb += pads.hsync.eq(sink.hsync)
+        self.comb += pads.vsync.eq(sink.vsync)
+
+        # Drive Datas.
+        cbits  = len(pads.r)
+        cshift = (8 - cbits)
+        for i in range(cbits):
+            # VGA monitors interpret minimum value as black so ensure data is set to 0 during blanking.
+            self.comb += pads.r[i].eq(sink.r[cshift + i] & sink.de)
+
+        cbits = len(pads.g)
+        cshift = (8 - cbits)
+        for i in range(cbits):
+            self.comb += pads.g[i].eq(sink.g[cshift + i] & sink.de)
+
+        cbits = len(pads.b)
+        cshift = (8 - cbits)
+        for i in range(cbits):
+            self.comb += pads.b[i].eq(sink.b[cshift + i] & sink.de)
+
 
 # BaseSoC ------------------------------------------------------------------------------------------
 
@@ -94,15 +124,6 @@ class BaseSoC(SoCCore):
         # SoCCore ----------------------------------------------------------------------------------
         SoCCore.__init__(self, platform, sys_clk_freq, ident="LiteX SoC on Analog Pocket", **kwargs)
 
-        # reset = platform.request("reset")
-        # # self.comb += self.cpu.reset.eq(self.crg.rst)
-        # self.comb += self.cpu.reset.eq(reset)
-
-        # UARTBone
-
-        # self.add_uart(name="uart2", uart_name="cart_serial", baudrate=115200)
-        # self.add_uart(name="jtag_uart", uart_name="jtag_uart", baudrate=115200, fifo_depth=16)
-
         # SDR SDRAM --------------------------------------------------------------------------------
         if not self.integrated_main_ram_size:
             self.sdrphy = HalfRateGENSDRPHY(platform.request("sdram"), sys_clk_freq)
@@ -113,7 +134,7 @@ class BaseSoC(SoCCore):
             )
 
         # This only works with modifications to vendor/litex/litex/soc/cores/video.py to remove the SDR and DDR outputs
-        self.submodules.videophy = VideoVGAPHY(platform.request("vga"))
+        self.submodules.videophy = VideoPocketPHY(platform.request("vga"))
         self.add_video_framebuffer(phy=self.videophy, timings=[
             "266x240@60Hz",
             {
@@ -129,32 +150,59 @@ class BaseSoC(SoCCore):
             }], format="rgb565", clock_domain="vid")
         # self.add_video_terminal(phy=self.videophy, timings="320x200@60Hz", clock_domain="vid")
 
+        # CSR definitions --------------------------------------------------------------------------
         self.add_controller_csr(platform)
         self.add_apf_bridge_csr(platform)
         self.add_apf_audio_csr(platform)
 
-        testSlave = wishbone.Interface()
-        testRegion = SoCRegion(0x8000_0000, 0x10_0000, cached = False)
+        example_slave = wishbone.Interface()
+        example_slave_region = SoCRegion(0x8000_0000, 0x10_0000, cached = False)
         
-        self.bus.add_slave("test", testSlave, testRegion)
+        self.bus.add_slave("example_slace", example_slave, example_slave_region)
 
-        # # testSlave.connect_to_pads
+        # For some reason this doesn't make the comb assignments itself?
+        # Master, because the internal wishbone is a slave, and the Verilog one is "master"
+        self.comb += example_slave.connect_to_pads(platform.request("wishbone"), mode="master")
 
-        # # For some reason this doesn't make the comb assignments itself?
-        # # Master, because the internal wishbone is a slave, and the Verilog one is "master"
-        self.comb += testSlave.connect_to_pads(platform.request("wishbone"), mode="master")
+        apf_bridge_master = wishbone.Interface()
 
-        test_master = wishbone.Interface()
+        self.bus.add_master("apf_bridge_master", apf_bridge_master)
 
-        self.bus.add_master("test2", test_master)
-
-        self.comb += test_master.connect_to_pads(platform.request("wishbone_master"), mode="slave")
+        self.comb += apf_bridge_master.connect_to_pads(platform.request("wishbone_master"), mode="slave")
 
     def add_controller_csr(self, platform: analogue_pocket.Platform):
-        self.cont1_key = CSRStatus(size=32)
+        input_pins = platform.request("apf_input")
 
-        cont1_key_pads = platform.request("cont1_key")
-        self.comb += self.cont1_key.status.eq(cont1_key_pads)
+        self.cont1_key = CSRStatus(size=32)
+        self.cont2_key = CSRStatus(size=32)
+        self.cont3_key = CSRStatus(size=32)
+        self.cont4_key = CSRStatus(size=32)
+
+        self.comb += self.cont1_key.status.eq(input_pins.cont1_key)
+        self.comb += self.cont2_key.status.eq(input_pins.cont2_key)
+        self.comb += self.cont3_key.status.eq(input_pins.cont3_key)
+        self.comb += self.cont4_key.status.eq(input_pins.cont4_key)
+
+        self.cont1_joy = CSRStatus(size=32)
+        self.cont2_joy = CSRStatus(size=32)
+        self.cont3_joy = CSRStatus(size=32)
+        self.cont4_joy = CSRStatus(size=32)
+
+        self.comb += self.cont1_joy.status.eq(input_pins.cont1_joy)
+        self.comb += self.cont2_joy.status.eq(input_pins.cont2_joy)
+        self.comb += self.cont3_joy.status.eq(input_pins.cont3_joy)
+        self.comb += self.cont4_joy.status.eq(input_pins.cont4_joy)
+
+        self.cont1_trig = CSRStatus(size=32)
+        self.cont2_trig = CSRStatus(size=32)
+        self.cont3_trig = CSRStatus(size=32)
+        self.cont4_trig = CSRStatus(size=32)
+
+        self.comb += self.cont1_trig.status.eq(input_pins.cont1_trig)
+        self.comb += self.cont2_trig.status.eq(input_pins.cont2_trig)
+        self.comb += self.cont3_trig.status.eq(input_pins.cont3_trig)
+        self.comb += self.cont4_trig.status.eq(input_pins.cont4_trig)
+
 
     def add_apf_bridge_csr(self, platform: analogue_pocket.Platform):
         bridge_pins = platform.request("apf_bridge")
