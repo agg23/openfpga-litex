@@ -232,6 +232,9 @@ def main():
     # Match up with Rust compiler target with FPU and RVC
     sys.argv.extend(["--cpu-type=vexriscv_smp", "--with-fpu", "--with-rvc", "--uart-baudrate=2000000", "--timer-uptime"])
 
+    # Include if we are building for JTAG, not cart UART
+    # sys.argv.extend(["--uart-name=jtag_uart"])
+
     parser = LiteXArgumentParser(platform=analogue_pocket.Platform, description="LiteX SoC on Analog Pocket.")
     parser.add_target_argument("--sys-clk-freq", default=CLOCK_SPEED, type=float, help="System clock frequency.")
     args = parser.parse_args()

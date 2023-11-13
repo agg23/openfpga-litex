@@ -144,6 +144,16 @@ class Platform(GenericPlatform):
         v_file = build_name + ".v"
         v_output.write(v_file)
 
+    # Taken from altera/platform.py
+    def add_reserved_jtag_decls(self):
+        self.add_extension([*[(pad, 0, Pins(pad)) for pad in common.altera_reserved_jtag_pads]])
+
+    def get_reserved_jtag_pads(self):
+        r = {}
+        for pad in common.altera_reserved_jtag_pads:
+            r[pad] = self.request(pad)
+        return r
+
     def do_finalize(self, fragment):
         # AlteraPlatform.do_finalize(self, fragment)
         # self.add_period_constraint(self.lookup_request("clk74a", loose=True), 1e9/74.25e6)
