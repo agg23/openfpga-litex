@@ -35,6 +35,8 @@ from litedram.phy.gensdrphy import HalfRateGENSDRPHY
 
 # CRG ----------------------------------------------------------------------------------------------
 
+CLOCK_SPEED = 52.94e6
+
 class _CRG(LiteXModule):
     def __init__(self, platform: analogue_pocket.Platform, sys_clk_freq):
         # `rst` is a magic CRG signal that is automatically wired to the output of the SoC reset
@@ -112,7 +114,19 @@ class BaseSoC(SoCCore):
 
         # This only works with modifications to vendor/litex/litex/soc/cores/video.py to remove the SDR and DDR outputs
         self.submodules.videophy = VideoVGAPHY(platform.request("vga"))
-        self.add_video_framebuffer(phy=self.videophy, timings="320x200@60Hz", format="rgb565", clock_domain="vid")
+        self.add_video_framebuffer(phy=self.videophy, timings=[
+            "266x240@60Hz",
+            {
+                "pix_clk"       : CLOCK_SPEED / 10,
+                "h_active"      : 266,
+                "h_blanking"    : 80,
+                "h_sync_offset" : 8,
+                "h_sync_width"  : 32,
+                "v_active"      : 240,
+                "v_blanking"    : 15,
+                "v_sync_offset" : 1,
+                "v_sync_width"  : 8,
+            }], format="rgb565", clock_domain="vid")
         # self.add_video_terminal(phy=self.videophy, timings="320x200@60Hz", clock_domain="vid")
 
         self.add_controller_csr(platform)
@@ -215,23 +229,17 @@ def main():
     from litex.build.parser import LiteXArgumentParser
     import sys
     # LiteX directly reaches into sys.argv multiple times, so we have to inject all of our changed arguments at top level
+    # Match up with Rust compiler target with FPU and RVC
     sys.argv.extend(["--cpu-type=vexriscv_smp", "--with-fpu", "--with-rvc", "--uart-baudrate=2000000", "--timer-uptime"])
 
     parser = LiteXArgumentParser(platform=analogue_pocket.Platform, description="LiteX SoC on Analog Pocket.")
-    parser.add_target_argument("--sys-clk-freq", default=51_600_000, type=float, help="System clock frequency.")
+    parser.add_target_argument("--sys-clk-freq", default=CLOCK_SPEED, type=float, help="System clock frequency.")
     args = parser.parse_args()
 
     soc_args = parser.soc_argdict
-    # soc_args["cpu_type"] = "vexriscv_smp"
-
-    # soc_args["uart_baudrate"] = 2000000
-    # soc_args["timer_uptime"] = True
 
     soc = BaseSoC(
         sys_clk_freq = args.sys_clk_freq,
-        # Match up with Rust compiler target
-        # with_fpu = True,
-        # cpu_variant = "imac",
         **soc_args
     )
     builder_args = parser.builder_argdict

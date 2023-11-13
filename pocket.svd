@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-11-08 09:44:01]]></description>
+    <description><![CDATA[Litex SoC 2023-11-12 13:30:35]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -1003,7 +1003,7 @@ register to disable individual events.]]></description>
                 <register>
                     <name>DMA_LENGTH</name>
                     <addressOffset>0x0004</addressOffset>
-                    <resetValue>0x1f400</resetValue>
+                    <resetValue>0x1f2c0</resetValue>
                     <size>32</size>
                     <fields>
                         <field>
@@ -1099,7 +1099,7 @@ register to disable individual events.]]></description>
                 <register>
                     <name>HRES</name>
                     <addressOffset>0x0004</addressOffset>
-                    <resetValue>0x140</resetValue>
+                    <resetValue>0x10a</resetValue>
                     <size>32</size>
                     <fields>
                         <field>
@@ -1113,7 +1113,7 @@ register to disable individual events.]]></description>
                 <register>
                     <name>HSYNC_START</name>
                     <addressOffset>0x0008</addressOffset>
-                    <resetValue>0x148</resetValue>
+                    <resetValue>0x112</resetValue>
                     <size>32</size>
                     <fields>
                         <field>
@@ -1127,7 +1127,7 @@ register to disable individual events.]]></description>
                 <register>
                     <name>HSYNC_END</name>
                     <addressOffset>0x000c</addressOffset>
-                    <resetValue>0x168</resetValue>
+                    <resetValue>0x132</resetValue>
                     <size>32</size>
                     <fields>
                         <field>
@@ -1141,7 +1141,7 @@ register to disable individual events.]]></description>
                 <register>
                     <name>HSCAN</name>
                     <addressOffset>0x0010</addressOffset>
-                    <resetValue>0x18f</resetValue>
+                    <resetValue>0x159</resetValue>
                     <size>32</size>
                     <fields>
                         <field>
@@ -1155,7 +1155,7 @@ register to disable individual events.]]></description>
                 <register>
                     <name>VRES</name>
                     <addressOffset>0x0014</addressOffset>
-                    <resetValue>0xc8</resetValue>
+                    <resetValue>0xf0</resetValue>
                     <size>32</size>
                     <fields>
                         <field>
@@ -1169,7 +1169,7 @@ register to disable individual events.]]></description>
                 <register>
                     <name>VSYNC_START</name>
                     <addressOffset>0x0018</addressOffset>
-                    <resetValue>0xc9</resetValue>
+                    <resetValue>0xf1</resetValue>
                     <size>32</size>
                     <fields>
                         <field>
@@ -1183,7 +1183,7 @@ register to disable individual events.]]></description>
                 <register>
                     <name>VSYNC_END</name>
                     <addressOffset>0x001c</addressOffset>
-                    <resetValue>0xd1</resetValue>
+                    <resetValue>0xf9</resetValue>
                     <size>32</size>
                     <fields>
                         <field>
@@ -1197,7 +1197,7 @@ register to disable individual events.]]></description>
                 <register>
                     <name>VSCAN</name>
                     <addressOffset>0x0020</addressOffset>
-                    <resetValue>0xd6</resetValue>
+                    <resetValue>0xfe</resetValue>
                     <size>32</size>
                     <fields>
                         <field>
@@ -1260,7 +1260,7 @@ register to disable individual events.]]></description>
             </memoryRegion>
         </memoryRegions>
         <constants>
-            <constant name="CONFIG_CLOCK_FREQUENCY" value="51600000" />
+            <constant name="CONFIG_CLOCK_FREQUENCY" value="52940000" />
             <constant name="CONFIG_CPU_HAS_INTERRUPT" value="None" />
             <constant name="CONFIG_CPU_RESET_ADDR" value="0" />
             <constant name="CONFIG_CPU_COUNT" value="1" />
@@ -1282,8 +1282,8 @@ register to disable individual events.]]></description>
             <constant name="CONFIG_CPU_NOP" value="nop" />
             <constant name="CONFIG_L2_SIZE" value="8192" />
             <constant name="VIDEO_FRAMEBUFFER_BASE" value="1086324736" />
-            <constant name="VIDEO_FRAMEBUFFER_HRES" value="320" />
-            <constant name="VIDEO_FRAMEBUFFER_VRES" value="200" />
+            <constant name="VIDEO_FRAMEBUFFER_HRES" value="266" />
+            <constant name="VIDEO_FRAMEBUFFER_VRES" value="240" />
             <constant name="VIDEO_FRAMEBUFFER_DEPTH" value="16" />
             <constant name="CONFIG_CSR_DATA_WIDTH" value="32" />
             <constant name="CONFIG_CSR_ALIGNMENT" value="32" />

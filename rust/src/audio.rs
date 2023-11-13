@@ -74,6 +74,9 @@ fn panic(info: &PanicInfo) -> ! {
 #[global_allocator]
 static HEAP: Heap = Heap::empty();
 
+const DISPLAY_WIDTH: usize = 267;
+const DISPLAY_HEIGHT: usize = 240;
+
 const FRAMEBUFFER_ADDRESS: *mut Rgb565Pixel = 0x40C0_0000 as *mut Rgb565Pixel;
 
 const MP3_BANK_ADDRESS_A: *mut u8 = 0x4030_0000 as *mut u8;
@@ -113,7 +116,7 @@ fn get_cycle_count() -> u64 {
 }
 
 fn render_init() {
-    let buffer = unsafe { from_raw_parts_mut(FRAMEBUFFER_ADDRESS, 320 * 200) };
+    let buffer = unsafe { from_raw_parts_mut(FRAMEBUFFER_ADDRESS, DISPLAY_WIDTH * DISPLAY_HEIGHT) };
 
     let window = MinimalSoftwareWindow::new(RepaintBufferType::NewBuffer);
     slint::platform::set_platform(Box::new(SlintPlatform::new(window.clone()))).unwrap();
@@ -125,12 +128,15 @@ fn render_init() {
 
     ui.show().unwrap();
 
-    window.set_size(slint::PhysicalSize::new(320, 200));
+    window.set_size(slint::PhysicalSize::new(
+        DISPLAY_WIDTH as u32,
+        DISPLAY_HEIGHT as u32,
+    ));
 
     slint::platform::update_timers_and_animations();
 
     window.draw_if_needed(|renderer| {
-        renderer.render(buffer, 320);
+        renderer.render(buffer, DISPLAY_WIDTH);
     });
 }
 
