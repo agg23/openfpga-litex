@@ -107,11 +107,14 @@ class GENSDRAMPocketPHY(Module):
         # DQ/DM Data Path --------------------------------------------------------------------------
         for i in range(len(pads.dq)):
             input_reg = Signal()
+            input_reg2 = Signal()
             output_en_reg = Signal()
             output_reg = Signal()
 
             self.sync += [
-                dfi.p0.rddata[i].eq(input_reg),
+                # One cycle read delay
+                dfi.p0.rddata[i].eq(input_reg2),
+                input_reg2.eq(input_reg),
                 output_en_reg.eq(dfi.p0.wrdata_en),
                 output_reg.eq(dfi.p0.wrdata[i]),
             ]
@@ -148,6 +151,7 @@ class HalfRateGENSDRAMPocketPHY(Module):
 
         # Parameters -------------------------------------------------------------------------------
         cl = get_default_cl(memtype="SDR", tck=1/sys_clk_freq) if cl is None else cl
+        cl = 3
 
         # FullRate PHY -----------------------------------------------------------------------------
         full_rate_phy = GENSDRAMPocketPHY(pads, 2*sys_clk_freq, cl)

@@ -33,10 +33,10 @@ from litedram.phy.gensdrphy import HalfRateGENSDRPHY
 
 # CRG ----------------------------------------------------------------------------------------------
 
-CLOCK_SPEED = 52.94e6
+CLOCK_SPEED = 66.12e6
 
 class _CRG(LiteXModule):
-    def __init__(self, platform: analogue_pocket.Platform, sys_clk_freq):
+    def __init__(self, platform: analogue_pocket.Platform):
         # `rst` is a magic CRG signal that is automatically wired to the output of the SoC reset
         self.rst          = Signal()
         # LiteX expects a `sys` clock domain, so we can't rename it
@@ -75,10 +75,12 @@ class BaseSoC(SoCCore):
         platform = analogue_pocket.Platform()
 
         # CRG --------------------------------------------------------------------------------------
-        self.crg = _CRG(platform, sys_clk_freq)
+        self.crg = _CRG(platform)
 
         # SoCCore ----------------------------------------------------------------------------------
         SoCCore.__init__(self, platform, sys_clk_freq, ident="LiteX SoC on Analog Pocket", **kwargs)
+
+        # self.add_constant("CONFIG_MAIN_RAM_INIT")
 
         # SDR SDRAM --------------------------------------------------------------------------------
         if not self.integrated_main_ram_size:
@@ -96,11 +98,11 @@ class BaseSoC(SoCCore):
             {
                 "pix_clk"       : CLOCK_SPEED / 10,
                 "h_active"      : 266,
-                "h_blanking"    : 80,
+                "h_blanking"    : 114, # Max 380
                 "h_sync_offset" : 8,
                 "h_sync_width"  : 32,
                 "v_active"      : 240,
-                "v_blanking"    : 15,
+                "v_blanking"    : 50, # Max 290
                 "v_sync_offset" : 1,
                 "v_sync_width"  : 8,
             }], format="rgb565", clock_domain="vid")
@@ -114,7 +116,7 @@ class BaseSoC(SoCCore):
         example_slave = wishbone.Interface()
         example_slave_region = SoCRegion(0x8000_0000, 0x10_0000, cached = False)
         
-        self.bus.add_slave("example_slace", example_slave, example_slave_region)
+        self.bus.add_slave("example_slave", example_slave, example_slave_region)
 
         # For some reason this doesn't make the comb assignments itself?
         # Master, because the internal wishbone is a slave, and the Verilog one is "master"

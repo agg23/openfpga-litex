@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-11-13 17:58:47]]></description>
+    <description><![CDATA[Litex SoC 2023-11-14 15:40:25]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -1295,7 +1295,7 @@ register to disable individual events.]]></description>
                 <register>
                     <name>HSCAN</name>
                     <addressOffset>0x0010</addressOffset>
-                    <resetValue>0x159</resetValue>
+                    <resetValue>0x17b</resetValue>
                     <size>32</size>
                     <fields>
                         <field>
@@ -1351,7 +1351,7 @@ register to disable individual events.]]></description>
                 <register>
                     <name>VSCAN</name>
                     <addressOffset>0x0020</addressOffset>
-                    <resetValue>0xfe</resetValue>
+                    <resetValue>0x121</resetValue>
                     <size>32</size>
                     <fields>
                         <field>
@@ -1403,7 +1403,7 @@ register to disable individual events.]]></description>
                 <size>0x00800000</size>
             </memoryRegion>
             <memoryRegion>
-                <name>EXAMPLE_SLACE</name>
+                <name>EXAMPLE_SLAVE</name>
                 <baseAddress>0x80000000</baseAddress>
                 <size>0x00100000</size>
             </memoryRegion>
@@ -1414,7 +1414,7 @@ register to disable individual events.]]></description>
             </memoryRegion>
         </memoryRegions>
         <constants>
-            <constant name="CONFIG_CLOCK_FREQUENCY" value="52940000" />
+            <constant name="CONFIG_CLOCK_FREQUENCY" value="66120000" />
             <constant name="CONFIG_CPU_HAS_INTERRUPT" value="None" />
             <constant name="CONFIG_CPU_RESET_ADDR" value="0" />
             <constant name="CONFIG_CPU_COUNT" value="1" />

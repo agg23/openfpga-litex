@@ -46,7 +46,7 @@ struct MyPlatform {
 
 // const TEST_ADDR: *mut u32 = (0xF0001800 + 0x0028) as *mut u32;
 
-const CLOCK_SPEED: u32 = 51_600_000;
+const CLOCK_SPEED: u32 = 66_120_000;
 const CYCLE_PERIOD_NANOS: f64 = 1_000_000_000.0 / (CLOCK_SPEED as f64);
 
 fn combine_u32(low: u32, high: u32) -> u64 {
@@ -134,6 +134,9 @@ fn panic(info: &PanicInfo) -> ! {
 #[global_allocator]
 static HEAP: Heap = Heap::empty();
 
+const DISPLAY_WIDTH: usize = 266;
+const DISPLAY_HEIGHT: usize = 240;
+
 const TEST_BUFFER_INTERNAL_ADDRESS: u32 = 0x40C0_0000;
 
 const TEST_BUFFER_ADDRESS: *mut u32 = 0x40C0_0000 as *mut u32;
@@ -164,7 +167,8 @@ fn main() -> ! {
 
     println!("Heap created");
 
-    let buffer = unsafe { from_raw_parts_mut(TEST_PIXEL_BUFFER_ADDRESS, 320 * 200) };
+    let buffer =
+        unsafe { from_raw_parts_mut(TEST_PIXEL_BUFFER_ADDRESS, DISPLAY_WIDTH * DISPLAY_HEIGHT) };
 
     // Initialize a window (we'll need it later).
     let window = MinimalSoftwareWindow::new(RepaintBufferType::NewBuffer);
@@ -187,7 +191,10 @@ fn main() -> ! {
 
     println!("Setting window size");
 
-    window.set_size(slint::PhysicalSize::new(320, 200));
+    window.set_size(slint::PhysicalSize::new(
+        DISPLAY_WIDTH as u32,
+        DISPLAY_HEIGHT as u32,
+    ));
 
     const WISHBONE_ADDRESS: *mut u32 = 0x8000_0000 as *mut u32;
 
@@ -302,7 +309,7 @@ fn main() -> ! {
 
         window.draw_if_needed(|renderer| {
             // if first_render {
-            renderer.render(buffer, 320);
+            renderer.render(buffer, DISPLAY_WIDTH);
 
             first_render = false;
             // }
