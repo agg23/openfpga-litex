@@ -11,10 +11,11 @@
 
 # Set up the import paths for the LiteX packages
 import vendor
+from replaced_components import HalfRateGENSDRAMPocketPHY, VideoPocketPHY
 from litex.soc.integration.soc import SoCRegion
 from litex.soc.interconnect.csr import CSR, CSRStatus, CSRStorage
 
-from litex.soc.interconnect import stream, wishbone
+from litex.soc.interconnect import wishbone
 
 from migen import *
 
@@ -67,51 +68,6 @@ class _CRG(LiteXModule):
         sdram_clk = clk_sys2x_90deg
         self.specials += DDROutput(1, 0, platform.request("sdram_clock"), sdram_clk)
 
-# VideoPHY -----------------------------------------------------------------------------------------
-
-class VideoPocketPHY(LiteXModule):
-    # This is copied and modified from VideoGenericPHY in `video.py`
-    def __init__(self, pads, clock_domain="sys", with_clk_ddr_output=True):
-        video_data_layout = [
-            # Synchronization signals.
-            ("hsync", 1),
-            ("vsync", 1),
-            ("de",    1),
-            # Data signals.
-            ("r",     8),
-            ("g",     8),
-            ("b",     8),
-        ]
-
-        self.sink = sink = stream.Endpoint(video_data_layout)
-
-        # # #
-
-        # Always ack Sink, no backpressure.
-        self.comb += sink.ready.eq(1)
-        # Drive Controls.
-        self.comb += pads.de.eq(sink.de)
-        self.comb += pads.hsync.eq(sink.hsync)
-        self.comb += pads.vsync.eq(sink.vsync)
-
-        # Drive Datas.
-        cbits  = len(pads.r)
-        cshift = (8 - cbits)
-        for i in range(cbits):
-            # VGA monitors interpret minimum value as black so ensure data is set to 0 during blanking.
-            self.comb += pads.r[i].eq(sink.r[cshift + i] & sink.de)
-
-        cbits = len(pads.g)
-        cshift = (8 - cbits)
-        for i in range(cbits):
-            self.comb += pads.g[i].eq(sink.g[cshift + i] & sink.de)
-
-        cbits = len(pads.b)
-        cshift = (8 - cbits)
-        for i in range(cbits):
-            self.comb += pads.b[i].eq(sink.b[cshift + i] & sink.de)
-
-
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
@@ -126,7 +82,7 @@ class BaseSoC(SoCCore):
 
         # SDR SDRAM --------------------------------------------------------------------------------
         if not self.integrated_main_ram_size:
-            self.sdrphy = HalfRateGENSDRPHY(platform.request("sdram"), sys_clk_freq)
+            self.sdrphy = HalfRateGENSDRAMPocketPHY(platform.request("sdram"), sys_clk_freq)
             self.add_sdram("sdram",
                 phy           = self.sdrphy,
                 module        = AS4C32M16(sys_clk_freq, "1:2"),

@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-11-13 13:49:45]]></description>
+    <description><![CDATA[Litex SoC 2023-11-13 17:58:47]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -168,8 +168,120 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                     </fields>
                 </register>
                 <register>
-                    <name>BRIDGE_REQUEST_READ</name>
+                    <name>CONT1_JOY</name>
                     <addressOffset>0x0010</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>cont1_joy</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>CONT2_JOY</name>
+                    <addressOffset>0x0014</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>cont2_joy</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>CONT3_JOY</name>
+                    <addressOffset>0x0018</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>cont3_joy</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>CONT4_JOY</name>
+                    <addressOffset>0x001c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>cont4_joy</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>CONT1_TRIG</name>
+                    <addressOffset>0x0020</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>cont1_trig</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>CONT2_TRIG</name>
+                    <addressOffset>0x0024</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>cont2_trig</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>CONT3_TRIG</name>
+                    <addressOffset>0x0028</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>cont3_trig</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>CONT4_TRIG</name>
+                    <addressOffset>0x002c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>cont4_trig</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>BRIDGE_REQUEST_READ</name>
+                    <addressOffset>0x0030</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -183,7 +295,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                 </register>
                 <register>
                     <name>BRIDGE_SLOT_ID</name>
-                    <addressOffset>0x0014</addressOffset>
+                    <addressOffset>0x0034</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -197,7 +309,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                 </register>
                 <register>
                     <name>BRIDGE_DATA_OFFSET</name>
-                    <addressOffset>0x0018</addressOffset>
+                    <addressOffset>0x0038</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -211,7 +323,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                 </register>
                 <register>
                     <name>BRIDGE_LENGTH</name>
-                    <addressOffset>0x001c</addressOffset>
+                    <addressOffset>0x003c</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -225,7 +337,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                 </register>
                 <register>
                     <name>RAM_DATA_ADDRESS</name>
-                    <addressOffset>0x0020</addressOffset>
+                    <addressOffset>0x0040</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -239,7 +351,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                 </register>
                 <register>
                     <name>BRIDGE_FILE_SIZE</name>
-                    <addressOffset>0x0024</addressOffset>
+                    <addressOffset>0x0044</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -253,7 +365,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                 </register>
                 <register>
                     <name>BRIDGE_STATUS</name>
-                    <addressOffset>0x0028</addressOffset>
+                    <addressOffset>0x0048</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -267,7 +379,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                 </register>
                 <register>
                     <name>BRIDGE_CURRENT_ADDRESS</name>
-                    <addressOffset>0x002c</addressOffset>
+                    <addressOffset>0x004c</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -281,7 +393,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                 </register>
                 <register>
                     <name>AUDIO_OUT</name>
-                    <addressOffset>0x0030</addressOffset>
+                    <addressOffset>0x0050</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -295,7 +407,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                 </register>
                 <register>
                     <name>AUDIO_PLAYBACK_EN</name>
-                    <addressOffset>0x0034</addressOffset>
+                    <addressOffset>0x0054</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -309,7 +421,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                 </register>
                 <register>
                     <name>AUDIO_BUFFER_FLUSH</name>
-                    <addressOffset>0x0038</addressOffset>
+                    <addressOffset>0x0058</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -323,7 +435,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                 </register>
                 <register>
                     <name>AUDIO_BUFFER_FILL</name>
-                    <addressOffset>0x003c</addressOffset>
+                    <addressOffset>0x005c</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -338,7 +450,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
             </registers>
             <addressBlock>
                 <offset>0</offset>
-                <size>0x40</size>
+                <size>0x60</size>
                 <usage>registers</usage>
             </addressBlock>
         </peripheral>
