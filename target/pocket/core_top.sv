@@ -742,7 +742,21 @@ module core_top (
 
       .reset(reset),
 
-      .cont1_key(cont1_key),
+      .apf_input_cont1_key (cont1_key),
+      .apf_input_cont1_joy (cont1_joy),
+      .apf_input_cont1_trig(cont1_trig),
+
+      .apf_input_cont2_key (cont2_key),
+      .apf_input_cont2_joy (cont2_joy),
+      .apf_input_cont2_trig(cont2_trig),
+
+      .apf_input_cont3_key (cont3_key),
+      .apf_input_cont3_joy (cont3_joy),
+      .apf_input_cont3_trig(cont3_trig),
+
+      .apf_input_cont4_key (cont4_key),
+      .apf_input_cont4_joy (cont4_joy),
+      .apf_input_cont4_trig(cont4_trig),
 
       .apf_bridge_request_read(apf_bridge_request_read),
 
