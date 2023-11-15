@@ -3,12 +3,13 @@
 #
 
 from litex.build.altera import common, quartus
+from litex.build.altera.platform import AlteraPlatform
 from litex.build.generic_platform import *
 from litex.build.openfpgaloader import OpenFPGALoader
 
 # Platform -----------------------------------------------------------------------------------------
 
-class Platform(GenericPlatform):
+class Platform(AlteraPlatform):
     default_clk_name   = "clk74a"
     default_clk_period = 1e9/74.25e6
 
@@ -126,7 +127,7 @@ class Platform(GenericPlatform):
         ]
         _connectors = []
 
-        GenericPlatform.__init__(self, "5CEBA4F23C8", _io, _connectors, name="litex")
+        AlteraPlatform.__init__(self, "5CEBA4F23C8", _io, _connectors, name="litex")
 
     def create_programmer(self):
         return OpenFPGALoader(cable="usb-blaster")
@@ -146,18 +147,31 @@ class Platform(GenericPlatform):
         cwd = os.getcwd()
         os.chdir(build_dir)
 
+        self.toolchain._build_name = build_name
+        self.toolchain._build_dir  = build_dir
+        self.toolchain._synth_opts += synth_opts
+        self.toolchain.platform    = self
+        self.toolchain.fragment    = fragment
+
         # v_output = self.get_verilog(fragment, name="litex", **kwargs)
-        so = dict(common.altera_special_overrides)
+
+        self.finalize(fragment)
+
         # so.update(special_overrides)
         print("Building Verilog")
-        v_output = self.get_verilog(fragment,
-            name=build_name,
-            special_overrides = so,
-            attr_translate    = quartus.AlteraQuartusToolchain().attr_translate,
-            **kwargs)
-                
+        v_output = self.get_verilog(fragment, name=build_name, **kwargs)
         v_file = build_name + ".v"
         v_output.write(v_file)
+        
+        # Finalize toolchain (after gateware is complete)
+        self.toolchain.finalize()
+
+        # Get signals and platform constraints
+        self.named_sc, self.named_pc = self.resolve_signals(v_output.ns)
+        self.add_source(v_file)
+        
+        print("Building timing constraints")
+        self.toolchain.build_timing_constraints(v_output.ns)
 
     # Taken from altera/platform.py
     def add_reserved_jtag_decls(self):
