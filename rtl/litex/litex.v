@@ -9,7 +9,7 @@
 // Filename   : litex.v
 // Device     : 5CEBA4F23C8
 // LiteX sha1 : 71ae8fe8
-// Date       : 2023-11-15 09:50:13
+// Date       : 2023-11-15 13:53:05
 //------------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -1880,8 +1880,8 @@ reg           sdram_tfawcon_ready = 1'd1;
 wire          sdram_tfawcon_valid;
 reg     [4:0] sdram_time0 = 5'd0;
 reg     [3:0] sdram_time1 = 4'd0;
-wire    [9:0] sdram_timer_count0;
-reg     [9:0] sdram_timer_count1 = 10'd516;
+wire    [8:0] sdram_timer_count0;
+reg     [8:0] sdram_timer_count1 = 9'd446;
 wire          sdram_timer_done0;
 wire          sdram_timer_done1;
 wire          sdram_timer_wait;
@@ -2148,7 +2148,7 @@ reg           vtg_hres_re = 1'd0;
 reg    [11:0] vtg_hres_storage = 12'd266;
 wire   [11:0] vtg_hscan;
 reg           vtg_hscan_re = 1'd0;
-reg    [11:0] vtg_hscan_storage = 12'd379;
+reg    [11:0] vtg_hscan_storage = 12'd339;
 wire   [11:0] vtg_hsync_end;
 reg           vtg_hsync_end_re = 1'd0;
 reg    [11:0] vtg_hsync_end_storage = 12'd306;
@@ -2187,7 +2187,7 @@ reg           vtg_vres_re = 1'd0;
 reg    [11:0] vtg_vres_storage = 12'd240;
 wire   [11:0] vtg_vscan;
 reg           vtg_vscan_re = 1'd0;
-reg    [11:0] vtg_vscan_storage = 12'd289;
+reg    [11:0] vtg_vscan_storage = 12'd279;
 wire   [11:0] vtg_vsync_end;
 reg           vtg_vsync_end_re = 1'd0;
 reg    [11:0] vtg_vsync_end_storage = 12'd249;
@@ -6544,9 +6544,9 @@ always @(posedge sys_clk) begin
     if (((basesoc_ram_bus_ram_bus_cyc & basesoc_ram_bus_ram_bus_stb) & ((~basesoc_ram_bus_ram_bus_ack) | basesoc_ram_adr_burst))) begin
         basesoc_ram_bus_ram_bus_ack <= 1'd1;
     end
-    {basesoc_tx_tick, basesoc_tx_phase} <= 27'd129914316;
+    {basesoc_tx_tick, basesoc_tx_phase} <= 28'd150384008;
     if (basesoc_tx_enable) begin
-        {basesoc_tx_tick, basesoc_tx_phase} <= (basesoc_tx_phase + 27'd129914316);
+        {basesoc_tx_tick, basesoc_tx_phase} <= (basesoc_tx_phase + 28'd150384008);
     end
     basesoc_rs232phytx_state <= basesoc_rs232phytx_next_state;
     if (basesoc_tx_count_rs232phytx_next_value_ce0) begin
@@ -6561,7 +6561,7 @@ always @(posedge sys_clk) begin
     basesoc_rx_rx_d <= basesoc_rx_rx;
     {basesoc_rx_tick, basesoc_rx_phase} <= 32'd2147483648;
     if (basesoc_rx_enable) begin
-        {basesoc_rx_tick, basesoc_rx_phase} <= (basesoc_rx_phase + 27'd129914316);
+        {basesoc_rx_tick, basesoc_rx_phase} <= (basesoc_rx_phase + 28'd150384008);
     end
     basesoc_rs232phyrx_state <= basesoc_rs232phyrx_next_state;
     if (basesoc_rx_count_rs232phyrx_next_value_ce0) begin
@@ -6661,7 +6661,7 @@ always @(posedge sys_clk) begin
     if ((sdram_timer_wait & (~sdram_timer_done0))) begin
         sdram_timer_count1 <= (sdram_timer_count1 - 1'd1);
     end else begin
-        sdram_timer_count1 <= 10'd516;
+        sdram_timer_count1 <= 9'd446;
     end
     sdram_postponer_req_o <= 1'd0;
     if (sdram_postponer_req_i) begin
@@ -6700,7 +6700,7 @@ always @(posedge sys_clk) begin
         sdram_cmd_payload_ras <= 1'd1;
         sdram_cmd_payload_we <= 1'd0;
     end
-    if ((sdram_sequencer_counter == 3'd7)) begin
+    if ((sdram_sequencer_counter == 3'd6)) begin
         sdram_cmd_payload_a <= 1'd0;
         sdram_cmd_payload_ba <= 1'd0;
         sdram_cmd_payload_cas <= 1'd0;
@@ -6708,11 +6708,15 @@ always @(posedge sys_clk) begin
         sdram_cmd_payload_we <= 1'd0;
         sdram_sequencer_done1 <= 1'd1;
     end
-    if ((sdram_sequencer_counter != 1'd0)) begin
-        sdram_sequencer_counter <= (sdram_sequencer_counter + 1'd1);
+    if ((sdram_sequencer_counter == 3'd6)) begin
+        sdram_sequencer_counter <= 1'd0;
     end else begin
-        if (sdram_sequencer_start1) begin
-            sdram_sequencer_counter <= 1'd1;
+        if ((sdram_sequencer_counter != 1'd0)) begin
+            sdram_sequencer_counter <= (sdram_sequencer_counter + 1'd1);
+        end else begin
+            if (sdram_sequencer_start1) begin
+                sdram_sequencer_counter <= 1'd1;
+            end
         end
     end
     basesoc_refresher_state <= basesoc_refresher_next_state;
@@ -7975,7 +7979,7 @@ always @(posedge sys_clk) begin
         sdram_cmd_payload_cas <= 1'd0;
         sdram_cmd_payload_ras <= 1'd0;
         sdram_cmd_payload_we <= 1'd0;
-        sdram_timer_count1 <= 10'd516;
+        sdram_timer_count1 <= 9'd446;
         sdram_postponer_req_o <= 1'd0;
         sdram_postponer_count <= 1'd0;
         sdram_sequencer_done1 <= 1'd0;
@@ -8044,7 +8048,7 @@ always @(posedge sys_clk) begin
         vtg_hsync_start_re <= 1'd0;
         vtg_hsync_end_storage <= 12'd306;
         vtg_hsync_end_re <= 1'd0;
-        vtg_hscan_storage <= 12'd379;
+        vtg_hscan_storage <= 12'd339;
         vtg_hscan_re <= 1'd0;
         vtg_vres_storage <= 12'd240;
         vtg_vres_re <= 1'd0;
@@ -8052,7 +8056,7 @@ always @(posedge sys_clk) begin
         vtg_vsync_start_re <= 1'd0;
         vtg_vsync_end_storage <= 12'd249;
         vtg_vsync_end_re <= 1'd0;
-        vtg_vscan_storage <= 12'd289;
+        vtg_vscan_storage <= 12'd279;
         vtg_vscan_re <= 1'd0;
         videoframebuffer_dma_res_fifo_level <= 15'd0;
         videoframebuffer_dma_res_fifo_produce <= 14'd0;
@@ -8983,5 +8987,5 @@ ALTDDIO_OUT #(
 endmodule
 
 // -----------------------------------------------------------------------------
-//  Auto-Generated by LiteX on 2023-11-15 09:50:13.
+//  Auto-Generated by LiteX on 2023-11-15 13:53:05.
 //------------------------------------------------------------------------------
