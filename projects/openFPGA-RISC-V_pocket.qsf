@@ -43,7 +43,7 @@ set_global_assignment -name ACTIVE_SERIAL_CLOCK FREQ_100MHZ
 set_global_assignment -name CRC_ERROR_OPEN_DRAIN ON
 set_global_assignment -name ECO_OPTIMIZE_TIMING ON
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 256
-set_global_assignment -name FITTER_EFFORT "AUTO FIT"
+set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
 set_global_assignment -name PERIPHERY_TO_CORE_PLACEMENT_AND_ROUTING_OPTIMIZATION ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_ASYNCHRONOUS_SIGNAL_PIPELINING ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC ON
@@ -665,13 +665,10 @@ set_global_assignment -name QIP_FILE ../target/pocket/core.qip
 set_global_assignment -name QIP_FILE "openFPGA-RISC-V_pocket.qip"
 set_global_assignment -name SDC_FILE "openFPGA-RISC-V_pocket.sdc"
 set_global_assignment -name QIP_FILE ../rtl/risc_v.qip
-set_global_assignment -name QIP_FILE ../vendor/kronos.qip
 
 # ==============================================================================
 
 
-set_global_assignment -name QIP_FILE ../target/pocket/uart_fifo.qip
-set_global_assignment -name QIP_FILE ../target/pocket/ram.qip
 set_global_assignment -name ENABLE_SIGNALTAP ON
 set_global_assignment -name USE_SIGNALTAP_FILE stp1.stp
 set_global_assignment -name SIGNALTAP_FILE stp1.stp
@@ -680,5 +677,7 @@ set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name PLACEMENT_EFFORT_MULTIPLIER 4.0
+set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC_FOR_AREA ON
 set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

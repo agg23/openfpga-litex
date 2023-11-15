@@ -94,9 +94,7 @@ module apf_wishbone_master (
   localparam WRITE = 1;
   // localparam WRITE_WAIT_ACK = 2;
 
-  reg [ 2:0] state = 3'h0;
-
-  reg [31:0] stored_data  /* synthesis noprune */;
+  reg [2:0] state = 3'h0;
 
   always @(posedge clk_sys) begin
     // Write all bytes
@@ -126,10 +124,8 @@ module apf_wishbone_master (
         if (ack) begin
           state <= NONE;
 
-          stored_data <= data_read;
-
-          cyc <= 0;
-          stb <= 0;
+          cyc   <= 0;
+          stb   <= 0;
         end
       end
     endcase

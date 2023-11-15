@@ -1,3 +1,4 @@
+// TODO: Unused example of Wishbone slave
 module wishbone (
     input wire clk_74a,
     input wire clk,
