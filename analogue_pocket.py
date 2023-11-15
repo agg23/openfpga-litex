@@ -33,7 +33,8 @@ from litedram.phy.gensdrphy import HalfRateGENSDRPHY
 
 # CRG ----------------------------------------------------------------------------------------------
 
-CLOCK_SPEED = 66.12e6
+# CLOCK_SPEED = 66.12e6
+CLOCK_SPEED = 57.12e6
 
 class _CRG(LiteXModule):
     def __init__(self, platform: analogue_pocket.Platform):
@@ -93,19 +94,34 @@ class BaseSoC(SoCCore):
 
         # This only works with modifications to vendor/litex/litex/soc/cores/video.py to remove the SDR and DDR outputs
         self.submodules.videophy = VideoPocketPHY(platform.request("vga"))
+        # 66.12
+        # self.add_video_framebuffer(phy=self.videophy, timings=[
+        #     "266x240@60Hz",
+        #     {
+        #         "pix_clk"       : CLOCK_SPEED / 10,
+        #         "h_active"      : 266,
+        #         "h_blanking"    : 114, # Max 380
+        #         "h_sync_offset" : 8,
+        #         "h_sync_width"  : 32,
+        #         "v_active"      : 240,
+        #         "v_blanking"    : 50, # Max 290
+        #         "v_sync_offset" : 1,
+        #         "v_sync_width"  : 8,
+        #     }], format="rgb565", clock_domain="vid")
         self.add_video_framebuffer(phy=self.videophy, timings=[
             "266x240@60Hz",
             {
                 "pix_clk"       : CLOCK_SPEED / 10,
                 "h_active"      : 266,
-                "h_blanking"    : 114, # Max 380
+                "h_blanking"    : 74, # Max 340
                 "h_sync_offset" : 8,
                 "h_sync_width"  : 32,
                 "v_active"      : 240,
-                "v_blanking"    : 50, # Max 290
+                "v_blanking"    : 40, # Max 280
                 "v_sync_offset" : 1,
                 "v_sync_width"  : 8,
             }], format="rgb565", clock_domain="vid")
+
         # self.add_video_terminal(phy=self.videophy, timings="320x200@60Hz", clock_domain="vid")
 
         # CSR definitions --------------------------------------------------------------------------
@@ -239,6 +255,7 @@ def main():
     sys.argv.extend(["--cpu-type=vexriscv_smp", "--with-fpu", "--with-rvc", "--uart-baudrate=2000000", "--timer-uptime"])
 
     # Include if we are building for JTAG, not cart UART
+    # Baudrate is ignored for JTAG
     # sys.argv.extend(["--uart-name=jtag_uart"])
 
     parser = LiteXArgumentParser(platform=analogue_pocket.Platform, description="LiteX SoC on Analog Pocket.")
