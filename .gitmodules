@@ -1,3 +1,0 @@
-[submodule "vendor/kronos"]
-	path = vendor/kronos
-	url = https://github.com/agg23/kronos.git
