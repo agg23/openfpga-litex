@@ -27,15 +27,15 @@ Base address (`MAIN` block): `0xF000_1000` + `0x30`
 
 ### Common
 
-| Name                     | Offset | Dir | Width | Description                                                                                                                                                            |
-| ------------------------ | ------ | --- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bridge_slot_id`         | `0x4`  | RW  | 16    | The slot ID defined in `data.json` for the desired asset/slot.                                                                                                         |
-| `bridge_data_offset`     | `0x8`  | RW  | 32    | The offset from the start of the asset in the selected data slot to operate on.                                                                                        |
-| `bridge_length`          | `0xC`  | RW  | 32    | The length of data to transfer as part of this bridge operation.                                                                                                       |
-| `ram_data_address`       | `0x10` | RW  | 32    | The address of RISC-V RAM to be manipulated in this operation. It is either the first write address for a read request, or the first read address for a write request. |
-| `bridge_file_size`       | `0x14` | R   | 32    | The file size on disk of the current selected asset in slot `bridge_slot_id`.                                                                                          |
-| `bridge_status`          | `0x18` | R   | 1     | Indicates when the bridge is currently transferring a file. 1 when transferring, 0 otherwise. Clears its value on read.                                                |
-| `bridge_current_address` | `0x1C` | R   | 32    | The current address the bridge is operating on. Can be used to show a progress bar/estimate time until completion.                                                     |
+| Name                     | Offset | Dir | Width | Description                                                                                                                                                                                                           |
+| ------------------------ | ------ | --- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bridge_slot_id`         | `0x4`  | RW  | 16    | The slot ID defined in `data.json` for the desired asset/slot.                                                                                                                                                        |
+| `bridge_data_offset`     | `0x8`  | RW  | 32    | The offset from the start of the asset in the selected data slot to operate on.                                                                                                                                       |
+| `bridge_length`          | `0xC`  | RW  | 32    | The length of data to transfer as part of this bridge operation. A length of `0xFFFFFFFF` will request the entire file (NOTE: As of Pocket firmware 1.1, this is bugged, and you just request the file size instead). |
+| `ram_data_address`       | `0x10` | RW  | 32    | The address of RISC-V RAM to be manipulated in this operation. It is either the first write address for a read request, or the first read address for a write request.                                                |
+| `bridge_file_size`       | `0x14` | R   | 32    | The file size on disk of the current selected asset in slot `bridge_slot_id`.                                                                                                                                         |
+| `bridge_status`          | `0x18` | R   | 1     | Indicates when the bridge is currently transferring a file. 1 when transferring, 0 otherwise. Clears its value on read.                                                                                               |
+| `bridge_current_address` | `0x1C` | R   | 32    | The current address the bridge is operating on. Can be used to show a progress bar/estimate time until completion.                                                                                                    |
 
 
 ### Reading

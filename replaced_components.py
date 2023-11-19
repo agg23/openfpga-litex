@@ -36,6 +36,7 @@
 # encouraged to use the two-clause BSD license reproduced above.
 
 from litedram.common import *
+from litedram.modules import _SpeedgradeTimings, _TechnologyTimings, SDRModule
 from litedram.phy.dfi import *
 from litex.gen.fhdl.module import LiteXModule
 from litex.soc.interconnect import stream
@@ -43,6 +44,15 @@ from litex.soc.interconnect import stream
 from migen import *
 
 from migen.fhdl.specials import Tristate
+
+class AS4C32M16Pocket(SDRModule):
+    # geometry
+    nbanks = 4
+    nrows  = 8192
+    ncols  = 1024
+    # timings
+    technology_timings = _TechnologyTimings(tREFI=64e6/8192, tWTR=(2, None), tCCD=(1, None), tRRD=(None, 12))
+    speedgrade_timings = {"default": _SpeedgradeTimings(tRP=18, tRCD=18, tWR=15, tRFC=(None, 80), tFAW=None, tRAS=48)}
 
 # Internal Pocket SDR PHY ---------------------------------------------------------------------------
 

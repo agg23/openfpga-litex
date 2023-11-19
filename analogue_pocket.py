@@ -11,7 +11,7 @@
 
 # Set up the import paths for the LiteX packages
 import vendor
-from replaced_components import HalfRateGENSDRAMPocketPHY, VideoPocketPHY
+from replaced_components import AS4C32M16Pocket, HalfRateGENSDRAMPocketPHY, VideoPocketPHY
 from litex.soc.integration.soc import SoCRegion
 from litex.soc.interconnect.csr import CSR, CSRStatus, CSRStorage
 
@@ -81,33 +81,25 @@ class BaseSoC(SoCCore):
         # SoCCore ----------------------------------------------------------------------------------
         SoCCore.__init__(self, platform, sys_clk_freq, ident="LiteX SoC on Analog Pocket", **kwargs)
 
-        # self.add_constant("CONFIG_MAIN_RAM_INIT")
+        # Allow booting from the first address in SDRAM
+        self.add_constant("ROM_BOOT_ADDRESS", 0x40000000)
+        # self.add_constant("SDRAM_TEST_DISABLE", 1)
 
         # SDR SDRAM --------------------------------------------------------------------------------
         if not self.integrated_main_ram_size:
             self.sdrphy = HalfRateGENSDRAMPocketPHY(platform.request("sdram"), sys_clk_freq)
             self.add_sdram("sdram",
                 phy           = self.sdrphy,
-                module        = AS4C32M16(sys_clk_freq, "1:2"),
-                l2_cache_size = kwargs.get("l2_size", 8192)
+                module        = AS4C32M16Pocket(sys_clk_freq, "1:2"),
+                # l2_cache_size = kwargs.get("l2_size", 8192)
+                # Disable L2 as it seems to not being used for reads, and it is causing 0x2000 bytes to be not written
+                # on file read
+                l2_cache_size = 0
             )
 
         # This only works with modifications to vendor/litex/litex/soc/cores/video.py to remove the SDR and DDR outputs
         self.submodules.videophy = VideoPocketPHY(platform.request("vga"))
-        # 66.12
-        # self.add_video_framebuffer(phy=self.videophy, timings=[
-        #     "266x240@60Hz",
-        #     {
-        #         "pix_clk"       : CLOCK_SPEED / 10,
-        #         "h_active"      : 266,
-        #         "h_blanking"    : 114, # Max 380
-        #         "h_sync_offset" : 8,
-        #         "h_sync_width"  : 32,
-        #         "v_active"      : 240,
-        #         "v_blanking"    : 50, # Max 290
-        #         "v_sync_offset" : 1,
-        #         "v_sync_width"  : 8,
-        #     }], format="rgb565", clock_domain="vid")
+        # 57.12 MHz
         self.add_video_framebuffer(phy=self.videophy, timings=[
             "266x240@60Hz",
             {
@@ -121,8 +113,6 @@ class BaseSoC(SoCCore):
                 "v_sync_offset" : 1,
                 "v_sync_width"  : 8,
             }], format="rgb565", clock_domain="vid")
-
-        # self.add_video_terminal(phy=self.videophy, timings="320x200@60Hz", clock_domain="vid")
 
         # CSR definitions --------------------------------------------------------------------------
         self.add_controller_csr(platform)
