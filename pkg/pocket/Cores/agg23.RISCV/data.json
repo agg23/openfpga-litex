@@ -3,12 +3,14 @@
     "magic": "APF_VER_1",
     "data_slots": [
       {
-        "name": "Asset",
+        "name": "Boot",
         "id": 0,
         "required": true,
+        "filename": "boot.bin",
         "parameters": "0x9",
-        "extensions": ["mp3"],
-        "address": "0x10000000"
+        "deferload": true,
+        "extensions": ["bin"],
+        "address": "0x00000000"
       }
     ]
   }

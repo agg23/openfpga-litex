@@ -9,7 +9,7 @@
 // Filename   : litex.v
 // Device     : 5CEBA4F23C8
 // LiteX sha1 : 71ae8fe8
-// Date       : 2023-11-15 13:53:05
+// Date       : 2023-11-19 07:56:28
 //------------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -95,7 +95,9 @@ module litex (
 // Signals
 //------------------------------------------------------------------------------
 
-reg     [1:0] adr_offset_r = 2'd0;
+reg           aborted = 1'd0;
+reg           aborted_litedramwishbone2native_next_value = 1'd0;
+reg           aborted_litedramwishbone2native_next_value_ce = 1'd0;
 wire          apf_bridge_master_ack;
 wire   [29:0] apf_bridge_master_adr;
 wire    [1:0] apf_bridge_master_bte;
@@ -182,10 +184,6 @@ wire   [31:0] basesoc_dat_r;
 reg    [31:0] basesoc_dat_w = 32'd0;
 reg    [31:0] basesoc_dat_w_wishbone2csr_next_value0 = 32'd0;
 reg           basesoc_dat_w_wishbone2csr_next_value_ce0 = 1'd0;
-reg     [1:0] basesoc_fsm_next_state = 2'd0;
-reg     [1:0] basesoc_fsm_state = 2'd0;
-reg     [1:0] basesoc_fullmemorywe_next_state = 2'd0;
-reg     [1:0] basesoc_fullmemorywe_state = 2'd0;
 reg    [31:0] basesoc_interrupt = 32'd0;
 reg           basesoc_jtag_capture = 1'd0;
 reg           basesoc_jtag_clk = 1'd0;
@@ -197,8 +195,8 @@ wire          basesoc_jtag_tdo;
 reg           basesoc_jtag_update = 1'd0;
 reg     [1:0] basesoc_litedramdmareader_next_state = 2'd0;
 reg     [1:0] basesoc_litedramdmareader_state = 2'd0;
-reg           basesoc_litedramnativeportconverter_next_state = 1'd0;
-reg           basesoc_litedramnativeportconverter_state = 1'd0;
+reg     [1:0] basesoc_litedramwishbone2native_next_state = 2'd0;
+reg     [1:0] basesoc_litedramwishbone2native_state = 2'd0;
 reg           basesoc_locked0 = 1'd0;
 reg           basesoc_locked1 = 1'd0;
 reg           basesoc_locked10 = 1'd0;
@@ -880,10 +878,6 @@ wire   [13:0] csr_interconnect_adr;
 wire   [31:0] csr_interconnect_dat_r;
 wire   [31:0] csr_interconnect_dat_w;
 wire          csr_interconnect_we;
-wire    [8:0] data_port_adr;
-wire  [127:0] data_port_dat_r;
-reg   [127:0] data_port_dat_w = 128'd0;
-reg    [15:0] data_port_we = 16'd0;
 reg           dbus_cmd_first = 1'd0;
 reg           dbus_cmd_last = 1'd0;
 wire   [31:0] dbus_cmd_payload_addr;
@@ -1045,14 +1039,18 @@ wire   [31:0] ibus_wdata_payload_data;
 wire    [3:0] ibus_wdata_payload_we;
 wire          ibus_wdata_ready;
 wire          ibus_wdata_valid;
-reg           interface_ack = 1'd0;
-wire   [27:0] interface_adr;
-reg           interface_cyc = 1'd0;
-reg   [127:0] interface_dat_r = 128'd0;
-wire  [127:0] interface_dat_w;
-wire   [15:0] interface_sel;
-reg           interface_stb = 1'd0;
-reg           interface_we = 1'd0;
+reg           is_ongoing = 1'd0;
+reg           litedram_wb_ack = 1'd0;
+wire   [29:0] litedram_wb_adr;
+wire    [1:0] litedram_wb_bte;
+wire    [2:0] litedram_wb_cti;
+wire          litedram_wb_cyc;
+reg    [31:0] litedram_wb_dat_r = 32'd0;
+wire   [31:0] litedram_wb_dat_w;
+reg           litedram_wb_err = 1'd0;
+wire    [3:0] litedram_wb_sel;
+wire          litedram_wb_stb;
+wire          litedram_wb_we;
 wire          litedramcrossbar_cmd_last;
 wire   [23:0] litedramcrossbar_cmd_payload_addr;
 wire          litedramcrossbar_cmd_payload_we;
@@ -1100,21 +1098,19 @@ wire   [31:0] litedramnativeport1_wdata_payload_data;
 wire    [3:0] litedramnativeport1_wdata_payload_we;
 wire          litedramnativeport1_wdata_ready;
 wire          litedramnativeport1_wdata_valid;
-reg    [23:0] litedramnativeport2_cmd_payload_addr = 24'd0;
-reg           litedramnativeport2_cmd_payload_we = 1'd0;
+wire          litedramnativeport2_cmd_last;
+wire   [23:0] litedramnativeport2_cmd_payload_addr;
+wire          litedramnativeport2_cmd_payload_we;
 wire          litedramnativeport2_cmd_ready;
 reg           litedramnativeport2_cmd_valid = 1'd0;
-reg           litedramnativeport2_rdata_first = 1'd0;
-reg           litedramnativeport2_rdata_last = 1'd0;
+wire          litedramnativeport2_flush;
 wire   [31:0] litedramnativeport2_rdata_payload_data;
 wire          litedramnativeport2_rdata_ready;
 wire          litedramnativeport2_rdata_valid;
-wire          litedramnativeport2_wdata_first;
-wire          litedramnativeport2_wdata_last;
 wire   [31:0] litedramnativeport2_wdata_payload_data;
 wire    [3:0] litedramnativeport2_wdata_payload_we;
 wire          litedramnativeport2_wdata_ready;
-wire          litedramnativeport2_wdata_valid;
+reg           litedramnativeport2_wdata_valid = 1'd0;
 reg           multiregimpl0_regs0 = 1'd0;
 reg           multiregimpl0_regs1 = 1'd0;
 reg     [2:0] multiregimpl10_regs0 = 3'd0;
@@ -1265,9 +1261,11 @@ wire          sdram_bankmachine0_syncfifo0_re;
 wire          sdram_bankmachine0_syncfifo0_readable;
 wire          sdram_bankmachine0_syncfifo0_we;
 wire          sdram_bankmachine0_syncfifo0_writable;
-reg           sdram_bankmachine0_trascon_ready = 1'd1;
+reg     [1:0] sdram_bankmachine0_trascon_count = 2'd0;
+reg           sdram_bankmachine0_trascon_ready = 1'd0;
 wire          sdram_bankmachine0_trascon_valid;
-reg           sdram_bankmachine0_trccon_ready = 1'd1;
+reg     [2:0] sdram_bankmachine0_trccon_count = 3'd0;
+reg           sdram_bankmachine0_trccon_ready = 1'd0;
 wire          sdram_bankmachine0_trccon_valid;
 reg     [2:0] sdram_bankmachine0_twtpcon_count = 3'd0;
 reg           sdram_bankmachine0_twtpcon_ready = 1'd0;
@@ -1359,9 +1357,11 @@ wire          sdram_bankmachine1_syncfifo1_re;
 wire          sdram_bankmachine1_syncfifo1_readable;
 wire          sdram_bankmachine1_syncfifo1_we;
 wire          sdram_bankmachine1_syncfifo1_writable;
-reg           sdram_bankmachine1_trascon_ready = 1'd1;
+reg     [1:0] sdram_bankmachine1_trascon_count = 2'd0;
+reg           sdram_bankmachine1_trascon_ready = 1'd0;
 wire          sdram_bankmachine1_trascon_valid;
-reg           sdram_bankmachine1_trccon_ready = 1'd1;
+reg     [2:0] sdram_bankmachine1_trccon_count = 3'd0;
+reg           sdram_bankmachine1_trccon_ready = 1'd0;
 wire          sdram_bankmachine1_trccon_valid;
 reg     [2:0] sdram_bankmachine1_twtpcon_count = 3'd0;
 reg           sdram_bankmachine1_twtpcon_ready = 1'd0;
@@ -1453,9 +1453,11 @@ wire          sdram_bankmachine2_syncfifo2_re;
 wire          sdram_bankmachine2_syncfifo2_readable;
 wire          sdram_bankmachine2_syncfifo2_we;
 wire          sdram_bankmachine2_syncfifo2_writable;
-reg           sdram_bankmachine2_trascon_ready = 1'd1;
+reg     [1:0] sdram_bankmachine2_trascon_count = 2'd0;
+reg           sdram_bankmachine2_trascon_ready = 1'd0;
 wire          sdram_bankmachine2_trascon_valid;
-reg           sdram_bankmachine2_trccon_ready = 1'd1;
+reg     [2:0] sdram_bankmachine2_trccon_count = 3'd0;
+reg           sdram_bankmachine2_trccon_ready = 1'd0;
 wire          sdram_bankmachine2_trccon_valid;
 reg     [2:0] sdram_bankmachine2_twtpcon_count = 3'd0;
 reg           sdram_bankmachine2_twtpcon_ready = 1'd0;
@@ -1547,9 +1549,11 @@ wire          sdram_bankmachine3_syncfifo3_re;
 wire          sdram_bankmachine3_syncfifo3_readable;
 wire          sdram_bankmachine3_syncfifo3_we;
 wire          sdram_bankmachine3_syncfifo3_writable;
-reg           sdram_bankmachine3_trascon_ready = 1'd1;
+reg     [1:0] sdram_bankmachine3_trascon_count = 2'd0;
+reg           sdram_bankmachine3_trascon_ready = 1'd0;
 wire          sdram_bankmachine3_trascon_valid;
-reg           sdram_bankmachine3_trccon_ready = 1'd1;
+reg     [2:0] sdram_bankmachine3_trccon_count = 3'd0;
+reg           sdram_bankmachine3_trccon_ready = 1'd0;
 wire          sdram_bankmachine3_trccon_valid;
 reg     [2:0] sdram_bankmachine3_twtpcon_count = 3'd0;
 reg           sdram_bankmachine3_twtpcon_ready = 1'd0;
@@ -1829,7 +1833,7 @@ wire          sdram_read_available;
 wire          sdram_reset_n;
 wire          sdram_sel;
 reg           sdram_sequencer_count = 1'd0;
-reg     [2:0] sdram_sequencer_counter = 3'd0;
+reg     [3:0] sdram_sequencer_counter = 4'd0;
 wire          sdram_sequencer_done0;
 reg           sdram_sequencer_done1 = 1'd0;
 reg           sdram_sequencer_start0 = 1'd0;
@@ -1885,7 +1889,8 @@ reg     [8:0] sdram_timer_count1 = 9'd446;
 wire          sdram_timer_done0;
 wire          sdram_timer_done1;
 wire          sdram_timer_wait;
-reg           sdram_trrdcon_ready = 1'd1;
+reg           sdram_trrdcon_count = 1'd0;
+reg           sdram_trrdcon_ready = 1'd0;
 wire          sdram_trrdcon_valid;
 reg     [1:0] sdram_twtrcon_count = 2'd0;
 reg           sdram_twtrcon_ready = 1'd0;
@@ -1926,14 +1931,6 @@ reg           t_array_muxed2 = 1'd0;
 reg           t_array_muxed3 = 1'd0;
 reg           t_array_muxed4 = 1'd0;
 reg           t_array_muxed5 = 1'd0;
-reg           tag_di_dirty = 1'd0;
-wire   [20:0] tag_di_tag;
-wire          tag_do_dirty;
-wire   [20:0] tag_do_tag;
-wire    [8:0] tag_port_adr;
-wire   [21:0] tag_port_dat_r;
-wire   [21:0] tag_port_dat_w;
-reg           tag_port_we = 1'd0;
 reg    [63:0] uptime_cycles = 64'd0;
 reg           uptime_cycles_re = 1'd0;
 reg    [63:0] uptime_cycles_status = 64'd0;
@@ -2195,105 +2192,18 @@ wire   [11:0] vtg_vsync_start;
 reg           vtg_vsync_start_re = 1'd0;
 reg    [11:0] vtg_vsync_start_storage = 12'd241;
 wire          wait_1;
-reg           wb_sdram_ack = 1'd0;
+wire          wb_sdram_ack;
 wire   [29:0] wb_sdram_adr;
 wire    [1:0] wb_sdram_bte;
 wire    [2:0] wb_sdram_cti;
 wire          wb_sdram_cyc;
-reg    [31:0] wb_sdram_dat_r = 32'd0;
+wire   [31:0] wb_sdram_dat_r;
 wire   [31:0] wb_sdram_dat_w;
-reg           wb_sdram_err = 1'd0;
+wire          wb_sdram_err;
 wire    [3:0] wb_sdram_sel;
 wire          wb_sdram_stb;
 wire          wb_sdram_we;
-reg           wishbone_bridge_aborted = 1'd0;
-reg           wishbone_bridge_aborted_fsm_next_value = 1'd0;
-reg           wishbone_bridge_aborted_fsm_next_value_ce = 1'd0;
-wire          wishbone_bridge_cmd_last;
-wire   [21:0] wishbone_bridge_cmd_payload_addr;
-wire          wishbone_bridge_cmd_payload_we;
-reg           wishbone_bridge_cmd_ready = 1'd0;
-reg           wishbone_bridge_cmd_valid = 1'd0;
-reg     [1:0] wishbone_bridge_count = 2'd0;
-reg     [1:0] wishbone_bridge_count_litedramnativeportconverter_next_value = 2'd0;
-reg           wishbone_bridge_count_litedramnativeportconverter_next_value_ce = 1'd0;
-wire          wishbone_bridge_flush;
-reg           wishbone_bridge_is_ongoing = 1'd0;
-reg     [1:0] wishbone_bridge_rdata_converter_converter_demux = 2'd0;
-wire          wishbone_bridge_rdata_converter_converter_load_part;
-wire          wishbone_bridge_rdata_converter_converter_sink_first;
-wire          wishbone_bridge_rdata_converter_converter_sink_last;
-wire   [31:0] wishbone_bridge_rdata_converter_converter_sink_payload_data;
-wire          wishbone_bridge_rdata_converter_converter_sink_ready;
-wire          wishbone_bridge_rdata_converter_converter_sink_valid;
-reg           wishbone_bridge_rdata_converter_converter_source_first = 1'd0;
-reg           wishbone_bridge_rdata_converter_converter_source_last = 1'd0;
-reg   [127:0] wishbone_bridge_rdata_converter_converter_source_payload_data = 128'd0;
-reg     [2:0] wishbone_bridge_rdata_converter_converter_source_payload_valid_token_count = 3'd0;
-wire          wishbone_bridge_rdata_converter_converter_source_ready;
-wire          wishbone_bridge_rdata_converter_converter_source_valid;
-reg           wishbone_bridge_rdata_converter_converter_strobe_all = 1'd0;
-wire          wishbone_bridge_rdata_converter_sink_first;
-wire          wishbone_bridge_rdata_converter_sink_last;
-wire   [31:0] wishbone_bridge_rdata_converter_sink_payload_data;
-wire          wishbone_bridge_rdata_converter_sink_ready;
-wire          wishbone_bridge_rdata_converter_sink_valid;
-wire          wishbone_bridge_rdata_converter_source_first;
-wire          wishbone_bridge_rdata_converter_source_last;
-reg   [127:0] wishbone_bridge_rdata_converter_source_payload_data = 128'd0;
-wire          wishbone_bridge_rdata_converter_source_ready;
-wire          wishbone_bridge_rdata_converter_source_source_first;
-wire          wishbone_bridge_rdata_converter_source_source_last;
-wire  [127:0] wishbone_bridge_rdata_converter_source_source_payload_data;
-wire          wishbone_bridge_rdata_converter_source_source_ready;
-wire          wishbone_bridge_rdata_converter_source_source_valid;
-wire          wishbone_bridge_rdata_converter_source_valid;
-wire          wishbone_bridge_rdata_first;
-wire          wishbone_bridge_rdata_last;
-wire  [127:0] wishbone_bridge_rdata_payload_data;
-wire          wishbone_bridge_rdata_ready;
-wire          wishbone_bridge_rdata_valid;
-wire          wishbone_bridge_wdata_converter_converter_first;
-wire          wishbone_bridge_wdata_converter_converter_last;
-reg     [1:0] wishbone_bridge_wdata_converter_converter_mux = 2'd0;
-wire          wishbone_bridge_wdata_converter_converter_sink_first;
-wire          wishbone_bridge_wdata_converter_converter_sink_last;
-reg   [143:0] wishbone_bridge_wdata_converter_converter_sink_payload_data = 144'd0;
-wire          wishbone_bridge_wdata_converter_converter_sink_ready;
-wire          wishbone_bridge_wdata_converter_converter_sink_valid;
-wire          wishbone_bridge_wdata_converter_converter_source_first;
-wire          wishbone_bridge_wdata_converter_converter_source_last;
-reg    [35:0] wishbone_bridge_wdata_converter_converter_source_payload_data = 36'd0;
-wire          wishbone_bridge_wdata_converter_converter_source_payload_valid_token_count;
-wire          wishbone_bridge_wdata_converter_converter_source_ready;
-wire          wishbone_bridge_wdata_converter_converter_source_valid;
-wire          wishbone_bridge_wdata_converter_sink_first;
-wire          wishbone_bridge_wdata_converter_sink_last;
-wire  [127:0] wishbone_bridge_wdata_converter_sink_payload_data;
-wire   [15:0] wishbone_bridge_wdata_converter_sink_payload_we;
-wire          wishbone_bridge_wdata_converter_sink_ready;
-wire          wishbone_bridge_wdata_converter_sink_valid;
-wire          wishbone_bridge_wdata_converter_source_first;
-wire          wishbone_bridge_wdata_converter_source_last;
-wire   [31:0] wishbone_bridge_wdata_converter_source_payload_data;
-wire    [3:0] wishbone_bridge_wdata_converter_source_payload_we;
-wire          wishbone_bridge_wdata_converter_source_ready;
-wire          wishbone_bridge_wdata_converter_source_source_first;
-wire          wishbone_bridge_wdata_converter_source_source_last;
-wire   [35:0] wishbone_bridge_wdata_converter_source_source_payload_data;
-wire          wishbone_bridge_wdata_converter_source_source_ready;
-wire          wishbone_bridge_wdata_converter_source_source_valid;
-wire          wishbone_bridge_wdata_converter_source_valid;
-reg           wishbone_bridge_wdata_first = 1'd0;
-reg           wishbone_bridge_wdata_last = 1'd0;
-wire  [127:0] wishbone_bridge_wdata_payload_data;
-wire   [15:0] wishbone_bridge_wdata_payload_we;
-wire          wishbone_bridge_wdata_ready;
-reg           wishbone_bridge_wdata_valid = 1'd0;
-reg           word_clr = 1'd0;
-reg           word_inc = 1'd0;
 reg           wr_data_en_d = 1'd0;
-reg           write_from_slave = 1'd0;
 
 //------------------------------------------------------------------------------
 // Combinatorial Logic
@@ -4099,291 +4009,71 @@ assign litedramnativeport0_rdata_payload_data = sdram_interface_rdata;
 assign litedramnativeport1_rdata_payload_data = sdram_interface_rdata;
 assign litedramnativeport2_rdata_payload_data = sdram_interface_rdata;
 assign litedramcrossbar_rdata_payload_data = sdram_interface_rdata;
-assign data_port_adr = wb_sdram_adr[10:2];
+assign litedram_wb_adr = wb_sdram_adr;
+assign litedram_wb_dat_w = wb_sdram_dat_w;
+assign wb_sdram_dat_r = litedram_wb_dat_r;
+assign litedram_wb_sel = wb_sdram_sel;
+assign litedram_wb_cyc = wb_sdram_cyc;
+assign litedram_wb_stb = wb_sdram_stb;
+assign wb_sdram_ack = litedram_wb_ack;
+assign litedram_wb_we = wb_sdram_we;
+assign litedram_wb_cti = wb_sdram_cti;
+assign litedram_wb_bte = wb_sdram_bte;
+assign wb_sdram_err = litedram_wb_err;
+assign litedramnativeport2_cmd_payload_addr = (litedram_wb_adr - 29'd268435456);
+assign litedramnativeport2_cmd_payload_we = litedram_wb_we;
+assign litedramnativeport2_cmd_last = (~litedram_wb_we);
+assign litedramnativeport2_flush = (~litedram_wb_cyc);
 always @(*) begin
-    data_port_dat_w <= 128'd0;
-    data_port_we <= 16'd0;
-    if (write_from_slave) begin
-        data_port_dat_w <= interface_dat_r;
-        data_port_we <= {16{1'd1}};
-    end else begin
-        data_port_dat_w <= {4{wb_sdram_dat_w}};
-        if ((((wb_sdram_cyc & wb_sdram_stb) & wb_sdram_we) & wb_sdram_ack)) begin
-            data_port_we <= {({4{(wb_sdram_adr[1:0] == 2'd3)}} & wb_sdram_sel), ({4{(wb_sdram_adr[1:0] == 2'd2)}} & wb_sdram_sel), ({4{(wb_sdram_adr[1:0] == 1'd1)}} & wb_sdram_sel), ({4{(wb_sdram_adr[1:0] == 1'd0)}} & wb_sdram_sel)};
+    litedramnativeport2_wdata_valid <= 1'd0;
+    litedramnativeport2_wdata_valid <= (litedram_wb_stb & litedram_wb_we);
+    if (1'd1) begin
+        if ((~is_ongoing)) begin
+            litedramnativeport2_wdata_valid <= 1'd0;
         end
     end
 end
-assign interface_dat_w = data_port_dat_r;
-assign interface_sel = 16'd65535;
+assign litedramnativeport2_wdata_payload_data = litedram_wb_dat_w;
+assign litedramnativeport2_wdata_payload_we = litedram_wb_sel;
+assign litedramnativeport2_rdata_ready = 1'd1;
 always @(*) begin
-    wb_sdram_dat_r <= 32'd0;
-    case (adr_offset_r)
-        1'd0: begin
-            wb_sdram_dat_r <= data_port_dat_r[31:0];
-        end
-        1'd1: begin
-            wb_sdram_dat_r <= data_port_dat_r[63:32];
-        end
-        2'd2: begin
-            wb_sdram_dat_r <= data_port_dat_r[95:64];
-        end
-        default: begin
-            wb_sdram_dat_r <= data_port_dat_r[127:96];
-        end
-    endcase
-end
-assign {tag_do_dirty, tag_do_tag} = tag_port_dat_r;
-assign tag_port_dat_w = {tag_di_dirty, tag_di_tag};
-assign tag_port_adr = wb_sdram_adr[10:2];
-assign tag_di_tag = wb_sdram_adr[29:11];
-assign interface_adr = {tag_do_tag, wb_sdram_adr[10:2]};
-always @(*) begin
-    basesoc_fullmemorywe_next_state <= 2'd0;
-    interface_cyc <= 1'd0;
-    interface_stb <= 1'd0;
-    interface_we <= 1'd0;
-    tag_di_dirty <= 1'd0;
-    tag_port_we <= 1'd0;
-    wb_sdram_ack <= 1'd0;
-    word_clr <= 1'd0;
-    word_inc <= 1'd0;
-    write_from_slave <= 1'd0;
-    basesoc_fullmemorywe_next_state <= basesoc_fullmemorywe_state;
-    case (basesoc_fullmemorywe_state)
-        1'd1: begin
-            word_clr <= 1'd1;
-            if ((tag_do_tag == wb_sdram_adr[29:11])) begin
-                wb_sdram_ack <= 1'd1;
-                if (wb_sdram_we) begin
-                    tag_di_dirty <= 1'd1;
-                    tag_port_we <= 1'd1;
-                end
-                basesoc_fullmemorywe_next_state <= 1'd0;
-            end else begin
-                if (tag_do_dirty) begin
-                    basesoc_fullmemorywe_next_state <= 2'd2;
-                end else begin
-                    tag_port_we <= 1'd1;
-                    word_clr <= 1'd1;
-                    basesoc_fullmemorywe_next_state <= 2'd3;
-                end
-            end
-        end
-        2'd2: begin
-            interface_stb <= 1'd1;
-            interface_cyc <= 1'd1;
-            interface_we <= 1'd1;
-            if (interface_ack) begin
-                word_inc <= 1'd1;
-                if (1'd1) begin
-                    tag_port_we <= 1'd1;
-                    word_clr <= 1'd1;
-                    basesoc_fullmemorywe_next_state <= 2'd3;
-                end
-            end
-        end
-        2'd3: begin
-            interface_stb <= 1'd1;
-            interface_cyc <= 1'd1;
-            interface_we <= 1'd0;
-            if (interface_ack) begin
-                write_from_slave <= 1'd1;
-                word_inc <= 1'd1;
-                if (1'd1) begin
-                    basesoc_fullmemorywe_next_state <= 1'd1;
-                end else begin
-                    basesoc_fullmemorywe_next_state <= 2'd3;
-                end
-            end
-        end
-        default: begin
-            if ((wb_sdram_cyc & wb_sdram_stb)) begin
-                basesoc_fullmemorywe_next_state <= 1'd1;
-            end
-        end
-    endcase
-end
-assign wishbone_bridge_cmd_payload_addr = (interface_adr - 27'd67108864);
-assign wishbone_bridge_cmd_payload_we = interface_we;
-assign wishbone_bridge_cmd_last = (~interface_we);
-assign wishbone_bridge_flush = (~interface_cyc);
-always @(*) begin
-    wishbone_bridge_wdata_valid <= 1'd0;
-    wishbone_bridge_wdata_valid <= (interface_stb & interface_we);
-    if (1'd0) begin
-        if ((~wishbone_bridge_is_ongoing)) begin
-            wishbone_bridge_wdata_valid <= 1'd0;
-        end
-    end
-end
-assign wishbone_bridge_wdata_payload_data = interface_dat_w;
-assign wishbone_bridge_wdata_payload_we = interface_sel;
-assign wishbone_bridge_rdata_ready = 1'd1;
-always @(*) begin
-    basesoc_litedramnativeportconverter_next_state <= 1'd0;
-    litedramnativeport2_cmd_payload_addr <= 24'd0;
-    litedramnativeport2_cmd_payload_we <= 1'd0;
+    aborted_litedramwishbone2native_next_value <= 1'd0;
+    aborted_litedramwishbone2native_next_value_ce <= 1'd0;
+    basesoc_litedramwishbone2native_next_state <= 2'd0;
+    is_ongoing <= 1'd0;
+    litedram_wb_ack <= 1'd0;
+    litedram_wb_dat_r <= 32'd0;
     litedramnativeport2_cmd_valid <= 1'd0;
-    wishbone_bridge_cmd_ready <= 1'd0;
-    wishbone_bridge_count_litedramnativeportconverter_next_value <= 2'd0;
-    wishbone_bridge_count_litedramnativeportconverter_next_value_ce <= 1'd0;
-    basesoc_litedramnativeportconverter_next_state <= basesoc_litedramnativeportconverter_state;
-    case (basesoc_litedramnativeportconverter_state)
+    basesoc_litedramwishbone2native_next_state <= basesoc_litedramwishbone2native_state;
+    case (basesoc_litedramwishbone2native_state)
         1'd1: begin
-            litedramnativeport2_cmd_valid <= 1'd1;
-            litedramnativeport2_cmd_payload_we <= wishbone_bridge_cmd_payload_we;
-            litedramnativeport2_cmd_payload_addr <= ((wishbone_bridge_cmd_payload_addr * 3'd4) + wishbone_bridge_count);
-            if (litedramnativeport2_cmd_ready) begin
-                wishbone_bridge_count_litedramnativeportconverter_next_value <= (wishbone_bridge_count + 1'd1);
-                wishbone_bridge_count_litedramnativeportconverter_next_value_ce <= 1'd1;
-                if ((wishbone_bridge_count == 2'd3)) begin
-                    wishbone_bridge_cmd_ready <= 1'd1;
-                    basesoc_litedramnativeportconverter_next_state <= 1'd0;
-                end
-            end
-        end
-        default: begin
-            wishbone_bridge_count_litedramnativeportconverter_next_value <= 1'd0;
-            wishbone_bridge_count_litedramnativeportconverter_next_value_ce <= 1'd1;
-            if (wishbone_bridge_cmd_valid) begin
-                basesoc_litedramnativeportconverter_next_state <= 1'd1;
-            end
-        end
-    endcase
-end
-assign wishbone_bridge_wdata_converter_converter_sink_valid = wishbone_bridge_wdata_converter_sink_valid;
-assign wishbone_bridge_wdata_converter_converter_sink_first = wishbone_bridge_wdata_converter_sink_first;
-assign wishbone_bridge_wdata_converter_converter_sink_last = wishbone_bridge_wdata_converter_sink_last;
-assign wishbone_bridge_wdata_converter_sink_ready = wishbone_bridge_wdata_converter_converter_sink_ready;
-always @(*) begin
-    wishbone_bridge_wdata_converter_converter_sink_payload_data <= 144'd0;
-    wishbone_bridge_wdata_converter_converter_sink_payload_data[31:0] <= wishbone_bridge_wdata_converter_sink_payload_data[31:0];
-    wishbone_bridge_wdata_converter_converter_sink_payload_data[35:32] <= wishbone_bridge_wdata_converter_sink_payload_we[3:0];
-    wishbone_bridge_wdata_converter_converter_sink_payload_data[67:36] <= wishbone_bridge_wdata_converter_sink_payload_data[63:32];
-    wishbone_bridge_wdata_converter_converter_sink_payload_data[71:68] <= wishbone_bridge_wdata_converter_sink_payload_we[7:4];
-    wishbone_bridge_wdata_converter_converter_sink_payload_data[103:72] <= wishbone_bridge_wdata_converter_sink_payload_data[95:64];
-    wishbone_bridge_wdata_converter_converter_sink_payload_data[107:104] <= wishbone_bridge_wdata_converter_sink_payload_we[11:8];
-    wishbone_bridge_wdata_converter_converter_sink_payload_data[139:108] <= wishbone_bridge_wdata_converter_sink_payload_data[127:96];
-    wishbone_bridge_wdata_converter_converter_sink_payload_data[143:140] <= wishbone_bridge_wdata_converter_sink_payload_we[15:12];
-end
-assign wishbone_bridge_wdata_converter_source_valid = wishbone_bridge_wdata_converter_source_source_valid;
-assign wishbone_bridge_wdata_converter_source_first = wishbone_bridge_wdata_converter_source_source_first;
-assign wishbone_bridge_wdata_converter_source_last = wishbone_bridge_wdata_converter_source_source_last;
-assign wishbone_bridge_wdata_converter_source_source_ready = wishbone_bridge_wdata_converter_source_ready;
-assign {wishbone_bridge_wdata_converter_source_payload_we, wishbone_bridge_wdata_converter_source_payload_data} = wishbone_bridge_wdata_converter_source_source_payload_data;
-assign wishbone_bridge_wdata_converter_source_source_valid = wishbone_bridge_wdata_converter_converter_source_valid;
-assign wishbone_bridge_wdata_converter_converter_source_ready = wishbone_bridge_wdata_converter_source_source_ready;
-assign wishbone_bridge_wdata_converter_source_source_first = wishbone_bridge_wdata_converter_converter_source_first;
-assign wishbone_bridge_wdata_converter_source_source_last = wishbone_bridge_wdata_converter_converter_source_last;
-assign wishbone_bridge_wdata_converter_source_source_payload_data = wishbone_bridge_wdata_converter_converter_source_payload_data;
-assign wishbone_bridge_wdata_converter_converter_first = (wishbone_bridge_wdata_converter_converter_mux == 1'd0);
-assign wishbone_bridge_wdata_converter_converter_last = (wishbone_bridge_wdata_converter_converter_mux == 2'd3);
-assign wishbone_bridge_wdata_converter_converter_source_valid = wishbone_bridge_wdata_converter_converter_sink_valid;
-assign wishbone_bridge_wdata_converter_converter_source_first = (wishbone_bridge_wdata_converter_converter_sink_first & wishbone_bridge_wdata_converter_converter_first);
-assign wishbone_bridge_wdata_converter_converter_source_last = (wishbone_bridge_wdata_converter_converter_sink_last & wishbone_bridge_wdata_converter_converter_last);
-assign wishbone_bridge_wdata_converter_converter_sink_ready = (wishbone_bridge_wdata_converter_converter_last & wishbone_bridge_wdata_converter_converter_source_ready);
-always @(*) begin
-    wishbone_bridge_wdata_converter_converter_source_payload_data <= 36'd0;
-    case (wishbone_bridge_wdata_converter_converter_mux)
-        1'd0: begin
-            wishbone_bridge_wdata_converter_converter_source_payload_data <= wishbone_bridge_wdata_converter_converter_sink_payload_data[35:0];
-        end
-        1'd1: begin
-            wishbone_bridge_wdata_converter_converter_source_payload_data <= wishbone_bridge_wdata_converter_converter_sink_payload_data[71:36];
-        end
-        2'd2: begin
-            wishbone_bridge_wdata_converter_converter_source_payload_data <= wishbone_bridge_wdata_converter_converter_sink_payload_data[107:72];
-        end
-        default: begin
-            wishbone_bridge_wdata_converter_converter_source_payload_data <= wishbone_bridge_wdata_converter_converter_sink_payload_data[143:108];
-        end
-    endcase
-end
-assign wishbone_bridge_wdata_converter_converter_source_payload_valid_token_count = wishbone_bridge_wdata_converter_converter_last;
-assign wishbone_bridge_wdata_converter_sink_valid = wishbone_bridge_wdata_valid;
-assign wishbone_bridge_wdata_ready = wishbone_bridge_wdata_converter_sink_ready;
-assign wishbone_bridge_wdata_converter_sink_first = wishbone_bridge_wdata_first;
-assign wishbone_bridge_wdata_converter_sink_last = wishbone_bridge_wdata_last;
-assign wishbone_bridge_wdata_converter_sink_payload_data = wishbone_bridge_wdata_payload_data;
-assign wishbone_bridge_wdata_converter_sink_payload_we = wishbone_bridge_wdata_payload_we;
-assign litedramnativeport2_wdata_valid = wishbone_bridge_wdata_converter_source_valid;
-assign wishbone_bridge_wdata_converter_source_ready = litedramnativeport2_wdata_ready;
-assign litedramnativeport2_wdata_first = wishbone_bridge_wdata_converter_source_first;
-assign litedramnativeport2_wdata_last = wishbone_bridge_wdata_converter_source_last;
-assign litedramnativeport2_wdata_payload_data = wishbone_bridge_wdata_converter_source_payload_data;
-assign litedramnativeport2_wdata_payload_we = wishbone_bridge_wdata_converter_source_payload_we;
-assign wishbone_bridge_rdata_converter_converter_sink_valid = wishbone_bridge_rdata_converter_sink_valid;
-assign wishbone_bridge_rdata_converter_converter_sink_first = wishbone_bridge_rdata_converter_sink_first;
-assign wishbone_bridge_rdata_converter_converter_sink_last = wishbone_bridge_rdata_converter_sink_last;
-assign wishbone_bridge_rdata_converter_sink_ready = wishbone_bridge_rdata_converter_converter_sink_ready;
-assign wishbone_bridge_rdata_converter_converter_sink_payload_data = {wishbone_bridge_rdata_converter_sink_payload_data};
-assign wishbone_bridge_rdata_converter_source_valid = wishbone_bridge_rdata_converter_source_source_valid;
-assign wishbone_bridge_rdata_converter_source_first = wishbone_bridge_rdata_converter_source_source_first;
-assign wishbone_bridge_rdata_converter_source_last = wishbone_bridge_rdata_converter_source_source_last;
-assign wishbone_bridge_rdata_converter_source_source_ready = wishbone_bridge_rdata_converter_source_ready;
-always @(*) begin
-    wishbone_bridge_rdata_converter_source_payload_data <= 128'd0;
-    wishbone_bridge_rdata_converter_source_payload_data[31:0] <= wishbone_bridge_rdata_converter_source_source_payload_data[31:0];
-    wishbone_bridge_rdata_converter_source_payload_data[63:32] <= wishbone_bridge_rdata_converter_source_source_payload_data[63:32];
-    wishbone_bridge_rdata_converter_source_payload_data[95:64] <= wishbone_bridge_rdata_converter_source_source_payload_data[95:64];
-    wishbone_bridge_rdata_converter_source_payload_data[127:96] <= wishbone_bridge_rdata_converter_source_source_payload_data[127:96];
-end
-assign wishbone_bridge_rdata_converter_source_source_valid = wishbone_bridge_rdata_converter_converter_source_valid;
-assign wishbone_bridge_rdata_converter_converter_source_ready = wishbone_bridge_rdata_converter_source_source_ready;
-assign wishbone_bridge_rdata_converter_source_source_first = wishbone_bridge_rdata_converter_converter_source_first;
-assign wishbone_bridge_rdata_converter_source_source_last = wishbone_bridge_rdata_converter_converter_source_last;
-assign wishbone_bridge_rdata_converter_source_source_payload_data = wishbone_bridge_rdata_converter_converter_source_payload_data;
-assign wishbone_bridge_rdata_converter_converter_sink_ready = ((~wishbone_bridge_rdata_converter_converter_strobe_all) | wishbone_bridge_rdata_converter_converter_source_ready);
-assign wishbone_bridge_rdata_converter_converter_source_valid = wishbone_bridge_rdata_converter_converter_strobe_all;
-assign wishbone_bridge_rdata_converter_converter_load_part = (wishbone_bridge_rdata_converter_converter_sink_valid & wishbone_bridge_rdata_converter_converter_sink_ready);
-assign wishbone_bridge_rdata_converter_sink_valid = litedramnativeport2_rdata_valid;
-assign litedramnativeport2_rdata_ready = wishbone_bridge_rdata_converter_sink_ready;
-assign wishbone_bridge_rdata_converter_sink_first = litedramnativeport2_rdata_first;
-assign wishbone_bridge_rdata_converter_sink_last = litedramnativeport2_rdata_last;
-assign wishbone_bridge_rdata_converter_sink_payload_data = litedramnativeport2_rdata_payload_data;
-assign wishbone_bridge_rdata_valid = wishbone_bridge_rdata_converter_source_valid;
-assign wishbone_bridge_rdata_converter_source_ready = wishbone_bridge_rdata_ready;
-assign wishbone_bridge_rdata_first = wishbone_bridge_rdata_converter_source_first;
-assign wishbone_bridge_rdata_last = wishbone_bridge_rdata_converter_source_last;
-assign wishbone_bridge_rdata_payload_data = wishbone_bridge_rdata_converter_source_payload_data;
-always @(*) begin
-    basesoc_fsm_next_state <= 2'd0;
-    interface_ack <= 1'd0;
-    interface_dat_r <= 128'd0;
-    wishbone_bridge_aborted_fsm_next_value <= 1'd0;
-    wishbone_bridge_aborted_fsm_next_value_ce <= 1'd0;
-    wishbone_bridge_cmd_valid <= 1'd0;
-    wishbone_bridge_is_ongoing <= 1'd0;
-    basesoc_fsm_next_state <= basesoc_fsm_state;
-    case (basesoc_fsm_state)
-        1'd1: begin
-            wishbone_bridge_is_ongoing <= 1'd1;
-            wishbone_bridge_aborted_fsm_next_value <= ((~interface_cyc) | wishbone_bridge_aborted);
-            wishbone_bridge_aborted_fsm_next_value_ce <= 1'd1;
-            if ((wishbone_bridge_wdata_valid & wishbone_bridge_wdata_ready)) begin
-                interface_ack <= (interface_cyc & (~wishbone_bridge_aborted));
-                basesoc_fsm_next_state <= 1'd0;
+            is_ongoing <= 1'd1;
+            aborted_litedramwishbone2native_next_value <= ((~litedram_wb_cyc) | aborted);
+            aborted_litedramwishbone2native_next_value_ce <= 1'd1;
+            if ((litedramnativeport2_wdata_valid & litedramnativeport2_wdata_ready)) begin
+                litedram_wb_ack <= (litedram_wb_cyc & (~aborted));
+                basesoc_litedramwishbone2native_next_state <= 1'd0;
             end
         end
         2'd2: begin
-            wishbone_bridge_aborted_fsm_next_value <= ((~interface_cyc) | wishbone_bridge_aborted);
-            wishbone_bridge_aborted_fsm_next_value_ce <= 1'd1;
-            if (wishbone_bridge_rdata_valid) begin
-                interface_ack <= (interface_cyc & (~wishbone_bridge_aborted));
-                interface_dat_r <= wishbone_bridge_rdata_payload_data;
-                basesoc_fsm_next_state <= 1'd0;
+            aborted_litedramwishbone2native_next_value <= ((~litedram_wb_cyc) | aborted);
+            aborted_litedramwishbone2native_next_value_ce <= 1'd1;
+            if (litedramnativeport2_rdata_valid) begin
+                litedram_wb_ack <= (litedram_wb_cyc & (~aborted));
+                litedram_wb_dat_r <= litedramnativeport2_rdata_payload_data;
+                basesoc_litedramwishbone2native_next_state <= 1'd0;
             end
         end
         default: begin
-            wishbone_bridge_cmd_valid <= (interface_cyc & interface_stb);
-            if (((wishbone_bridge_cmd_valid & wishbone_bridge_cmd_ready) & interface_we)) begin
-                basesoc_fsm_next_state <= 1'd1;
+            litedramnativeport2_cmd_valid <= (litedram_wb_cyc & litedram_wb_stb);
+            if (((litedramnativeport2_cmd_valid & litedramnativeport2_cmd_ready) & litedram_wb_we)) begin
+                basesoc_litedramwishbone2native_next_state <= 1'd1;
             end
-            if (((wishbone_bridge_cmd_valid & wishbone_bridge_cmd_ready) & (~interface_we))) begin
-                basesoc_fsm_next_state <= 2'd2;
+            if (((litedramnativeport2_cmd_valid & litedramnativeport2_cmd_ready) & (~litedram_wb_we))) begin
+                basesoc_litedramwishbone2native_next_state <= 2'd2;
             end
-            wishbone_bridge_aborted_fsm_next_value <= 1'd0;
-            wishbone_bridge_aborted_fsm_next_value_ce <= 1'd1;
+            aborted_litedramwishbone2native_next_value <= 1'd0;
+            aborted_litedramwishbone2native_next_value_ce <= 1'd1;
         end
     endcase
 end
@@ -6700,7 +6390,7 @@ always @(posedge sys_clk) begin
         sdram_cmd_payload_ras <= 1'd1;
         sdram_cmd_payload_we <= 1'd0;
     end
-    if ((sdram_sequencer_counter == 3'd6)) begin
+    if ((sdram_sequencer_counter == 4'd8)) begin
         sdram_cmd_payload_a <= 1'd0;
         sdram_cmd_payload_ba <= 1'd0;
         sdram_cmd_payload_cas <= 1'd0;
@@ -6708,7 +6398,7 @@ always @(posedge sys_clk) begin
         sdram_cmd_payload_we <= 1'd0;
         sdram_sequencer_done1 <= 1'd1;
     end
-    if ((sdram_sequencer_counter == 3'd6)) begin
+    if ((sdram_sequencer_counter == 4'd8)) begin
         sdram_sequencer_counter <= 1'd0;
     end else begin
         if ((sdram_sequencer_counter != 1'd0)) begin
@@ -6765,6 +6455,36 @@ always @(posedge sys_clk) begin
             end
         end
     end
+    if (sdram_bankmachine0_trccon_valid) begin
+        sdram_bankmachine0_trccon_count <= 3'd4;
+        if (1'd0) begin
+            sdram_bankmachine0_trccon_ready <= 1'd1;
+        end else begin
+            sdram_bankmachine0_trccon_ready <= 1'd0;
+        end
+    end else begin
+        if ((~sdram_bankmachine0_trccon_ready)) begin
+            sdram_bankmachine0_trccon_count <= (sdram_bankmachine0_trccon_count - 1'd1);
+            if ((sdram_bankmachine0_trccon_count == 1'd1)) begin
+                sdram_bankmachine0_trccon_ready <= 1'd1;
+            end
+        end
+    end
+    if (sdram_bankmachine0_trascon_valid) begin
+        sdram_bankmachine0_trascon_count <= 2'd3;
+        if (1'd0) begin
+            sdram_bankmachine0_trascon_ready <= 1'd1;
+        end else begin
+            sdram_bankmachine0_trascon_ready <= 1'd0;
+        end
+    end else begin
+        if ((~sdram_bankmachine0_trascon_ready)) begin
+            sdram_bankmachine0_trascon_count <= (sdram_bankmachine0_trascon_count - 1'd1);
+            if ((sdram_bankmachine0_trascon_count == 1'd1)) begin
+                sdram_bankmachine0_trascon_ready <= 1'd1;
+            end
+        end
+    end
     basesoc_bankmachine0_state <= basesoc_bankmachine0_next_state;
     if (sdram_bankmachine1_row_close) begin
         sdram_bankmachine1_row_opened <= 1'd0;
@@ -6808,6 +6528,36 @@ always @(posedge sys_clk) begin
             sdram_bankmachine1_twtpcon_count <= (sdram_bankmachine1_twtpcon_count - 1'd1);
             if ((sdram_bankmachine1_twtpcon_count == 1'd1)) begin
                 sdram_bankmachine1_twtpcon_ready <= 1'd1;
+            end
+        end
+    end
+    if (sdram_bankmachine1_trccon_valid) begin
+        sdram_bankmachine1_trccon_count <= 3'd4;
+        if (1'd0) begin
+            sdram_bankmachine1_trccon_ready <= 1'd1;
+        end else begin
+            sdram_bankmachine1_trccon_ready <= 1'd0;
+        end
+    end else begin
+        if ((~sdram_bankmachine1_trccon_ready)) begin
+            sdram_bankmachine1_trccon_count <= (sdram_bankmachine1_trccon_count - 1'd1);
+            if ((sdram_bankmachine1_trccon_count == 1'd1)) begin
+                sdram_bankmachine1_trccon_ready <= 1'd1;
+            end
+        end
+    end
+    if (sdram_bankmachine1_trascon_valid) begin
+        sdram_bankmachine1_trascon_count <= 2'd3;
+        if (1'd0) begin
+            sdram_bankmachine1_trascon_ready <= 1'd1;
+        end else begin
+            sdram_bankmachine1_trascon_ready <= 1'd0;
+        end
+    end else begin
+        if ((~sdram_bankmachine1_trascon_ready)) begin
+            sdram_bankmachine1_trascon_count <= (sdram_bankmachine1_trascon_count - 1'd1);
+            if ((sdram_bankmachine1_trascon_count == 1'd1)) begin
+                sdram_bankmachine1_trascon_ready <= 1'd1;
             end
         end
     end
@@ -6857,6 +6607,36 @@ always @(posedge sys_clk) begin
             end
         end
     end
+    if (sdram_bankmachine2_trccon_valid) begin
+        sdram_bankmachine2_trccon_count <= 3'd4;
+        if (1'd0) begin
+            sdram_bankmachine2_trccon_ready <= 1'd1;
+        end else begin
+            sdram_bankmachine2_trccon_ready <= 1'd0;
+        end
+    end else begin
+        if ((~sdram_bankmachine2_trccon_ready)) begin
+            sdram_bankmachine2_trccon_count <= (sdram_bankmachine2_trccon_count - 1'd1);
+            if ((sdram_bankmachine2_trccon_count == 1'd1)) begin
+                sdram_bankmachine2_trccon_ready <= 1'd1;
+            end
+        end
+    end
+    if (sdram_bankmachine2_trascon_valid) begin
+        sdram_bankmachine2_trascon_count <= 2'd3;
+        if (1'd0) begin
+            sdram_bankmachine2_trascon_ready <= 1'd1;
+        end else begin
+            sdram_bankmachine2_trascon_ready <= 1'd0;
+        end
+    end else begin
+        if ((~sdram_bankmachine2_trascon_ready)) begin
+            sdram_bankmachine2_trascon_count <= (sdram_bankmachine2_trascon_count - 1'd1);
+            if ((sdram_bankmachine2_trascon_count == 1'd1)) begin
+                sdram_bankmachine2_trascon_ready <= 1'd1;
+            end
+        end
+    end
     basesoc_bankmachine2_state <= basesoc_bankmachine2_next_state;
     if (sdram_bankmachine3_row_close) begin
         sdram_bankmachine3_row_opened <= 1'd0;
@@ -6900,6 +6680,36 @@ always @(posedge sys_clk) begin
             sdram_bankmachine3_twtpcon_count <= (sdram_bankmachine3_twtpcon_count - 1'd1);
             if ((sdram_bankmachine3_twtpcon_count == 1'd1)) begin
                 sdram_bankmachine3_twtpcon_ready <= 1'd1;
+            end
+        end
+    end
+    if (sdram_bankmachine3_trccon_valid) begin
+        sdram_bankmachine3_trccon_count <= 3'd4;
+        if (1'd0) begin
+            sdram_bankmachine3_trccon_ready <= 1'd1;
+        end else begin
+            sdram_bankmachine3_trccon_ready <= 1'd0;
+        end
+    end else begin
+        if ((~sdram_bankmachine3_trccon_ready)) begin
+            sdram_bankmachine3_trccon_count <= (sdram_bankmachine3_trccon_count - 1'd1);
+            if ((sdram_bankmachine3_trccon_count == 1'd1)) begin
+                sdram_bankmachine3_trccon_ready <= 1'd1;
+            end
+        end
+    end
+    if (sdram_bankmachine3_trascon_valid) begin
+        sdram_bankmachine3_trascon_count <= 2'd3;
+        if (1'd0) begin
+            sdram_bankmachine3_trascon_ready <= 1'd1;
+        end else begin
+            sdram_bankmachine3_trascon_ready <= 1'd0;
+        end
+    end else begin
+        if ((~sdram_bankmachine3_trascon_ready)) begin
+            sdram_bankmachine3_trascon_count <= (sdram_bankmachine3_trascon_count - 1'd1);
+            if ((sdram_bankmachine3_trascon_count == 1'd1)) begin
+                sdram_bankmachine3_trascon_ready <= 1'd1;
             end
         end
     end
@@ -7046,6 +6856,21 @@ always @(posedge sys_clk) begin
     sdram_dfi_p1_we_n <= (~array_muxed11);
     sdram_dfi_p1_rddata_en <= array_muxed12;
     sdram_dfi_p1_wrdata_en <= array_muxed13;
+    if (sdram_trrdcon_valid) begin
+        sdram_trrdcon_count <= 1'd1;
+        if (1'd0) begin
+            sdram_trrdcon_ready <= 1'd1;
+        end else begin
+            sdram_trrdcon_ready <= 1'd0;
+        end
+    end else begin
+        if ((~sdram_trrdcon_ready)) begin
+            sdram_trrdcon_count <= (sdram_trrdcon_count - 1'd1);
+            if ((sdram_trrdcon_count == 1'd1)) begin
+                sdram_trrdcon_ready <= 1'd1;
+            end
+        end
+    end
     if (sdram_tccdcon_valid) begin
         sdram_tccdcon_count <= 1'd0;
         if (1'd1) begin
@@ -7321,66 +7146,9 @@ always @(posedge sys_clk) begin
             end
         endcase
     end
-    adr_offset_r <= wb_sdram_adr[1:0];
-    basesoc_fullmemorywe_state <= basesoc_fullmemorywe_next_state;
-    basesoc_litedramnativeportconverter_state <= basesoc_litedramnativeportconverter_next_state;
-    if (wishbone_bridge_count_litedramnativeportconverter_next_value_ce) begin
-        wishbone_bridge_count <= wishbone_bridge_count_litedramnativeportconverter_next_value;
-    end
-    if ((wishbone_bridge_wdata_converter_converter_source_valid & wishbone_bridge_wdata_converter_converter_source_ready)) begin
-        if (wishbone_bridge_wdata_converter_converter_last) begin
-            wishbone_bridge_wdata_converter_converter_mux <= 1'd0;
-        end else begin
-            wishbone_bridge_wdata_converter_converter_mux <= (wishbone_bridge_wdata_converter_converter_mux + 1'd1);
-        end
-    end
-    if (wishbone_bridge_rdata_converter_converter_source_ready) begin
-        wishbone_bridge_rdata_converter_converter_strobe_all <= 1'd0;
-    end
-    if (wishbone_bridge_rdata_converter_converter_load_part) begin
-        if (((wishbone_bridge_rdata_converter_converter_demux == 2'd3) | wishbone_bridge_rdata_converter_converter_sink_last)) begin
-            wishbone_bridge_rdata_converter_converter_demux <= 1'd0;
-            wishbone_bridge_rdata_converter_converter_strobe_all <= 1'd1;
-        end else begin
-            wishbone_bridge_rdata_converter_converter_demux <= (wishbone_bridge_rdata_converter_converter_demux + 1'd1);
-        end
-    end
-    if ((wishbone_bridge_rdata_converter_converter_source_valid & wishbone_bridge_rdata_converter_converter_source_ready)) begin
-        if ((wishbone_bridge_rdata_converter_converter_sink_valid & wishbone_bridge_rdata_converter_converter_sink_ready)) begin
-            wishbone_bridge_rdata_converter_converter_source_first <= wishbone_bridge_rdata_converter_converter_sink_first;
-            wishbone_bridge_rdata_converter_converter_source_last <= wishbone_bridge_rdata_converter_converter_sink_last;
-        end else begin
-            wishbone_bridge_rdata_converter_converter_source_first <= 1'd0;
-            wishbone_bridge_rdata_converter_converter_source_last <= 1'd0;
-        end
-    end else begin
-        if ((wishbone_bridge_rdata_converter_converter_sink_valid & wishbone_bridge_rdata_converter_converter_sink_ready)) begin
-            wishbone_bridge_rdata_converter_converter_source_first <= (wishbone_bridge_rdata_converter_converter_sink_first | wishbone_bridge_rdata_converter_converter_source_first);
-            wishbone_bridge_rdata_converter_converter_source_last <= (wishbone_bridge_rdata_converter_converter_sink_last | wishbone_bridge_rdata_converter_converter_source_last);
-        end
-    end
-    if (wishbone_bridge_rdata_converter_converter_load_part) begin
-        case (wishbone_bridge_rdata_converter_converter_demux)
-            1'd0: begin
-                wishbone_bridge_rdata_converter_converter_source_payload_data[31:0] <= wishbone_bridge_rdata_converter_converter_sink_payload_data;
-            end
-            1'd1: begin
-                wishbone_bridge_rdata_converter_converter_source_payload_data[63:32] <= wishbone_bridge_rdata_converter_converter_sink_payload_data;
-            end
-            2'd2: begin
-                wishbone_bridge_rdata_converter_converter_source_payload_data[95:64] <= wishbone_bridge_rdata_converter_converter_sink_payload_data;
-            end
-            2'd3: begin
-                wishbone_bridge_rdata_converter_converter_source_payload_data[127:96] <= wishbone_bridge_rdata_converter_converter_sink_payload_data;
-            end
-        endcase
-    end
-    if (wishbone_bridge_rdata_converter_converter_load_part) begin
-        wishbone_bridge_rdata_converter_converter_source_payload_valid_token_count <= (wishbone_bridge_rdata_converter_converter_demux + 1'd1);
-    end
-    basesoc_fsm_state <= basesoc_fsm_next_state;
-    if (wishbone_bridge_aborted_fsm_next_value_ce) begin
-        wishbone_bridge_aborted <= wishbone_bridge_aborted_fsm_next_value;
+    basesoc_litedramwishbone2native_state <= basesoc_litedramwishbone2native_next_state;
+    if (aborted_litedramwishbone2native_next_value_ce) begin
+        aborted <= aborted_litedramwishbone2native_next_value;
     end
     if (((videoframebuffer_dma_res_fifo_syncfifo_we & videoframebuffer_dma_res_fifo_syncfifo_writable) & (~videoframebuffer_dma_res_fifo_replace))) begin
         videoframebuffer_dma_res_fifo_produce <= (videoframebuffer_dma_res_fifo_produce + 1'd1);
@@ -7983,7 +7751,7 @@ always @(posedge sys_clk) begin
         sdram_postponer_req_o <= 1'd0;
         sdram_postponer_count <= 1'd0;
         sdram_sequencer_done1 <= 1'd0;
-        sdram_sequencer_counter <= 3'd0;
+        sdram_sequencer_counter <= 4'd0;
         sdram_sequencer_count <= 1'd0;
         sdram_bankmachine0_level <= 4'd0;
         sdram_bankmachine0_produce <= 3'd0;
@@ -7995,6 +7763,10 @@ always @(posedge sys_clk) begin
         sdram_bankmachine0_row_opened <= 1'd0;
         sdram_bankmachine0_twtpcon_ready <= 1'd0;
         sdram_bankmachine0_twtpcon_count <= 3'd0;
+        sdram_bankmachine0_trccon_ready <= 1'd0;
+        sdram_bankmachine0_trccon_count <= 3'd0;
+        sdram_bankmachine0_trascon_ready <= 1'd0;
+        sdram_bankmachine0_trascon_count <= 2'd0;
         sdram_bankmachine1_level <= 4'd0;
         sdram_bankmachine1_produce <= 3'd0;
         sdram_bankmachine1_consume <= 3'd0;
@@ -8005,6 +7777,10 @@ always @(posedge sys_clk) begin
         sdram_bankmachine1_row_opened <= 1'd0;
         sdram_bankmachine1_twtpcon_ready <= 1'd0;
         sdram_bankmachine1_twtpcon_count <= 3'd0;
+        sdram_bankmachine1_trccon_ready <= 1'd0;
+        sdram_bankmachine1_trccon_count <= 3'd0;
+        sdram_bankmachine1_trascon_ready <= 1'd0;
+        sdram_bankmachine1_trascon_count <= 2'd0;
         sdram_bankmachine2_level <= 4'd0;
         sdram_bankmachine2_produce <= 3'd0;
         sdram_bankmachine2_consume <= 3'd0;
@@ -8015,6 +7791,10 @@ always @(posedge sys_clk) begin
         sdram_bankmachine2_row_opened <= 1'd0;
         sdram_bankmachine2_twtpcon_ready <= 1'd0;
         sdram_bankmachine2_twtpcon_count <= 3'd0;
+        sdram_bankmachine2_trccon_ready <= 1'd0;
+        sdram_bankmachine2_trccon_count <= 3'd0;
+        sdram_bankmachine2_trascon_ready <= 1'd0;
+        sdram_bankmachine2_trascon_count <= 2'd0;
         sdram_bankmachine3_level <= 4'd0;
         sdram_bankmachine3_produce <= 3'd0;
         sdram_bankmachine3_consume <= 3'd0;
@@ -8025,21 +7805,21 @@ always @(posedge sys_clk) begin
         sdram_bankmachine3_row_opened <= 1'd0;
         sdram_bankmachine3_twtpcon_ready <= 1'd0;
         sdram_bankmachine3_twtpcon_count <= 3'd0;
+        sdram_bankmachine3_trccon_ready <= 1'd0;
+        sdram_bankmachine3_trccon_count <= 3'd0;
+        sdram_bankmachine3_trascon_ready <= 1'd0;
+        sdram_bankmachine3_trascon_count <= 2'd0;
         sdram_choose_cmd_grant <= 2'd0;
         sdram_choose_req_grant <= 2'd0;
+        sdram_trrdcon_ready <= 1'd0;
+        sdram_trrdcon_count <= 1'd0;
         sdram_tccdcon_ready <= 1'd0;
         sdram_tccdcon_count <= 1'd0;
         sdram_twtrcon_ready <= 1'd0;
         sdram_twtrcon_count <= 2'd0;
         sdram_time0 <= 5'd0;
         sdram_time1 <= 4'd0;
-        wishbone_bridge_count <= 2'd0;
-        wishbone_bridge_wdata_converter_converter_mux <= 2'd0;
-        wishbone_bridge_rdata_converter_converter_source_payload_data <= 128'd0;
-        wishbone_bridge_rdata_converter_converter_source_payload_valid_token_count <= 3'd0;
-        wishbone_bridge_rdata_converter_converter_demux <= 2'd0;
-        wishbone_bridge_rdata_converter_converter_strobe_all <= 1'd0;
-        wishbone_bridge_aborted <= 1'd0;
+        aborted <= 1'd0;
         vtg_enable_storage <= 1'd1;
         vtg_enable_re <= 1'd0;
         vtg_hres_storage <= 12'd266;
@@ -8144,9 +7924,7 @@ always @(posedge sys_clk) begin
         basesoc_new_master_rdata_valid13 <= 1'd0;
         basesoc_new_master_rdata_valid14 <= 1'd0;
         basesoc_new_master_rdata_valid15 <= 1'd0;
-        basesoc_fullmemorywe_state <= 2'd0;
-        basesoc_litedramnativeportconverter_state <= 1'd0;
-        basesoc_fsm_state <= 2'd0;
+        basesoc_litedramwishbone2native_state <= 2'd0;
         basesoc_litedramdmareader_state <= 2'd0;
         basesoc_wishbone2csr_state <= 2'd0;
     end
@@ -8403,10 +8181,10 @@ end
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-// Memory rom: 4979-words x 32-bit
+// Memory rom: 5079-words x 32-bit
 //------------------------------------------------------------------------------
 // Port 0 | Read: Sync  | Write: ---- | 
-reg [31:0] rom[0:4978];
+reg [31:0] rom[0:5078];
 initial begin
 	$readmemh("litex_rom.init", rom);
 end
@@ -8618,20 +8396,6 @@ assign sdram_bankmachine3_rdport_dat_r = storage_5[sdram_bankmachine3_rdport_adr
 
 
 //------------------------------------------------------------------------------
-// Memory tag_mem: 512-words x 22-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 22 
-reg [21:0] tag_mem[0:511];
-reg [8:0] tag_mem_adr0;
-always @(posedge sys_clk) begin
-	if (tag_port_we)
-		tag_mem[tag_port_adr] <= tag_port_dat_w;
-	tag_mem_adr0 <= tag_port_adr;
-end
-assign tag_port_dat_r = tag_mem[tag_mem_adr0];
-
-
-//------------------------------------------------------------------------------
 // Memory storage_6: 16384-words x 3-bit
 //------------------------------------------------------------------------------
 // Port 0 | Read: Sync  | Write: Sync | Mode: Read-First  | Write-Granularity: 3 
@@ -8751,230 +8515,6 @@ VexRiscvLitexSmpCluster_Cc1_Iw64Is4096Iy1_Dw64Ds4096Dy1_ITs4DTs4_Ldw32_Ood_Fpu4_
 	.plicWishbone_DAT_MISO(basesoc_plicbus_dat_r)
 );
 
-//------------------------------------------------------------------------------
-// Memory data_mem_grain0: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain0[0:511];
-reg [8:0] data_mem_grain0_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[0])
-		data_mem_grain0[data_port_adr] <= data_port_dat_w[7:0];
-	data_mem_grain0_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[7:0] = data_mem_grain0[data_mem_grain0_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain1: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain1[0:511];
-reg [8:0] data_mem_grain1_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[1])
-		data_mem_grain1[data_port_adr] <= data_port_dat_w[15:8];
-	data_mem_grain1_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[15:8] = data_mem_grain1[data_mem_grain1_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain2: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain2[0:511];
-reg [8:0] data_mem_grain2_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[2])
-		data_mem_grain2[data_port_adr] <= data_port_dat_w[23:16];
-	data_mem_grain2_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[23:16] = data_mem_grain2[data_mem_grain2_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain3: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain3[0:511];
-reg [8:0] data_mem_grain3_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[3])
-		data_mem_grain3[data_port_adr] <= data_port_dat_w[31:24];
-	data_mem_grain3_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[31:24] = data_mem_grain3[data_mem_grain3_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain4: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain4[0:511];
-reg [8:0] data_mem_grain4_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[4])
-		data_mem_grain4[data_port_adr] <= data_port_dat_w[39:32];
-	data_mem_grain4_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[39:32] = data_mem_grain4[data_mem_grain4_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain5: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain5[0:511];
-reg [8:0] data_mem_grain5_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[5])
-		data_mem_grain5[data_port_adr] <= data_port_dat_w[47:40];
-	data_mem_grain5_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[47:40] = data_mem_grain5[data_mem_grain5_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain6: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain6[0:511];
-reg [8:0] data_mem_grain6_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[6])
-		data_mem_grain6[data_port_adr] <= data_port_dat_w[55:48];
-	data_mem_grain6_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[55:48] = data_mem_grain6[data_mem_grain6_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain7: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain7[0:511];
-reg [8:0] data_mem_grain7_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[7])
-		data_mem_grain7[data_port_adr] <= data_port_dat_w[63:56];
-	data_mem_grain7_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[63:56] = data_mem_grain7[data_mem_grain7_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain8: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain8[0:511];
-reg [8:0] data_mem_grain8_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[8])
-		data_mem_grain8[data_port_adr] <= data_port_dat_w[71:64];
-	data_mem_grain8_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[71:64] = data_mem_grain8[data_mem_grain8_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain9: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain9[0:511];
-reg [8:0] data_mem_grain9_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[9])
-		data_mem_grain9[data_port_adr] <= data_port_dat_w[79:72];
-	data_mem_grain9_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[79:72] = data_mem_grain9[data_mem_grain9_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain10: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain10[0:511];
-reg [8:0] data_mem_grain10_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[10])
-		data_mem_grain10[data_port_adr] <= data_port_dat_w[87:80];
-	data_mem_grain10_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[87:80] = data_mem_grain10[data_mem_grain10_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain11: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain11[0:511];
-reg [8:0] data_mem_grain11_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[11])
-		data_mem_grain11[data_port_adr] <= data_port_dat_w[95:88];
-	data_mem_grain11_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[95:88] = data_mem_grain11[data_mem_grain11_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain12: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain12[0:511];
-reg [8:0] data_mem_grain12_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[12])
-		data_mem_grain12[data_port_adr] <= data_port_dat_w[103:96];
-	data_mem_grain12_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[103:96] = data_mem_grain12[data_mem_grain12_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain13: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain13[0:511];
-reg [8:0] data_mem_grain13_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[13])
-		data_mem_grain13[data_port_adr] <= data_port_dat_w[111:104];
-	data_mem_grain13_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[111:104] = data_mem_grain13[data_mem_grain13_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain14: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain14[0:511];
-reg [8:0] data_mem_grain14_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[14])
-		data_mem_grain14[data_port_adr] <= data_port_dat_w[119:112];
-	data_mem_grain14_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[119:112] = data_mem_grain14[data_mem_grain14_adr0];
-
-
-//------------------------------------------------------------------------------
-// Memory data_mem_grain15: 512-words x 8-bit
-//------------------------------------------------------------------------------
-// Port 0 | Read: Sync  | Write: Sync | Mode: Write-First | Write-Granularity: 8 
-reg [7:0] data_mem_grain15[0:511];
-reg [8:0] data_mem_grain15_adr0;
-always @(posedge sys_clk) begin
-	if (data_port_we[15])
-		data_mem_grain15[data_port_adr] <= data_port_dat_w[127:120];
-	data_mem_grain15_adr0 <= data_port_adr;
-end
-assign data_port_dat_r[127:120] = data_mem_grain15[data_mem_grain15_adr0];
-
-
 ALTDDIO_OUT #(
 	.WIDTH(1'd1)
 ) ALTDDIO_OUT (
@@ -8987,5 +8527,5 @@ ALTDDIO_OUT #(
 endmodule
 
 // -----------------------------------------------------------------------------
-//  Auto-Generated by LiteX on 2023-11-15 13:53:05.
+//  Auto-Generated by LiteX on 2023-11-19 07:56:28.
 //------------------------------------------------------------------------------

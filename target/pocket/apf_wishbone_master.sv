@@ -2,8 +2,6 @@ module apf_wishbone_master (
     input wire clk_74a,
     input wire clk_sys,
 
-    input wire reset,
-
     input wire [31:0] bridge_addr,
     input wire [31:0] bridge_wr_data,
     input wire bridge_wr,

@@ -341,8 +341,8 @@ module core_top (
 
   // bridge host commands
   // synchronous to clk_74a
-  wire status_boot_done = pll_core_locked_s;
-  wire status_setup_done = pll_core_locked_s;  // rising edge triggers a target command
+  wire status_boot_done = pll_core_locked_s74;
+  wire status_setup_done = pll_core_locked_s74;  // rising edge triggers a target command
   wire status_running = reset_n;  // we are running as soon as reset_n goes high
 
   wire dataslot_requestread;
@@ -513,32 +513,12 @@ module core_top (
   // Data loading
 
   reg ioctl_download;
-  wire ioctl_wr;
-  // Byte addresses
-  wire [19:0] ioctl_addr;
-  wire [31:0] ioctl_dout;
 
   always @(posedge clk_74a) begin
     if (dataslot_requestwrite) ioctl_download <= 1;
     else if (dataslot_allcomplete) ioctl_download <= 0;
   end
 
-  data_loader #(
-      .ADDRESS_MASK_UPPER_4(4'h1),
-      .ADDRESS_SIZE(20)
-  ) data_loader (
-      .clk_74a(clk_74a),
-      .clk_memory(clk_sys_66_12),
-
-      .bridge_wr(bridge_wr),
-      .bridge_endian_little(bridge_endian_little),
-      .bridge_addr(bridge_addr),
-      .bridge_wr_data(bridge_wr_data),
-
-      .write_en  (ioctl_wr),
-      .write_addr(ioctl_addr),
-      .write_data(ioctl_dout)
-  );
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // Debug UART
@@ -581,11 +561,11 @@ module core_top (
       clk_sys_66_12
   );
 
-  wire ioctl_download_s;
+  wire reset_n_s;
 
   synch_3 settings_synch (
-      ioctl_download,
-      ioctl_download_s,
+      reset_n,
+      reset_n_s,
       clk_sys_66_12
   );
 
@@ -603,17 +583,17 @@ module core_top (
     end
   end
 
-  wire ack;
-  wire [29:0] addr;
-  wire [1:0] bte;
-  wire [2:0] cti;
-  wire cyc;
-  wire [31:0] data_read;
-  wire [31:0] data_write;
-  wire err;
-  wire [3:0] sel;
-  wire stb;
-  wire we;
+  // wire ack;
+  // wire [29:0] addr;
+  // wire [1:0] bte;
+  // wire [2:0] cti;
+  // wire cyc;
+  // wire [31:0] data_read;
+  // wire [31:0] data_write;
+  // wire err;
+  // wire [3:0] sel;
+  // wire stb;
+  // wire we;
 
   wire apf_master_ack;
   wire [29:0] apf_master_addr;
@@ -676,12 +656,13 @@ module core_top (
       clk_74a
   );
 
-  wire reset = ~reset_n || ioctl_download || reset_timer > 0;
+  wire reset = ~reset_n_s || ioctl_download || reset_timer > 0;
 
   // Always have bridge read/write from 0
   assign target_dataslot_bridgeaddr = 32'h0;
 
   wire [31:0] ram_data_address;
+  reg [31:0] latched_ram_data_address = 0;
   wire [25:0] current_address;
 
   wire [31:0] audio_bus_out;
@@ -694,6 +675,10 @@ module core_top (
 
   always @(posedge clk_sys_66_12) begin
     prev_target_dataslot_done_s <= target_dataslot_done_s;
+
+    if (apf_bridge_request_read) begin
+      latched_ram_data_address <= ram_data_address;
+    end
   end
 
   litex litex (
@@ -737,17 +722,17 @@ module core_top (
       .apf_audio_flush(audio_flush),
       .apf_audio_buffer_fill(audio_buffer_fill),
 
-      .wishbone_ack(ack),
-      .wishbone_adr(addr),
-      .wishbone_bte(bte),
-      .wishbone_cti(cti),
-      .wishbone_cyc(cyc),
-      .wishbone_dat_r(data_read),
-      .wishbone_dat_w(data_write),
-      .wishbone_err(err),
-      .wishbone_sel(sel),
-      .wishbone_stb(stb),
-      .wishbone_we(we),
+      // .wishbone_ack(ack),
+      // .wishbone_adr(addr),
+      // .wishbone_bte(bte),
+      // .wishbone_cti(cti),
+      // .wishbone_cyc(cyc),
+      // .wishbone_dat_r(data_read),
+      // .wishbone_dat_w(data_write),
+      // .wishbone_err(err),
+      // .wishbone_sel(sel),
+      // .wishbone_stb(stb),
+      // .wishbone_we(we),
 
       .wishbone_master_ack(apf_master_ack),
       .wishbone_master_adr(apf_master_addr),
@@ -791,36 +776,35 @@ module core_top (
       .sdram_we_n(dram_we_n)
   );
 
-  wishbone wishbone (
-      .clk(clk_sys_66_12),
+  // wishbone wishbone (
+  //     .clk(clk_sys_66_12),
 
-      .reset(reset),
+  //     .reset(reset),
 
-      .addr(addr),
-      .bte(bte),
-      .cti(cti),
-      .cyc(cyc),
-      .data_write(data_write),
-      .data_read(data_read),
-      .sel(sel),
-      .stb(stb),
-      .we(we),
-      .ack(ack),
-      .err(err)
-  );
+  //     .addr(addr),
+  //     .bte(bte),
+  //     .cti(cti),
+  //     .cyc(cyc),
+  //     .data_write(data_write),
+  //     .data_read(data_read),
+  //     .sel(sel),
+  //     .stb(stb),
+  //     .we(we),
+  //     .ack(ack),
+  //     .err(err)
+  // );
 
   apf_wishbone_master apf_wishbone_master (
       .clk_74a(clk_74a),
       .clk_sys(clk_sys_66_12),
-
-      .reset(reset),
 
       .bridge_addr(bridge_addr),
       .bridge_wr_data(bridge_wr_data),
       .bridge_wr(bridge_wr),
       .bridge_endian_little(bridge_endian_little),
 
-      .ram_data_address(ram_data_address),
+      // Write to start of SDRAM when uploading data
+      .ram_data_address(latched_ram_data_address),
 
       .current_address(current_address),
 
@@ -915,10 +899,10 @@ module core_top (
   wire clk_vid_6_612_90deg;
 
   wire pll_core_locked;
-  wire pll_core_locked_s;
+  wire pll_core_locked_s74;
   synch_3 s01 (
       pll_core_locked,
-      pll_core_locked_s,
+      pll_core_locked_s74,
       clk_74a
   );
 

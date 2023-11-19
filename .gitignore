@@ -5,6 +5,7 @@ sim/
 *.bin
 *.hex
 *.rbf_r
+*.rev
 
 # Quartus directories and files
 db
