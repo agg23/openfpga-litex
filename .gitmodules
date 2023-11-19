@@ -21,7 +21,7 @@
 	url = https://github.com/litex-hub/pythondata-cpu-vexriscv
 [submodule "vendor/litex"]
 	path = vendor/litex
-	url = https://github.com/enjoy-digital/litex
+	url = https://github.com/agg23/litex-pocket
 [submodule "vendor/pythondata-cpu-vexriscv_smp"]
 	path = vendor/pythondata-cpu-vexriscv_smp
 	url = https://github.com/litex-hub/pythondata-cpu-vexriscv_smp
