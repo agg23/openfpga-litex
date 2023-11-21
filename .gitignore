@@ -7,6 +7,20 @@ sim/
 *.rbf_r
 *.rev
 
+litex/build/
+
+litex/rust/target
+litex/rust/output.txt
+litex/rust/*.bin
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
 # Quartus directories and files
 db
 greybox_tmp

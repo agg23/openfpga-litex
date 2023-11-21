@@ -1,0 +1,27 @@
+[submodule "litex/vendor/migen"]
+	path = litex/vendor/migen
+	url = https://github.com/m-labs/migen
+[submodule "litex/vendor/pythondata-software-picolibc"]
+	path = litex/vendor/pythondata-software-picolibc
+	url = https://github.com/litex-hub/pythondata-software-picolibc
+[submodule "litex/vendor/pythondata-software-compiler_rt"]
+	path = litex/vendor/pythondata-software-compiler_rt
+	url = https://github.com/litex-hub/pythondata-software-compiler_rt
+[submodule "litex/vendor/litedram"]
+	path = litex/vendor/litedram
+	url = https://github.com/enjoy-digital/litedram
+[submodule "litex/vendor/litescope"]
+	path = litex/vendor/litescope
+	url = https://github.com/enjoy-digital/litescope
+[submodule "litex/vendor/litespi"]
+	path = litex/vendor/litespi
+	url = https://github.com/litex-hub/litespi
+[submodule "litex/vendor/pythondata-cpu-vexriscv"]
+	path = litex/vendor/pythondata-cpu-vexriscv
+	url = https://github.com/litex-hub/pythondata-cpu-vexriscv
+[submodule "litex/vendor/litex"]
+	path = litex/vendor/litex
+	url = https://github.com/agg23/litex-pocket
+[submodule "litex/vendor/pythondata-cpu-vexriscv_smp"]
+	path = litex/vendor/pythondata-cpu-vexriscv_smp
+	url = https://github.com/litex-hub/pythondata-cpu-vexriscv_smp
