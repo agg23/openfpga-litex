@@ -1,0 +1,33 @@
+[package]
+name = "rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "audio"
+path = "src/audio.rs"
+
+[[bin]]
+name = "rtc"
+path = "src/rtc_id.rs"
+
+[[bin]]
+name = "vblank"
+path = "src/vblank.rs"
+
+[dependencies]
+embedded-alloc = "0.5.0"
+embedded-hal = "0.2.7"
+litex-hal = "0.3.0"
+litex-pac = { path = "crates/litex-pac", features = ["rt"] }
+nb = "1.1.0"
+riscv = { version = "0.10.1", features = ["critical-section-single-hart"] }
+riscv-rt = "0.11.0"
+num-traits = { version = "0.2", default-features = false }
+slint = { version = "1.2.2", default-features = false, features = ["compat-1-2", "unsafe-single-threaded", "libm", "renderer-software"] }
+rmp3 = { path = "external/rmp3" }
+
+[build-dependencies]
+slint-build = "1.2.2"

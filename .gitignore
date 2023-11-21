@@ -1,0 +1,13 @@
+build/
+
+rust/target
+rust/output.txt
+rust/*.bin
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so

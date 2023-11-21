@@ -1,0 +1,50 @@
+export global UIPositioner {
+    in property <length> x;
+    in property <length> y;
+}
+
+export global FPSReadout {
+    in property <string> text;
+}
+
+export component MyUI {
+    Rectangle {
+        x: 0;
+        y: 0;
+        width: 5px;
+        height: 5px;
+        background: blue;
+    }
+    Rectangle {
+        x: 320px - 5px;
+        y: 200px - 5px;
+        width: 5px;
+        height: 5px;
+        background: red;
+    }
+    Text {
+        x: UIPositioner.x;
+        y: UIPositioner.y;
+        text: "hello world";
+        color: green;
+    }
+    Text {
+        x: 10px;
+        y: 10px;
+        text: FPSReadout.text;
+    }
+    // for nabla[index] in 4: Image {
+    //     // x: UIPositioner.x;
+    //     // y: UIPositioner.y;
+    //     y: 0;
+    //     x: self.width * index;
+    //     source: @image-url("NablaSqVerySmall.jpg");
+    // }
+    // for nabla2[index] in 3: Image {
+    //     // x: UIPositioner.x;
+    //     // y: UIPositioner.y;
+    //     y: self.height;
+    //     x: self.width * index;
+    //     source: @image-url("NablaSqVerySmall.jpg");
+    // }
+}

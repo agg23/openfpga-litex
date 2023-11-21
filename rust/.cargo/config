@@ -1,0 +1,38 @@
+[target.riscv32imafdc-unknown-none-elf]
+runner = ".cargo/flash.sh"
+rustflags = [
+  "-C", "link-arg=-Tregions.ld",
+  "-C", "link-arg=-Tmemory.x",
+  "-C", "link-arg=-Tlink.x",
+
+  # "-C", "target-cpu=generic-rv32",
+  # "-C", "target-feature=+32bit,-64bit",
+  # "-C", "target-feature=+f,+d,+m,+c,+a",
+
+  # # Float
+  # "-C", "target-feature=+f",
+  # # Double
+  # "-C", "target-feature=+d",
+
+  # "-C", "target-feature=+m",
+  # "-C", "target-feature=+c",
+  # "-C", "target-feature=+a",
+  # "-C", "llvm-args=\"target-abi=ilp32d\""
+  # "-C", "llvm-args=--target-abi=ilp64d"
+]
+
+# Set up building for custom target
+# This requires nightly
+[unstable]
+build-std-features = ["compiler-builtins-mem"]
+build-std = ["core", "compiler_builtins", "alloc"]
+
+[build]
+target = "riscv32imafdc-unknown-none-elf.json"
+
+[env]
+BUILD_DIR = "../build"
+
+# Set up rmp3
+CC_riscv32imafdc_unknown_none_elf = "riscv64-unknown-elf-gcc"
+CFLAGS_riscv32imafdc_unknown_none_elf = "-mabi=ilp32d -march=rv32imafdc"
