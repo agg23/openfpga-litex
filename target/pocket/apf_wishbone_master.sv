@@ -51,12 +51,20 @@ module apf_wishbone_master (
 
   assign {write_addr, data_write} = fifo_out;
 
+  wire [31:0] endian_corrected_bridge_wr_data = bridge_endian_little ? bridge_wr_data :
+    {
+      bridge_wr_data[7:0],
+      bridge_wr_data[15:8],
+      bridge_wr_data[23:16],
+      bridge_wr_data[31:24]
+    };
+
   dcfifo dcfifo_component (
       .wrclk(clk_74a),
       .rdclk(clk_sys),
 
       .wrreq(wrreq),
-      .data ({bridge_addr[27:2], bridge_wr_data}),
+      .data ({bridge_addr[27:2], endian_corrected_bridge_wr_data}),
 
       // Immediately request if we're idle
       .rdreq(~mem_empty && state == NONE),

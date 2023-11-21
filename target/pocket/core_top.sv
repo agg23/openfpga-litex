@@ -237,7 +237,7 @@ module core_top (
   assign port_ir_rx_disable      = 1;
 
   // bridge endianness
-  assign bridge_endian_little    = 1;
+  assign bridge_endian_little    = 0;
 
   // cart is unused, so set all level translators accordingly
   // directions are 0:IN, 1:OUT
