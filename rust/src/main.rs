@@ -245,28 +245,31 @@ fn main() -> ! {
     }
 
     unsafe {
-        peripherals.MAIN.bridge_data_offset.write(|w| w.bits(0));
+        peripherals.APF_BRIDGE.data_offset.write(|w| w.bits(0));
 
-        peripherals.MAIN.bridge_length.write(|w| w.bits(0x1F400));
         peripherals
-            .MAIN
+            .APF_BRIDGE
+            .transfer_length
+            .write(|w| w.bits(0x1F400));
+        peripherals
+            .APF_BRIDGE
             .ram_data_address
             .write(|w| w.bits(TEST_BUFFER_ADDRESS as u32));
-        peripherals.MAIN.bridge_slot_id.write(|w| w.bits(0));
+        peripherals.APF_BRIDGE.slot_id.write(|w| w.bits(0));
 
-        let value = peripherals.MAIN.bridge_length.read().bits();
+        let value = peripherals.APF_BRIDGE.transfer_length.read().bits();
 
         println!("Length: {value}");
 
-        let value = peripherals.MAIN.ram_data_address.read().bits();
+        let value = peripherals.APF_BRIDGE.ram_data_address.read().bits();
 
         println!("Address: {value:x}");
 
-        let value = peripherals.MAIN.bridge_slot_id.read().bits();
+        let value = peripherals.APF_BRIDGE.slot_id.read().bits();
 
         println!("Slot: {value}");
 
-        let value = peripherals.MAIN.bridge_file_size.read().bits();
+        let value = peripherals.APF_BRIDGE.file_size.read().bits();
 
         println!("File length: {value:x}");
     }
@@ -321,7 +324,7 @@ fn main() -> ! {
             let mut x = ui_positioner.get_x();
             let mut y = ui_positioner.get_y();
 
-            let cont1_key = peripherals.MAIN.cont1_key.read().bits();
+            let cont1_key = peripherals.APF_INPUT.cont1_key.read().bits();
 
             if cont1_key & 0x1 != 0 {
                 // Up
@@ -343,9 +346,9 @@ fn main() -> ! {
                 // A
                 println!("A");
                 unsafe {
-                    peripherals.MAIN.bridge_data_offset.write(|w| w.bits(0));
+                    peripherals.APF_BRIDGE.data_offset.write(|w| w.bits(0));
 
-                    peripherals.MAIN.bridge_request_read.write(|w| w.bits(1));
+                    peripherals.APF_BRIDGE.request_read.write(|w| w.bits(1));
                 };
             } else if cont1_key & 0x20 != 0 {
                 // B
@@ -353,33 +356,33 @@ fn main() -> ! {
                     println!("B");
 
                     peripherals
-                        .MAIN
-                        .bridge_data_offset
+                        .APF_BRIDGE
+                        .data_offset
                         .write(|w| w.bits(0x1F400));
 
-                    peripherals.MAIN.bridge_request_read.write(|w| w.bits(1));
+                    peripherals.APF_BRIDGE.request_read.write(|w| w.bits(1));
                 };
             } else if cont1_key & 0x40 != 0 {
                 // X
                 unsafe {
                     println!("X");
                     peripherals
-                        .MAIN
-                        .bridge_data_offset
+                        .APF_BRIDGE
+                        .data_offset
                         .write(|w| w.bits(2 * 0x1F400));
 
-                    peripherals.MAIN.bridge_request_read.write(|w| w.bits(1));
+                    peripherals.APF_BRIDGE.request_read.write(|w| w.bits(1));
                 };
             } else if cont1_key & 0x80 != 0 {
                 // Y
                 unsafe {
                     println!("Y");
                     peripherals
-                        .MAIN
-                        .bridge_data_offset
+                        .APF_BRIDGE
+                        .data_offset
                         .write(|w| w.bits(3 * 0x1F400));
 
-                    peripherals.MAIN.bridge_request_read.write(|w| w.bits(1));
+                    peripherals.APF_BRIDGE.request_read.write(|w| w.bits(1));
                 };
             }
 
@@ -431,7 +434,7 @@ fn main() -> ! {
                 button_pressed = false;
             }
 
-            let current_address = peripherals.MAIN.bridge_current_address.read().bits();
+            let current_address = peripherals.APF_BRIDGE.current_address.read().bits();
 
             if current_address != last_address {
                 last_address = current_address;
@@ -439,7 +442,7 @@ fn main() -> ! {
                 println!("Address: {current_address:x}")
             }
 
-            let status = peripherals.MAIN.bridge_status.read().bits();
+            let status = peripherals.APF_BRIDGE.status.read().bits();
 
             if status > 0 {
                 println!("Finished write");

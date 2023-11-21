@@ -13,24 +13,24 @@ impl File {
             let peripherals = pac::Peripherals::steal();
 
             peripherals
-                .MAIN
-                .bridge_data_offset
+                .APF_BRIDGE
+                .data_offset
                 .write(|w| w.bits(data_offset));
 
             peripherals
-                .MAIN
-                .bridge_length
+                .APF_BRIDGE
+                .transfer_length
                 .write(|w| w.bits(read_length));
             peripherals
-                .MAIN
+                .APF_BRIDGE
                 .ram_data_address
                 .write(|w| w.bits(storage_address));
             peripherals
-                .MAIN
-                .bridge_slot_id
+                .APF_BRIDGE
+                .slot_id
                 .write(|w| w.bits(bridge_slot_id));
 
-            peripherals.MAIN.bridge_request_read.write(|w| w.bits(1));
+            peripherals.APF_BRIDGE.request_read.write(|w| w.bits(1));
         };
     }
 
@@ -39,11 +39,11 @@ impl File {
             let peripherals = pac::Peripherals::steal();
 
             peripherals
-                .MAIN
-                .bridge_slot_id
+                .APF_BRIDGE
+                .slot_id
                 .write(|w| w.bits(bridge_slot_id));
 
-            peripherals.MAIN.bridge_file_size.read().bits()
+            peripherals.APF_BRIDGE.file_size.read().bits()
         }
     }
 
@@ -54,7 +54,7 @@ impl File {
         unsafe {
             let peripherals = pac::Peripherals::steal();
 
-            peripherals.MAIN.bridge_status.read().bits() == 1
+            peripherals.APF_BRIDGE.status.read().bits() == 1
         }
     }
 

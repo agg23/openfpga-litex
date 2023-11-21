@@ -4,6 +4,7 @@
 use ::slint::platform::software_renderer::{MinimalSoftwareWindow, RepaintBufferType};
 use alloc::format;
 use core::arch::asm;
+use core::borrow::BorrowMut;
 use core::cell::RefCell;
 use core::panic::PanicInfo;
 use core::slice::{from_raw_parts, from_raw_parts_mut};
@@ -74,7 +75,7 @@ fn panic(info: &PanicInfo) -> ! {
 #[global_allocator]
 static HEAP: Heap = Heap::empty();
 
-const DISPLAY_WIDTH: usize = 267;
+const DISPLAY_WIDTH: usize = 266;
 const DISPLAY_HEIGHT: usize = 240;
 
 const FRAMEBUFFER_ADDRESS: *mut Rgb565Pixel = 0x40C0_0000 as *mut Rgb565Pixel;
@@ -140,6 +141,12 @@ fn render_init() {
     });
 }
 
+fn pixel(x: usize, y: usize) -> &'static mut u16 {
+    let framebuffer = unsafe { from_raw_parts_mut(FRAMEBUFFER_ADDRESS as *mut u16, READ_LENGTH) };
+
+    &mut framebuffer[y * DISPLAY_WIDTH + x]
+}
+
 // This is the entry point for the application.
 // It is not allowed to return.
 #[entry]
@@ -152,6 +159,42 @@ fn main() -> ! {
     println!("Rendering");
 
     render_init();
+
+    // for x in 0..DISPLAY_WIDTH {
+    //     for y in 0..DISPLAY_HEIGHT {
+    //         *pixel(x, y) = 0xFFFF;
+    //     }
+    // }
+
+    // for x in 0..DISPLAY_WIDTH {
+    //     match x % 10 {
+    //         0 => {
+    //             // Blue column of 10
+    //             let y_max = if x % 100 == 0 {
+    //                 // 100 boundary
+    //                 20
+    //             } else {
+    //                 10
+    //             };
+
+    //             for y in 0..y_max {
+    //                 *pixel(x, y) = 0x001F;
+    //             }
+    //         }
+    //         2 | 4 | 6 | 8 => {
+    //             // Even tick of black
+    //             for y in 0..5 {
+    //                 *pixel(x, y) = 0x0000;
+    //             }
+    //         }
+    //         _ => {
+    //             // Bottom line
+    //             *pixel(x, 0) = 0x0000;
+    //         }
+    //     }
+    // }
+
+    // loop {}
 
     let mut decoder = RawDecoder::new();
     let mut mp3_sample_buffer = [Sample::default(); MAX_SAMPLES_PER_FRAME];
@@ -242,11 +285,11 @@ fn main() -> ! {
 
             match frame {
                 rmp3::Frame::Audio(audio) => {
-                    let mut buffer_fill = peripherals.MAIN.audio_buffer_fill.read().bits();
+                    let mut buffer_fill = peripherals.APF_AUDIO.buffer_fill.read().bits();
 
                     while buffer_fill > 10 {
                         // Busy wait until the buffer is mostly empty
-                        buffer_fill = peripherals.MAIN.audio_buffer_fill.read().bits();
+                        buffer_fill = peripherals.APF_AUDIO.buffer_fill.read().bits();
                     }
 
                     if audio.channels() != 2 {
@@ -259,10 +302,10 @@ fn main() -> ! {
 
                     for i in 0..audio.sample_count() {
                         let value = two_channel_samples[i];
-                        unsafe { peripherals.MAIN.audio_out.write(|w| w.bits(value)) };
+                        unsafe { peripherals.APF_AUDIO.out.write(|w| w.bits(value)) };
                     }
 
-                    unsafe { peripherals.MAIN.audio_playback_en.write(|w| w.bits(1)) };
+                    unsafe { peripherals.APF_AUDIO.playback_en.write(|w| w.bits(1)) };
                 }
                 rmp3::Frame::Other(_) => {
                     // Skip

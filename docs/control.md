@@ -6,14 +6,14 @@ The system provides audio via a write only audio buffer of 4096 elements. The Po
 
 ## CSR
 
-Base address (`MAIN` block): `0xF000_1000` + `0x50`
+Base address (`APF_AUDIO` block): `0xF000_0000`
 
-| Name                 | Offset | Dir | Width | Description                                                                                                                                                                                           |
-| -------------------- | ------ | --- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `audio_out`          | `0x0` | W   | 32    | The entrypoint to the audio buffer. Write two 16 bit signed values (for the left and right audio channels) here. This will push one value into the 4096 record FIFO that represents the audio buffer. |
-| `audio_playback_en`  | `0x4` | RW  | 1     | Enable audio playback (reading of the audio buffer) when set to 1. No audio playback otherwise.                                                                                                       |
-| `audio_buffer_flush` | `0x8` | W   | 1     | Writing 1 to this register will immediately clear the audio buffer.                                                                                                                                   |
-| `audio_buffer_fill`  | `0xC` | R   | 12    | The current fill level of the audio buffer. The buffer is full when set to `0xFFF`.                                                                                                                   |
+| Name           | Offset | Dir | Width | Description                                                                                                                                                                                           |
+| -------------- | ------ | --- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `out`          | `0x0`  | W   | 32    | The entrypoint to the audio buffer. Write two 16 bit signed values (for the left and right audio channels) here. This will push one value into the 4096 record FIFO that represents the audio buffer. |
+| `playback_en`  | `0x4`  | RW  | 1     | Enable audio playback (reading of the audio buffer) when set to 1. No audio playback otherwise.                                                                                                       |
+| `buffer_flush` | `0x8`  | W   | 1     | Writing 1 to this register will immediately clear the audio buffer.                                                                                                                                   |
+| `buffer_fill`  | `0xC`  | R   | 12    | The current fill level of the audio buffer. The buffer is full when set to `0xFFF`.                                                                                                                   |
 
 # Bridge
 
@@ -23,36 +23,104 @@ The main control mechanism from the user's core (the RISC-V soft-processor) to t
 
 ## File API
 
-Base address (`MAIN` block): `0xF000_1000` + `0x30`
+Base address (`APF_BRIDGE` block): `0xF000_0800`
 
 ### Common
 
-| Name                     | Offset | Dir | Width | Description                                                                                                                                                                                                           |
-| ------------------------ | ------ | --- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bridge_slot_id`         | `0x4`  | RW  | 16    | The slot ID defined in `data.json` for the desired asset/slot.                                                                                                                                                        |
-| `bridge_data_offset`     | `0x8`  | RW  | 32    | The offset from the start of the asset in the selected data slot to operate on.                                                                                                                                       |
-| `bridge_length`          | `0xC`  | RW  | 32    | The length of data to transfer as part of this bridge operation. A length of `0xFFFFFFFF` will request the entire file (NOTE: As of Pocket firmware 1.1, this is bugged, and you just request the file size instead). |
-| `ram_data_address`       | `0x10` | RW  | 32    | The address of RISC-V RAM to be manipulated in this operation. It is either the first write address for a read request, or the first read address for a write request.                                                |
-| `bridge_file_size`       | `0x14` | R   | 32    | The file size on disk of the current selected asset in slot `bridge_slot_id`.                                                                                                                                         |
-| `bridge_status`          | `0x18` | R   | 1     | Indicates when the bridge is currently transferring a file. 1 when transferring, 0 otherwise. Clears its value on read.                                                                                               |
-| `bridge_current_address` | `0x1C` | R   | 32    | The current address the bridge is operating on. Can be used to show a progress bar/estimate time until completion.                                                                                                    |
+| Name               | Offset | Dir | Width | Description                                                                                                                                                                                                           |
+| ------------------ | ------ | --- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `slot_id`          | `0x4`  | RW  | 16    | The slot ID defined in `data.json` for the desired asset/slot.                                                                                                                                                        |
+| `data_offset`      | `0x8`  | RW  | 32    | The offset from the start of the asset in the selected data slot to operate on.                                                                                                                                       |
+| `transfer_length`  | `0xC`  | RW  | 32    | The length of data to transfer as part of this bridge operation. A length of `0xFFFFFFFF` will request the entire file (NOTE: As of Pocket firmware 1.1, this is bugged, and you just request the file size instead). |
+| `ram_data_address` | `0x10` | RW  | 32    | The address of RISC-V RAM to be manipulated in this operation. It is either the first write address for a read request, or the first read address for a write request.                                                |
+| `file_size`        | `0x14` | R   | 32    | The file size on disk of the current selected asset in slot `slot_id`.                                                                                                                                                |
+| `status`           | `0x18` | R   | 1     | Indicates when the bridge is currently transferring a file. 1 when transferring, 0 otherwise. Clears its value on read.                                                                                               |
+| `current_address`  | `0x1C` | R   | 32    | The current address the bridge is operating on. Can be used to show a progress bar/estimate time until completion.                                                                                                    |
 
 
 ### Reading
 
-| Name                  | Offset | Dir | Width | Description                                                                                               |
-| --------------------- | ------ | --- | ----- | --------------------------------------------------------------------------------------------------------- |
-| `bridge_request_read` | `0x0`  | R   | 1     | Writing 1 to this register will trigger a read request with the contents of the other registers set here. |
+| Name           | Offset | Dir | Width | Description                                             |
+| -------------- | ------ | --- | ----- | ------------------------------------------------------- |
+| `request_read` | `0x0`  | R   | 1     | Writing 1 to this register will trigger a read request. |
 
 ### Writing
 
 **TODO:** Currently unimplemented
 
+# ID
+
+### CSR
+
+Base address (`APF_ID` block): `0xF000_1000`
+
+| Name  | Offset | Dir | Width | Description                         |
+| ----- | ------ | --- | ----- | ----------------------------------- |
+| `id1` | `0x0`  | R   | 32    | High bits of the Cyclone V chip ID. |
+| `id0` | `0x4`  | R   | 32    | Low bits of the Cyclone V chip ID.  |
+
+# IO - Interfaces
+
+Connections to the link port and cartridge slot will be coming soon. This will probably change the register offsets defined above.
+
+# IO - User
+
+## CSR
+
+Base address (`APF_INPUT` block): `0xF000_1800`
+
+Input data is directly exposed through read registers exactly how they are exposed through APF. No interrupts are available at this time; you must loop and watch for changes in inputs yourself (just like on old consoles).
+
+| Name             | Offset                         | Dir | Width | Description                                                                                                                                        |
+| ---------------- | ------------------------------ | --- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CONT[1-4]_KEY`  | `0x0`, `0x4`, `0x8`, `0xC`     | R   | 32    | Controller 1-4 inputs. See associated bitmap                                                                                                       |
+| `CONT[1-4]_JOY`  | `0x10`, `0x14`, `0x18`, `0x1C` | R   | 32    | Controller 1-4 joystick values. See associated bitmap                                                                                              |
+| `CONT[1-4]_TRIG` | `0x20`, `0x24`, `0x28`, `0x2C` | R   | 16    | Controller 1-4 trigger values. Values are binary on Pocket (`0 and 0xFFFF`), and analog on controllers with analog triggers. See associated bitmap |
+
+## Controller Bitmap
+
+| Bit Indexes | Name            |
+| ----------- | --------------- |
+| 0           | `dpad_up`       |
+| 1           | `dpad_down`     |
+| 2           | `dpad_left`     |
+| 3           | `dpad_right`    |
+| 4           | `face_a`        |
+| 5           | `face_b`        |
+| 6           | `face_x`        |
+| 7           | `face_y`        |
+| 8           | `trig_l1`       |
+| 9           | `trig_r1`       |
+| 10          | `trig_l2`       |
+| 11          | `trig_r2`       |
+| 12          | `trig_l3`       |
+| 13          | `trig_r3`       |
+| 14          | `face_select`   |
+| 15          | `face_start`    |
+| [28:16]     | _unused_        |
+| [31:29]     | controller type |
+
+## Joystick Bitmap
+
+| Bit Indexes | Name       |
+| ----------- | ---------- |
+| [7:0]       | `lstick_x` |
+| [15:8]      | `lstick_y` |
+| [23:16]     | `rstick_x` |
+| [31:24]     | `rstick_y` |
+
+## Trigger Bitmap
+
+| Bit Indexes | Name    |
+| ----------- | ------- |
+| [7:0]       | `ltrig` |
+| [15:8]      | `rtrig` |
+
 # Internals
 
 ## Control
 
-Base address (`CTRL` block): `0xF000_0000` + `0x0`
+Base address (`CTRL` block): `0xF000_0000`
 
 | Name    | Offset | Dir | Width | Description                                             |
 | ------- | ------ | --- | ----- | ------------------------------------------------------- |
@@ -65,7 +133,7 @@ Provides a cycle counter timer (trigger after X cycles) and a global cycle count
 
 ### CSR
 
-Base address (`TIMER0` block): `0xF000_2000` + `0x0`
+Base address (`TIMER0` block): `0xF000_2000`
 
 **NOTE:** These registers marked "TODO" may have documentation in the SVD file.
 
@@ -125,60 +193,26 @@ Base address (`VIDEO_FRAMEBUFFER_VTG` block): `0xF000_3800` + `0x0`
 | -------- | ------ | --- | ----- | ----------- |
 | `enable` | `0x0`  | RW  | 1     | When 1, video sync signals will be produced. When 0, video generation halts. |
 
-
-# IO - Interfaces
-
-Connections to the link port and cartridge slot will be coming soon. This will probably change the register offsets defined above.
-
-# IO - User
+# RTC
 
 ## CSR
 
-Base address (`MAIN` block): `0xF000_1000` + `0x0`
+Base address (`APF_RTC` block): `0xF000_2000`
 
-Input data is directly exposed through read registers exactly how they are exposed through APF. No interrupts are available at this time; you must loop and watch for changes in inputs yourself (just like on old consoles).
+| Name           | Offset | Dir | Width | Description                                               |
+| -------------- | ------ | --- | ----- | --------------------------------------------------------- |
+| `unix_seconds` | `0x0`  | R   | 32    | The current Pocket set time, from Unix epoch, in seconds. |
+| `date_bcd`     | `0x4`  | R   | 32    | The launch Pocket set date, as BCD. NOT LIVE/INCREMENTAL. |
+| `time_bcd`     | `0x8`  | R   | 32    | The launch Pocket set time, as BCD. NOT LIVE/INCREMENTAL. |
 
-| Name             | Offset                         | Dir | Width | Description                                                                                                                                        |
-| ---------------- | ------------------------------ | --- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CONT[1-4]_KEY`  | `0x0`, `0x4`, `0x8`, `0xC`     | R   | 32    | Controller 1-4 inputs. See associated bitmap                                                                                                       |
-| `CONT[1-4]_JOY`  | `0x10`, `0x14`, `0x18`, `0x1C` | R   | 32    | Controller 1-4 joystick values. See associated bitmap                                                                                              |
-| `CONT[1-4]_TRIG` | `0x20`, `0x24`, `0x28`, `0x2C` | R   | 16    | Controller 1-4 trigger values. Values are binary on Pocket (`0 and 0xFFFF`), and analog on controllers with analog triggers. See associated bitmap |
+# Video
 
-## Controller Bitmap
+## CSR
 
-| Bit Indexes | Name            |
-| ----------- | --------------- |
-| 0           | `dpad_up`       |
-| 1           | `dpad_down`     |
-| 2           | `dpad_left`     |
-| 3           | `dpad_right`    |
-| 4           | `face_a`        |
-| 5           | `face_b`        |
-| 6           | `face_x`        |
-| 7           | `face_y`        |
-| 8           | `trig_l1`       |
-| 9           | `trig_r1`       |
-| 10          | `trig_l2`       |
-| 11          | `trig_r2`       |
-| 12          | `trig_l3`       |
-| 13          | `trig_r3`       |
-| 14          | `face_select`   |
-| 15          | `face_start`    |
-| [28:16]     | _unused_        |
-| [31:29]     | controller type |
+Base address (`APF_VIDEO` block): `0xF000_2800`
 
-## Joystick Bitmap
-
-| Bit Indexes | Name       |
-| ----------- | ---------- |
-| [7:0]       | `lstick_x` |
-| [15:8]      | `lstick_y` |
-| [23:16]     | `rstick_x` |
-| [31:24]     | `rstick_y` |
-
-## Trigger Bitmap
-
-| Bit Indexes | Name    |
-| ----------- | ------- |
-| [7:0]       | `ltrig` |
-| [15:8]      | `rtrig` |
+| Name            | Offset | Dir | Width | Description                                                                                                                              |
+| --------------- | ------ | --- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `vsync_status`  | `0x0`  | R   | 1     | Indicates when vsync occurs. Becomes 1 at vsync, and is set to 0 whenever read. If you read 1, vsync has occured between your two reads. |
+| `vblank_status` | `0x4`  | R   | 1     | 1 when in vblank, 0 otherwise.                                                                                                           |
+| `frame_counter` | `0x8`  | R   | 32    | Counts the number of frames displayed since startup. Comparing this value to a previous value can be used to track frame changes.        |

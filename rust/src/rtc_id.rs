@@ -109,11 +109,11 @@ fn main() -> ! {
             renderer.render(buffer, DISPLAY_WIDTH);
         });
 
-        let id_low = peripherals.MAIN.chip_id0.read().bits();
-        let id_high = peripherals.MAIN.chip_id1.read().bits();
+        let id_low = peripherals.APF_ID.id0.read().bits();
+        let id_high = peripherals.APF_ID.id1.read().bits();
 
         let id = (id_high as u64) << 32 | (id_low as u64);
-        let time = peripherals.MAIN.rtc_unix_seconds.read().bits();
+        let time = peripherals.APF_RTC.unix_seconds.read().bits();
 
         let data = ui.global::<Data>();
         data.set_id(format!("{id:x}").into());

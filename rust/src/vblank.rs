@@ -80,15 +80,15 @@ fn main() -> ! {
     let mut in_vblank = false;
 
     loop {
-        let frame_count = peripherals.MAIN.frame_counter.read().bits();
+        let frame_count = peripherals.APF_VIDEO.frame_counter.read().bits();
 
-        let vsync = peripherals.MAIN.vsync_status.read().bits();
+        let vsync = peripherals.APF_VIDEO.vsync_status.read().bits();
 
         if vsync != 0 {
             println!("Vsync at {counter} {frame_count}");
         }
 
-        let vblank = peripherals.MAIN.vblank_status.read().bits();
+        let vblank = peripherals.APF_VIDEO.vblank_status.read().bits();
 
         if vblank != 0 && !in_vblank {
             in_vblank = true;

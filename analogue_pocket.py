@@ -11,6 +11,7 @@
 
 # Set up the import paths for the LiteX packages
 import vendor
+from csr import APFID, APFRTC, APFAudio, APFBridge, APFInput, APFVideo
 from replaced_components import AS4C32M16Pocket, HalfRateGENSDRAMPocketPHY, VideoPocketPHY
 from litex.soc.integration.soc import SoCRegion
 from litex.soc.interconnect.csr import CSR, CSRStatus, CSRStorage
@@ -115,12 +116,12 @@ class BaseSoC(SoCCore):
             }], format="rgb565", clock_domain="vid")
 
         # CSR definitions --------------------------------------------------------------------------
-        self.add_controller_csr(platform)
-        self.add_apf_bridge_csr(platform)
-        self.add_apf_video_csr(platform)
-        self.add_apf_audio_csr(platform)
-        self.add_apf_rtc_csr(platform)
-        self.add_apf_id_csr(platform)
+        self.add_module("apf_audio", APFAudio(platform))
+        self.add_module("apf_bridge", APFBridge(platform))
+        self.add_module("apf_id", APFID(platform))
+        self.add_module("apf_input", APFInput(platform))
+        self.add_module("apf_rtc", APFRTC(platform))
+        self.add_module("apf_video", APFVideo(self))
 
         example_slave = wishbone.Interface()
         example_slave_region = SoCRegion(0x8000_0000, 0x10_0000, cached = False)
@@ -136,165 +137,7 @@ class BaseSoC(SoCCore):
         self.bus.add_master("apf_bridge_master", apf_bridge_master)
 
         self.comb += apf_bridge_master.connect_to_pads(platform.request("wishbone_master"), mode="slave")
-
-    def add_controller_csr(self, platform: analogue_pocket.Platform):
-        input_pins = platform.request("apf_input")
-
-        self.cont1_key = CSRStatus(size=32)
-        self.cont2_key = CSRStatus(size=32)
-        self.cont3_key = CSRStatus(size=32)
-        self.cont4_key = CSRStatus(size=32)
-
-        self.comb += self.cont1_key.status.eq(input_pins.cont1_key)
-        self.comb += self.cont2_key.status.eq(input_pins.cont2_key)
-        self.comb += self.cont3_key.status.eq(input_pins.cont3_key)
-        self.comb += self.cont4_key.status.eq(input_pins.cont4_key)
-
-        self.cont1_joy = CSRStatus(size=32)
-        self.cont2_joy = CSRStatus(size=32)
-        self.cont3_joy = CSRStatus(size=32)
-        self.cont4_joy = CSRStatus(size=32)
-
-        self.comb += self.cont1_joy.status.eq(input_pins.cont1_joy)
-        self.comb += self.cont2_joy.status.eq(input_pins.cont2_joy)
-        self.comb += self.cont3_joy.status.eq(input_pins.cont3_joy)
-        self.comb += self.cont4_joy.status.eq(input_pins.cont4_joy)
-
-        self.cont1_trig = CSRStatus(size=32)
-        self.cont2_trig = CSRStatus(size=32)
-        self.cont3_trig = CSRStatus(size=32)
-        self.cont4_trig = CSRStatus(size=32)
-
-        self.comb += self.cont1_trig.status.eq(input_pins.cont1_trig)
-        self.comb += self.cont2_trig.status.eq(input_pins.cont2_trig)
-        self.comb += self.cont3_trig.status.eq(input_pins.cont3_trig)
-        self.comb += self.cont4_trig.status.eq(input_pins.cont4_trig)
-
-
-    def add_apf_bridge_csr(self, platform: analogue_pocket.Platform):
-        bridge_pins = platform.request("apf_bridge")
-
-        self.bridge_request_read = CSR(1)
-        self.comb += bridge_pins.request_read.eq(self.bridge_request_read.re)
-
-        self.bridge_slot_id = CSRStorage(16)
-        self.bridge_data_offset = CSRStorage(32)
-        # self.bridge_local_address = CSRStorage(32)
-        self.bridge_length = CSRStorage(32)
-        self.ram_data_address = CSRStorage(32)
-
-        self.bridge_file_size = CSRStatus(32)
-
-        # Will go high when operation completes. Goes low after read
-        self.bridge_status = CSRStatus(1)
-
-        self.bridge_current_address = CSRStatus(32)
-
-        self.prev_bridge_complete_trigger = Signal()
-
-        self.sync += [
-            self.prev_bridge_complete_trigger.eq(bridge_pins.complete_trigger),
-
-            # Read clear must apply before write set, because otherwise you can miss a signal
-            If(self.bridge_status.we,
-                # Read, clear status
-                self.bridge_status.status.eq(0)
-            ),
-
-            If(bridge_pins.complete_trigger & ~self.prev_bridge_complete_trigger,
-                # Push status high
-                self.bridge_status.status.eq(1)
-            )
-        ]
-
-        self.comb += [
-            bridge_pins.slot_id.eq(self.bridge_slot_id.storage),
-            bridge_pins.data_offset.eq(self.bridge_data_offset.storage),
-            # bridge_pins.local_address.eq(self.bridge_local_address.storage),
-            bridge_pins.length.eq(self.bridge_length.storage),
-            bridge_pins.ram_data_address.eq(self.ram_data_address.storage),
-
-            self.bridge_file_size.status.eq(bridge_pins.file_size),
-
-            self.bridge_current_address.status.eq(bridge_pins.current_address)
-        ]
-
-    def add_apf_video_csr(self, platform: analogue_pocket.Platform):
-        vblank = Signal()
-
-        # 240 is what vactive is set to
-        self.comb += If(self.video_framebuffer_vtg.source.vcount >= 240,
-                        vblank.eq(1)
-                       ).Else(
-                        vblank.eq(0)
-                       )
-        
-        self.vsync_status = CSRStatus(1)
-        self.vblank_status = CSRStatus(1)
-        self.frame_counter = CSRStatus(32)
-
-        self.prev_vsync_trigger = Signal()
-
-        self.sync += [
-            self.prev_vsync_trigger.eq(self.video_framebuffer_vtg.source.vsync),
-
-            # Read clear must apply before write set, because otherwise you can miss a signal
-            If(self.vsync_status.we,
-                # Read, clear status
-                self.vsync_status.status.eq(0)
-            ),
-
-            If(self.video_framebuffer_vtg.source.vsync & ~self.prev_vsync_trigger,
-                # Push status high
-                self.vsync_status.status.eq(1),
-
-                self.frame_counter.status.eq(self.frame_counter.status + 1)
-            )
-        ]
-
-        self.comb += self.vblank_status.status.eq(vblank)
-
-    def add_apf_audio_csr(self, platform: analogue_pocket.Platform):
-        audio_pins = platform.request("apf_audio")
-
-        self.audio_out = CSR(32)
-        self.audio_playback_en = CSRStorage(1)
-        self.audio_buffer_flush = CSR(1)
-
-        self.audio_buffer_fill = CSRStatus(12)
-
-        self.comb += [
-            audio_pins.bus_out.eq(self.audio_out.r),
-            audio_pins.bus_wr.eq(self.audio_out.re),
-
-            audio_pins.playback_en.eq(self.audio_playback_en.storage),
-            audio_pins.flush.eq(self.audio_buffer_flush.re),
-
-            self.audio_buffer_fill.status.eq(audio_pins.buffer_fill)
-        ]
-
-    def add_apf_rtc_csr(self, platform: analogue_pocket.Platform):
-        rtc_pins = platform.request("apf_rtc")
-
-        self.rtc_unix_seconds = CSRStatus(32)
-        self.rtc_date_bcd = CSRStatus(32)
-        self.rtc_time_bcd = CSRStatus(32)
-
-        self.comb += [
-            self.rtc_unix_seconds.status.eq(rtc_pins.unix_seconds),
-            self.rtc_date_bcd.status.eq(rtc_pins.date_bcd),
-            self.rtc_time_bcd.status.eq(rtc_pins.time_bcd)
-        ]
     
-    def add_apf_id_csr(self, platform: analogue_pocket.Platform):
-        id_pins = platform.request("apf_id")
-
-        self.chip_id = CSRStatus(64)
-
-        self.comb += [
-            self.chip_id.status.eq(id_pins.chip_id)
-        ]
-
 # Build --------------------------------------------------------------------------------------------
 
 def main():
