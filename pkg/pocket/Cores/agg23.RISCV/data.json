@@ -1,0 +1,17 @@
+{
+  "data": {
+    "magic": "APF_VER_1",
+    "data_slots": [
+      {
+        "name": "Boot",
+        "id": 0,
+        "required": true,
+        "filename": "boot.bin",
+        "parameters": "0x9",
+        "deferload": true,
+        "extensions": ["bin"],
+        "address": "0x00000000"
+      }
+    ]
+  }
+}

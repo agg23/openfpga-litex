@@ -1,0 +1,31 @@
+set_global_assignment -entity "chip_id" -library "chip_id" -name IP_TOOL_NAME "altchip_id"
+set_global_assignment -entity "chip_id" -library "chip_id" -name IP_TOOL_VERSION "21.1"
+set_global_assignment -entity "chip_id" -library "chip_id" -name IP_TOOL_ENV "mwpim"
+set_global_assignment -library "chip_id" -name MISC_FILE [file join $::quartus(qip_path) "chip_id.cmp"]
+set_global_assignment -entity "chip_id" -library "chip_id" -name IP_TARGETED_DEVICE_FAMILY "Cyclone V"
+set_global_assignment -entity "chip_id" -library "chip_id" -name IP_GENERATED_DEVICE_FAMILY "{Cyclone V}"
+set_global_assignment -entity "chip_id" -library "chip_id" -name IP_QSYS_MODE "UNKNOWN"
+set_global_assignment -name SYNTHESIS_ONLY_QIP ON
+set_global_assignment -entity "chip_id" -library "chip_id" -name IP_COMPONENT_NAME "Y2hpcF9pZA=="
+set_global_assignment -entity "chip_id" -library "chip_id" -name IP_COMPONENT_DISPLAY_NAME "VW5pcXVlIENoaXAgSUQgSW50ZWwgRlBHQSBJUA=="
+set_global_assignment -entity "chip_id" -library "chip_id" -name IP_COMPONENT_REPORT_HIERARCHY "Off"
+set_global_assignment -entity "chip_id" -library "chip_id" -name IP_COMPONENT_INTERNAL "Off"
+set_global_assignment -entity "chip_id" -library "chip_id" -name IP_COMPONENT_AUTHOR "QWx0ZXJhIENvcnBvcmF0aW9u"
+set_global_assignment -entity "chip_id" -library "chip_id" -name IP_COMPONENT_VERSION "MjEuMQ=="
+set_global_assignment -entity "chip_id" -library "chip_id" -name IP_COMPONENT_DESCRIPTION "VGhlIEFsdGVyYSBVbmlxdWUgQ2hpcCBJRCBtZWdhZnVuY3Rpb24gcHJvdmlkZXMgZmVhdHVyZSB0byBhY3F1aXJlIHRoZSB1bmlxdWUgY2hpcCBJRCBvZiBGUEdBLg=="
+set_global_assignment -entity "altchip_id" -library "chip_id" -name IP_COMPONENT_NAME "YWx0Y2hpcF9pZA=="
+set_global_assignment -entity "altchip_id" -library "chip_id" -name IP_COMPONENT_DISPLAY_NAME "VW5pcXVlIENoaXAgSUQgSW50ZWwgRlBHQSBJUA=="
+set_global_assignment -entity "altchip_id" -library "chip_id" -name IP_COMPONENT_REPORT_HIERARCHY "Off"
+set_global_assignment -entity "altchip_id" -library "chip_id" -name IP_COMPONENT_INTERNAL "Off"
+set_global_assignment -entity "altchip_id" -library "chip_id" -name IP_COMPONENT_AUTHOR "QWx0ZXJhIENvcnBvcmF0aW9u"
+set_global_assignment -entity "altchip_id" -library "chip_id" -name IP_COMPONENT_VERSION "MjEuMQ=="
+set_global_assignment -entity "altchip_id" -library "chip_id" -name IP_COMPONENT_DESCRIPTION "VGhlIEFsdGVyYSBVbmlxdWUgQ2hpcCBJRCBtZWdhZnVuY3Rpb24gcHJvdmlkZXMgZmVhdHVyZSB0byBhY3F1aXJlIHRoZSB1bmlxdWUgY2hpcCBJRCBvZiBGUEdBLg=="
+set_global_assignment -entity "altchip_id" -library "chip_id" -name IP_COMPONENT_PARAMETER "REVWSUNFX0ZBTUlMWQ==::Q3ljbG9uZSBW::REVWSUNFX0ZBTUlMWQ=="
+set_global_assignment -entity "altchip_id" -library "chip_id" -name IP_COMPONENT_PARAMETER "SURfVkFMVUU=::MTg0NDY3NDQwNzM3MDk1NTE2MTU=::UGxlYXNlIGVudGVyIHRoZSBkZXNpcmVkIFVuaXF1ZSBDaGlwIElEIGluIEhleGFkZWNpbWFsIGZvciBzaW11bGF0aW9uOg=="
+
+set_global_assignment -library "chip_id" -name VERILOG_FILE [file join $::quartus(qip_path) "chip_id.v"]
+set_global_assignment -library "chip_id" -name VERILOG_FILE [file join $::quartus(qip_path) "chip_id/altchip_id.v"]
+
+set_global_assignment -entity "altchip_id" -library "chip_id" -name IP_TOOL_NAME "altchip_id"
+set_global_assignment -entity "altchip_id" -library "chip_id" -name IP_TOOL_VERSION "21.1"
+set_global_assignment -entity "altchip_id" -library "chip_id" -name IP_TOOL_ENV "mwpim"
