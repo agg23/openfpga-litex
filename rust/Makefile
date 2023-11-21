@@ -8,3 +8,7 @@ main:
 audio:
 	cargo build --bin audio --release
 	cargo objcopy --bin audio --release -- -O binary rust.bin
+
+rtc:
+	cargo build --bin rtc --release
+	cargo objcopy --bin rtc --release -- -O binary rust.bin

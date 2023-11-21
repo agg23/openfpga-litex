@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-11-19 07:56:09]]></description>
+    <description><![CDATA[Litex SoC 2023-11-20 17:26:19]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -447,10 +447,82 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
                         </field>
                     </fields>
                 </register>
+                <register>
+                    <name>RTC_UNIX_SECONDS</name>
+                    <addressOffset>0x0060</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>rtc_unix_seconds</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>RTC_DATE_BCD</name>
+                    <addressOffset>0x0064</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>rtc_date_bcd</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>RTC_TIME_BCD</name>
+                    <addressOffset>0x0068</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>rtc_time_bcd</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>CHIP_ID1</name>
+                    <description><![CDATA[Bits 32-63 of `MAIN_CHIP_ID`.]]></description>
+                    <addressOffset>0x006c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>chip_id</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>CHIP_ID0</name>
+                    <description><![CDATA[Bits 0-31 of `MAIN_CHIP_ID`.]]></description>
+                    <addressOffset>0x0070</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>chip_id</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
             </registers>
             <addressBlock>
                 <offset>0</offset>
-                <size>0x60</size>
+                <size>0x74</size>
                 <usage>registers</usage>
             </addressBlock>
         </peripheral>
@@ -1445,6 +1517,7 @@ register to disable individual events.]]></description>
             <constant name="CONFIG_BUS_DATA_WIDTH" value="32" />
             <constant name="CONFIG_BUS_ADDRESS_WIDTH" value="32" />
             <constant name="CONFIG_BUS_BURSTING" value="0" />
+            <constant name="CONFIG_CPU_INTERRUPTS" value="3" />
             <constant name="TIMER0_INTERRUPT" value="2" />
             <constant name="UART_INTERRUPT" value="1" />
         </constants>

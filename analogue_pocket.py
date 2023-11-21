@@ -118,6 +118,8 @@ class BaseSoC(SoCCore):
         self.add_controller_csr(platform)
         self.add_apf_bridge_csr(platform)
         self.add_apf_audio_csr(platform)
+        self.add_apf_rtc_csr(platform)
+        self.add_apf_id_csr(platform)
 
         example_slave = wishbone.Interface()
         example_slave_region = SoCRegion(0x8000_0000, 0x10_0000, cached = False)
@@ -233,6 +235,28 @@ class BaseSoC(SoCCore):
             audio_pins.flush.eq(self.audio_buffer_flush.re),
 
             self.audio_buffer_fill.status.eq(audio_pins.buffer_fill)
+        ]
+
+    def add_apf_rtc_csr(self, platform: analogue_pocket.Platform):
+        rtc_pins = platform.request("apf_rtc")
+
+        self.rtc_unix_seconds = CSRStatus(32)
+        self.rtc_date_bcd = CSRStatus(32)
+        self.rtc_time_bcd = CSRStatus(32)
+
+        self.comb += [
+            self.rtc_unix_seconds.status.eq(rtc_pins.unix_seconds),
+            self.rtc_date_bcd.status.eq(rtc_pins.date_bcd),
+            self.rtc_time_bcd.status.eq(rtc_pins.time_bcd)
+        ]
+    
+    def add_apf_id_csr(self, platform: analogue_pocket.Platform):
+        id_pins = platform.request("apf_id")
+
+        self.chip_id = CSRStatus(64)
+
+        self.comb += [
+            self.chip_id.status.eq(id_pins.chip_id)
         ]
 
 # Build --------------------------------------------------------------------------------------------

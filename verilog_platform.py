@@ -123,7 +123,17 @@ class Platform(AlteraPlatform):
                 Subsignal("flush", Pins(1)),
 
                 Subsignal("buffer_fill", Pins(12))
-            )
+            ),
+
+            ("apf_rtc", 0,
+                Subsignal("unix_seconds", Pins(32)),
+                Subsignal("date_bcd", Pins(32)),
+                Subsignal("time_bcd", Pins(32))
+            ),
+
+            ("apf_id", 0,
+                Subsignal("chip_id", Pins(64)) 
+            ),
         ]
         _connectors = []
 

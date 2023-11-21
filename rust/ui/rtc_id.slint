@@ -1,0 +1,19 @@
+export global Data {
+  in property <string> rtc;
+  in property <string> id;
+}
+
+export component RTC_IDUI {
+  Text {
+      x: 100px;
+      y: 50px;
+      text: Data.rtc;
+      color: black;
+  }
+  Text {
+    x: 100px;
+    y: 60px;
+    text: Data.id;
+    color: black;
+}
+}
