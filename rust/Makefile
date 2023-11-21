@@ -12,3 +12,7 @@ audio:
 rtc:
 	cargo build --bin rtc --release
 	cargo objcopy --bin rtc --release -- -O binary rust.bin
+
+vblank:
+	cargo build --bin vblank --release
+	cargo objcopy --bin vblank --release -- -O binary rust.bin

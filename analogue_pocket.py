@@ -117,6 +117,7 @@ class BaseSoC(SoCCore):
         # CSR definitions --------------------------------------------------------------------------
         self.add_controller_csr(platform)
         self.add_apf_bridge_csr(platform)
+        self.add_apf_video_csr(platform)
         self.add_apf_audio_csr(platform)
         self.add_apf_rtc_csr(platform)
         self.add_apf_id_csr(platform)
@@ -217,6 +218,41 @@ class BaseSoC(SoCCore):
 
             self.bridge_current_address.status.eq(bridge_pins.current_address)
         ]
+
+    def add_apf_video_csr(self, platform: analogue_pocket.Platform):
+        vblank = Signal()
+
+        # 240 is what vactive is set to
+        self.comb += If(self.video_framebuffer_vtg.source.vcount >= 240,
+                        vblank.eq(1)
+                       ).Else(
+                        vblank.eq(0)
+                       )
+        
+        self.vsync_status = CSRStatus(1)
+        self.vblank_status = CSRStatus(1)
+        self.frame_counter = CSRStatus(32)
+
+        self.prev_vsync_trigger = Signal()
+
+        self.sync += [
+            self.prev_vsync_trigger.eq(self.video_framebuffer_vtg.source.vsync),
+
+            # Read clear must apply before write set, because otherwise you can miss a signal
+            If(self.vsync_status.we,
+                # Read, clear status
+                self.vsync_status.status.eq(0)
+            ),
+
+            If(self.video_framebuffer_vtg.source.vsync & ~self.prev_vsync_trigger,
+                # Push status high
+                self.vsync_status.status.eq(1),
+
+                self.frame_counter.status.eq(self.frame_counter.status + 1)
+            )
+        ]
+
+        self.comb += self.vblank_status.status.eq(vblank)
 
     def add_apf_audio_csr(self, platform: analogue_pocket.Platform):
         audio_pins = platform.request("apf_audio")

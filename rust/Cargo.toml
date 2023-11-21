@@ -13,6 +13,10 @@ path = "src/audio.rs"
 name = "rtc"
 path = "src/rtc_id.rs"
 
+[[bin]]
+name = "vblank"
+path = "src/vblank.rs"
+
 [dependencies]
 embedded-alloc = "0.5.0"
 embedded-hal = "0.2.7"
