@@ -8,8 +8,8 @@
 //
 // Filename   : litex.v
 // Device     : 5CEBA4F23C8
-// LiteX sha1 : 71ae8fe8
-// Date       : 2023-11-19 07:56:28
+// LiteX sha1 : 15d977a5
+// Date       : 2023-11-20 17:26:37
 //------------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -32,6 +32,7 @@ module litex (
     output wire   [31:0] apf_bridge_ram_data_address,
     output wire          apf_bridge_request_read,
     output wire   [15:0] apf_bridge_slot_id,
+    input  wire   [63:0] apf_id_chip_id,
     input  wire   [31:0] apf_input_cont1_joy,
     input  wire   [31:0] apf_input_cont1_key,
     input  wire   [31:0] apf_input_cont1_trig,
@@ -44,6 +45,9 @@ module litex (
     input  wire   [31:0] apf_input_cont4_joy,
     input  wire   [31:0] apf_input_cont4_key,
     input  wire   [31:0] apf_input_cont4_trig,
+    input  wire   [31:0] apf_rtc_date_bcd,
+    input  wire   [31:0] apf_rtc_time_bcd,
+    input  wire   [31:0] apf_rtc_unix_seconds,
     input  wire          clk_sys,
     input  wire          clk_sys2x,
     input  wire          clk_sys2x_90deg,
@@ -90,6 +94,228 @@ module litex (
     output wire          wishbone_we
 );
 
+
+//------------------------------------------------------------------------------
+// Hierarchy
+//------------------------------------------------------------------------------
+
+/*
+BaseSoC
+└─── crg (_CRG)
+└─── bus (SoCBusHandler)
+│    └─── _interconnect (InterconnectShared)
+│    │    └─── arbiter (Arbiter)
+│    │    │    └─── rr (RoundRobin)
+│    │    └─── decoder (Decoder)
+│    │    └─── timeout (Timeout)
+│    │    │    └─── waittimer_0* (WaitTimer)
+└─── csr (SoCCSRHandler)
+└─── irq (SoCIRQHandler)
+└─── ctrl (SoCController)
+└─── cpu (VexRiscvSMP)
+│    └─── [VexRiscvLitexSmpCluster_Cc1_Iw64Is4096Iy1_Dw64Ds4096Dy1_ITs4DTs4_Ldw32_Ood_Fpu4_Hb1_Rvc]
+└─── rom (SRAM)
+└─── sram (SRAM)
+└─── identifier (Identifier)
+└─── uart_phy (RS232PHY)
+│    └─── tx (RS232PHYTX)
+│    │    └─── clk_phase_accum (RS232ClkPhaseAccum)
+│    │    └─── fsm (FSM)
+│    └─── rx (RS232PHYRX)
+│    │    └─── clk_phase_accum (RS232ClkPhaseAccum)
+│    │    └─── fsm (FSM)
+└─── uart (UART)
+│    └─── ev (EventManager)
+│    │    └─── eventsourceprocess_0* (EventSourceProcess)
+│    │    └─── eventsourceprocess_1* (EventSourceProcess)
+│    └─── tx_fifo (SyncFIFO)
+│    │    └─── fifo (SyncFIFOBuffered)
+│    │    │    └─── fifo (SyncFIFO)
+│    └─── rx_fifo (SyncFIFO)
+│    │    └─── fifo (SyncFIFOBuffered)
+│    │    │    └─── fifo (SyncFIFO)
+└─── timer0 (Timer)
+│    └─── ev (EventManager)
+│    │    └─── eventsourceprocess_0* (EventSourceProcess)
+└─── sdrphy (HalfRateGENSDRAMPocketPHY)
+│    └─── gensdrampocketphy_0* (GENSDRAMPocketPHY)
+└─── sdram (LiteDRAMCore)
+│    └─── dfii (DFIInjector)
+│    │    └─── pi0 (PhaseInjector)
+│    │    └─── pi1 (PhaseInjector)
+│    └─── controller (LiteDRAMController)
+│    │    └─── refresher (Refresher)
+│    │    │    └─── timer (RefreshTimer)
+│    │    │    └─── postponer (RefreshPostponer)
+│    │    │    └─── sequencer (RefreshSequencer)
+│    │    │    │    └─── refreshexecuter_0* (RefreshExecuter)
+│    │    │    └─── fsm (FSM)
+│    │    └─── bankmachine_0* (BankMachine)
+│    │    │    └─── syncfifo_0* (SyncFIFO)
+│    │    │    │    └─── fifo (SyncFIFO)
+│    │    │    └─── buffer_0* (Buffer)
+│    │    │    │    └─── pipe_valid (PipeValid)
+│    │    │    │    └─── pipeline (Pipeline)
+│    │    │    └─── twtpcon (tXXDController)
+│    │    │    └─── trccon (tXXDController)
+│    │    │    └─── trascon (tXXDController)
+│    │    │    └─── fsm (FSM)
+│    │    └─── bankmachine_1* (BankMachine)
+│    │    │    └─── syncfifo_0* (SyncFIFO)
+│    │    │    │    └─── fifo (SyncFIFO)
+│    │    │    └─── buffer_0* (Buffer)
+│    │    │    │    └─── pipe_valid (PipeValid)
+│    │    │    │    └─── pipeline (Pipeline)
+│    │    │    └─── twtpcon (tXXDController)
+│    │    │    └─── trccon (tXXDController)
+│    │    │    └─── trascon (tXXDController)
+│    │    │    └─── fsm (FSM)
+│    │    └─── bankmachine_2* (BankMachine)
+│    │    │    └─── syncfifo_0* (SyncFIFO)
+│    │    │    │    └─── fifo (SyncFIFO)
+│    │    │    └─── buffer_0* (Buffer)
+│    │    │    │    └─── pipe_valid (PipeValid)
+│    │    │    │    └─── pipeline (Pipeline)
+│    │    │    └─── twtpcon (tXXDController)
+│    │    │    └─── trccon (tXXDController)
+│    │    │    └─── trascon (tXXDController)
+│    │    │    └─── fsm (FSM)
+│    │    └─── bankmachine_3* (BankMachine)
+│    │    │    └─── syncfifo_0* (SyncFIFO)
+│    │    │    │    └─── fifo (SyncFIFO)
+│    │    │    └─── buffer_0* (Buffer)
+│    │    │    │    └─── pipe_valid (PipeValid)
+│    │    │    │    └─── pipeline (Pipeline)
+│    │    │    └─── twtpcon (tXXDController)
+│    │    │    └─── trccon (tXXDController)
+│    │    │    └─── trascon (tXXDController)
+│    │    │    └─── fsm (FSM)
+│    │    └─── multiplexer (Multiplexer)
+│    │    │    └─── choose_cmd (_CommandChooser)
+│    │    │    │    └─── roundrobin_0* (RoundRobin)
+│    │    │    └─── choose_req (_CommandChooser)
+│    │    │    │    └─── roundrobin_0* (RoundRobin)
+│    │    │    └─── _steerer_0* (_Steerer)
+│    │    │    └─── trrdcon (tXXDController)
+│    │    │    └─── tfawcon (tFAWController)
+│    │    │    └─── tccdcon (tXXDController)
+│    │    │    └─── twtrcon (tXXDController)
+│    │    │    └─── fsm (FSM)
+│    └─── crossbar (LiteDRAMCrossbar)
+│    │    └─── roundrobin_0* (RoundRobin)
+│    │    └─── roundrobin_1* (RoundRobin)
+│    │    └─── roundrobin_2* (RoundRobin)
+│    │    └─── roundrobin_3* (RoundRobin)
+└─── converter_0* (Converter)
+└─── wishbone_bridge (LiteDRAMWishbone2Native)
+│    └─── fsm (FSM)
+└─── videophy (VideoPocketPHY)
+└─── video_framebuffer_vtg (VideoTimingGenerator)
+│    └─── fsm (FSM)
+└─── video_framebuffer (VideoFrameBuffer)
+│    └─── dma (LiteDRAMDMAReader)
+│    │    └─── syncfifo_0* (SyncFIFO)
+│    │    │    └─── fifo (SyncFIFO)
+│    │    └─── syncfifo_1* (SyncFIFO)
+│    │    │    └─── fifo (SyncFIFOBuffered)
+│    │    │    │    └─── fifo (SyncFIFO)
+│    │    └─── fsm (FSM)
+│    └─── conv (Converter)
+│    │    └─── _downconverter_0* (_DownConverter)
+│    └─── cdc (ClockDomainCrossing)
+│    │    └─── asyncfifo_0* (AsyncFIFO)
+│    │    │    └─── fifo (AsyncFIFO)
+│    │    │    │    └─── graycounter_0* (GrayCounter)
+│    │    │    │    └─── graycounter_1* (GrayCounter)
+│    └─── fsm_0* (FSM)
+└─── csr_bridge (Wishbone2CSR)
+│    └─── fsm (FSM)
+└─── main (LiteXModule)
+└─── csr_bankarray (CSRBankArray)
+│    └─── csrbank_0* (CSRBank)
+│    │    └─── csrstorage_0* (CSRStorage)
+│    │    └─── csrstorage_1* (CSRStorage)
+│    │    └─── csrstatus_0* (CSRStatus)
+│    └─── sram_0* (SRAM)
+│    └─── csrbank_1* (CSRBank)
+│    │    └─── csrstatus_0* (CSRStatus)
+│    │    └─── csrstatus_1* (CSRStatus)
+│    │    └─── csrstatus_2* (CSRStatus)
+│    │    └─── csrstatus_3* (CSRStatus)
+│    │    └─── csrstatus_4* (CSRStatus)
+│    │    └─── csrstatus_5* (CSRStatus)
+│    │    └─── csrstatus_6* (CSRStatus)
+│    │    └─── csrstatus_7* (CSRStatus)
+│    │    └─── csrstatus_8* (CSRStatus)
+│    │    └─── csrstatus_9* (CSRStatus)
+│    │    └─── csrstatus_10* (CSRStatus)
+│    │    └─── csrstatus_11* (CSRStatus)
+│    │    └─── csrstorage_0* (CSRStorage)
+│    │    └─── csrstorage_1* (CSRStorage)
+│    │    └─── csrstorage_2* (CSRStorage)
+│    │    └─── csrstorage_3* (CSRStorage)
+│    │    └─── csrstatus_12* (CSRStatus)
+│    │    └─── csrstatus_13* (CSRStatus)
+│    │    └─── csrstatus_14* (CSRStatus)
+│    │    └─── csrstorage_4* (CSRStorage)
+│    │    └─── csrstatus_15* (CSRStatus)
+│    │    └─── csrstatus_16* (CSRStatus)
+│    │    └─── csrstatus_17* (CSRStatus)
+│    │    └─── csrstatus_18* (CSRStatus)
+│    │    └─── csrstatus_19* (CSRStatus)
+│    └─── csrbank_2* (CSRBank)
+│    │    └─── csrstorage_0* (CSRStorage)
+│    │    └─── csrstorage_1* (CSRStorage)
+│    │    └─── csrstorage_2* (CSRStorage)
+│    │    └─── csrstorage_3* (CSRStorage)
+│    │    └─── csrstorage_4* (CSRStorage)
+│    │    └─── csrstatus_0* (CSRStatus)
+│    │    └─── csrstorage_5* (CSRStorage)
+│    │    └─── csrstorage_6* (CSRStorage)
+│    │    └─── csrstorage_7* (CSRStorage)
+│    │    └─── csrstorage_8* (CSRStorage)
+│    │    └─── csrstatus_1* (CSRStatus)
+│    └─── csrbank_3* (CSRBank)
+│    │    └─── csrstorage_0* (CSRStorage)
+│    │    └─── csrstorage_1* (CSRStorage)
+│    │    └─── csrstorage_2* (CSRStorage)
+│    │    └─── csrstorage_3* (CSRStorage)
+│    │    └─── csrstatus_0* (CSRStatus)
+│    │    └─── csrstatus_1* (CSRStatus)
+│    │    └─── csrstatus_2* (CSRStatus)
+│    │    └─── csrstorage_4* (CSRStorage)
+│    │    └─── csrstorage_5* (CSRStorage)
+│    │    └─── csrstatus_3* (CSRStatus)
+│    └─── csrbank_4* (CSRBank)
+│    │    └─── csrstatus_0* (CSRStatus)
+│    │    └─── csrstatus_1* (CSRStatus)
+│    │    └─── csrstatus_2* (CSRStatus)
+│    │    └─── csrstatus_3* (CSRStatus)
+│    │    └─── csrstorage_0* (CSRStorage)
+│    │    └─── csrstatus_4* (CSRStatus)
+│    │    └─── csrstatus_5* (CSRStatus)
+│    └─── csrbank_5* (CSRBank)
+│    │    └─── csrstorage_0* (CSRStorage)
+│    │    └─── csrstorage_1* (CSRStorage)
+│    │    └─── csrstorage_2* (CSRStorage)
+│    │    └─── csrstatus_0* (CSRStatus)
+│    │    └─── csrstorage_3* (CSRStorage)
+│    │    └─── csrstatus_1* (CSRStatus)
+│    └─── csrbank_6* (CSRBank)
+│    │    └─── csrstorage_0* (CSRStorage)
+│    │    └─── csrstorage_1* (CSRStorage)
+│    │    └─── csrstorage_2* (CSRStorage)
+│    │    └─── csrstorage_3* (CSRStorage)
+│    │    └─── csrstorage_4* (CSRStorage)
+│    │    └─── csrstorage_5* (CSRStorage)
+│    │    └─── csrstorage_6* (CSRStorage)
+│    │    └─── csrstorage_7* (CSRStorage)
+│    │    └─── csrstorage_8* (CSRStorage)
+└─── csr_interconnect (InterconnectShared)
+└─── [ALTDDIO_OUT]
+* : Generated name.
+[]: BlackBox.
+*/
 
 //------------------------------------------------------------------------------
 // Signals
@@ -522,6 +748,9 @@ reg    [15:0] bridge_slot_id_storage = 16'd0;
 reg           bridge_status_re = 1'd0;
 reg           bridge_status_status = 1'd0;
 wire          bridge_status_we;
+reg           chip_id_re = 1'd0;
+wire   [63:0] chip_id_status;
+wire          chip_id_we;
 reg           cont1_joy_re = 1'd0;
 wire   [31:0] cont1_joy_status;
 wire          cont1_joy_we;
@@ -605,6 +834,14 @@ wire          csr_bankarray_csrbank1_bridge_status_r;
 reg           csr_bankarray_csrbank1_bridge_status_re = 1'd0;
 wire          csr_bankarray_csrbank1_bridge_status_w;
 reg           csr_bankarray_csrbank1_bridge_status_we = 1'd0;
+wire   [31:0] csr_bankarray_csrbank1_chip_id0_r;
+reg           csr_bankarray_csrbank1_chip_id0_re = 1'd0;
+wire   [31:0] csr_bankarray_csrbank1_chip_id0_w;
+reg           csr_bankarray_csrbank1_chip_id0_we = 1'd0;
+wire   [31:0] csr_bankarray_csrbank1_chip_id1_r;
+reg           csr_bankarray_csrbank1_chip_id1_re = 1'd0;
+wire   [31:0] csr_bankarray_csrbank1_chip_id1_w;
+reg           csr_bankarray_csrbank1_chip_id1_we = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_cont1_joy_r;
 reg           csr_bankarray_csrbank1_cont1_joy_re = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_cont1_joy_w;
@@ -657,6 +894,18 @@ wire   [31:0] csr_bankarray_csrbank1_ram_data_address0_r;
 reg           csr_bankarray_csrbank1_ram_data_address0_re = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_ram_data_address0_w;
 reg           csr_bankarray_csrbank1_ram_data_address0_we = 1'd0;
+wire   [31:0] csr_bankarray_csrbank1_rtc_date_bcd_r;
+reg           csr_bankarray_csrbank1_rtc_date_bcd_re = 1'd0;
+wire   [31:0] csr_bankarray_csrbank1_rtc_date_bcd_w;
+reg           csr_bankarray_csrbank1_rtc_date_bcd_we = 1'd0;
+wire   [31:0] csr_bankarray_csrbank1_rtc_time_bcd_r;
+reg           csr_bankarray_csrbank1_rtc_time_bcd_re = 1'd0;
+wire   [31:0] csr_bankarray_csrbank1_rtc_time_bcd_w;
+reg           csr_bankarray_csrbank1_rtc_time_bcd_we = 1'd0;
+wire   [31:0] csr_bankarray_csrbank1_rtc_unix_seconds_r;
+reg           csr_bankarray_csrbank1_rtc_unix_seconds_re = 1'd0;
+wire   [31:0] csr_bankarray_csrbank1_rtc_unix_seconds_w;
+reg           csr_bankarray_csrbank1_rtc_unix_seconds_we = 1'd0;
 wire          csr_bankarray_csrbank1_sel;
 wire    [3:0] csr_bankarray_csrbank2_dfii_control0_r;
 reg           csr_bankarray_csrbank2_dfii_control0_re = 1'd0;
@@ -1178,6 +1427,15 @@ reg     [1:0] rhs_array_muxed7 = 2'd0;
 reg           rhs_array_muxed8 = 1'd0;
 reg    [12:0] rhs_array_muxed9 = 13'd0;
 reg           rst = 1'd0;
+reg           rtc_date_bcd_re = 1'd0;
+wire   [31:0] rtc_date_bcd_status;
+wire          rtc_date_bcd_we;
+reg           rtc_time_bcd_re = 1'd0;
+wire   [31:0] rtc_time_bcd_status;
+wire          rtc_time_bcd_we;
+reg           rtc_unix_seconds_re = 1'd0;
+wire   [31:0] rtc_unix_seconds_status;
+wire          rtc_unix_seconds_we;
 reg           sdram_bankmachine0_auto_precharge = 1'd0;
 reg    [12:0] sdram_bankmachine0_cmd_payload_a = 13'd0;
 wire    [1:0] sdram_bankmachine0_cmd_payload_ba;
@@ -2091,6 +2349,9 @@ reg           videoframebuffer_dma_source_source_last = 1'd0;
 wire   [31:0] videoframebuffer_dma_source_source_payload_data;
 wire          videoframebuffer_dma_source_source_ready;
 reg           videoframebuffer_dma_source_source_valid = 1'd0;
+reg           videoframebuffer_first = 1'd0;
+reg           videoframebuffer_first_resetinserter_next_value = 1'd0;
+reg           videoframebuffer_first_resetinserter_next_value_ce = 1'd0;
 wire          videoframebuffer_fsm_reset;
 wire   [23:0] videoframebuffer_litedramdmareader_base;
 reg           videoframebuffer_litedramdmareader_base_re = 1'd0;
@@ -2106,10 +2367,10 @@ reg    [31:0] videoframebuffer_litedramdmareader_length_storage = 32'd127680;
 reg           videoframebuffer_litedramdmareader_loop_re = 1'd0;
 reg           videoframebuffer_litedramdmareader_loop_storage = 1'd1;
 reg    [23:0] videoframebuffer_litedramdmareader_offset = 24'd0;
+reg    [23:0] videoframebuffer_litedramdmareader_offset_litedramdmareader_next_value = 24'd0;
+reg           videoframebuffer_litedramdmareader_offset_litedramdmareader_next_value_ce = 1'd0;
 reg           videoframebuffer_litedramdmareader_offset_re = 1'd0;
 wire   [31:0] videoframebuffer_litedramdmareader_offset_status;
-reg    [23:0] videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value = 24'd0;
-reg           videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value_ce = 1'd0;
 wire          videoframebuffer_litedramdmareader_offset_we;
 wire          videoframebuffer_litedramdmareader_reset;
 reg           videoframebuffer_source_first = 1'd0;
@@ -2289,6 +2550,10 @@ assign apf_audio_bus_wr = audio_out_re;
 assign apf_audio_playback_en = audio_playback_en_storage;
 assign apf_audio_flush = audio_buffer_flush_re;
 assign audio_buffer_fill_status = apf_audio_buffer_fill;
+assign rtc_unix_seconds_status = apf_rtc_unix_seconds;
+assign rtc_date_bcd_status = apf_rtc_date_bcd;
+assign rtc_time_bcd_status = apf_rtc_time_bcd;
+assign chip_id_status = apf_id_chip_id;
 assign wishbone_adr = example_slave_adr;
 assign wishbone_dat_w = example_slave_dat_w;
 assign example_slave_dat_r = wishbone_dat_r;
@@ -4303,8 +4568,8 @@ always @(*) begin
     videoframebuffer_dma_sink_sink_payload_address <= 24'd0;
     videoframebuffer_dma_sink_sink_valid <= 1'd0;
     videoframebuffer_litedramdmareader_done_status <= 1'd0;
-    videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value <= 24'd0;
-    videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value_ce <= 1'd0;
+    videoframebuffer_litedramdmareader_offset_litedramdmareader_next_value <= 24'd0;
+    videoframebuffer_litedramdmareader_offset_litedramdmareader_next_value_ce <= 1'd0;
     basesoc_litedramdmareader_next_state <= basesoc_litedramdmareader_state;
     case (basesoc_litedramdmareader_state)
         1'd1: begin
@@ -4312,12 +4577,12 @@ always @(*) begin
             videoframebuffer_dma_sink_sink_last <= (videoframebuffer_litedramdmareader_offset == (videoframebuffer_litedramdmareader_length - 1'd1));
             videoframebuffer_dma_sink_sink_payload_address <= (videoframebuffer_litedramdmareader_base + videoframebuffer_litedramdmareader_offset);
             if (videoframebuffer_dma_sink_sink_ready) begin
-                videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value <= (videoframebuffer_litedramdmareader_offset + 1'd1);
-                videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value_ce <= 1'd1;
+                videoframebuffer_litedramdmareader_offset_litedramdmareader_next_value <= (videoframebuffer_litedramdmareader_offset + 1'd1);
+                videoframebuffer_litedramdmareader_offset_litedramdmareader_next_value_ce <= 1'd1;
                 if (videoframebuffer_dma_sink_sink_last) begin
                     if (videoframebuffer_litedramdmareader_loop_storage) begin
-                        videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value <= 1'd0;
-                        videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value_ce <= 1'd1;
+                        videoframebuffer_litedramdmareader_offset_litedramdmareader_next_value <= 1'd0;
+                        videoframebuffer_litedramdmareader_offset_litedramdmareader_next_value_ce <= 1'd1;
                     end else begin
                         basesoc_litedramdmareader_next_state <= 2'd2;
                     end
@@ -4328,8 +4593,8 @@ always @(*) begin
             videoframebuffer_litedramdmareader_done_status <= 1'd1;
         end
         default: begin
-            videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value <= 1'd0;
-            videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value_ce <= 1'd1;
+            videoframebuffer_litedramdmareader_offset_litedramdmareader_next_value <= 1'd0;
+            videoframebuffer_litedramdmareader_offset_litedramdmareader_next_value_ce <= 1'd1;
             basesoc_litedramdmareader_next_state <= 1'd1;
         end
     endcase
@@ -4409,6 +4674,8 @@ assign videoframebuffer_cdc_cdc_graycounter1_q_next = (videoframebuffer_cdc_cdc_
 always @(*) begin
     basesoc_resetinserter_next_state <= 1'd0;
     videoframebuffer_cdc_source_source_ready <= 1'd0;
+    videoframebuffer_first_resetinserter_next_value <= 1'd0;
+    videoframebuffer_first_resetinserter_next_value_ce <= 1'd0;
     videoframebuffer_source_payload_de <= 1'd0;
     videoframebuffer_source_payload_hsync <= 1'd0;
     videoframebuffer_source_payload_vsync <= 1'd0;
@@ -4421,8 +4688,13 @@ always @(*) begin
             if ((videoframebuffer_vtg_sink_valid & videoframebuffer_vtg_sink_payload_de)) begin
                 videoframebuffer_source_valid <= videoframebuffer_cdc_source_source_valid;
                 videoframebuffer_cdc_source_source_ready <= videoframebuffer_source_ready;
+                if (videoframebuffer_first) begin
+                    videoframebuffer_source_valid <= 1'd0;
+                end
                 videoframebuffer_vtg_sink_ready <= (videoframebuffer_source_valid & videoframebuffer_source_ready);
                 if ((videoframebuffer_cdc_source_source_valid & videoframebuffer_cdc_source_source_last)) begin
+                    videoframebuffer_first_resetinserter_next_value <= 1'd0;
+                    videoframebuffer_first_resetinserter_next_value_ce <= 1'd1;
                     basesoc_resetinserter_next_state <= 1'd0;
                 end
             end
@@ -4431,7 +4703,12 @@ always @(*) begin
             videoframebuffer_source_payload_de <= videoframebuffer_vtg_sink_payload_de;
         end
         default: begin
-            videoframebuffer_vtg_sink_ready <= (~videoframebuffer_fsm_reset);
+            videoframebuffer_vtg_sink_ready <= 1'd1;
+            if (videoframebuffer_fsm_reset) begin
+                videoframebuffer_vtg_sink_ready <= 1'd0;
+                videoframebuffer_first_resetinserter_next_value <= 1'd1;
+                videoframebuffer_first_resetinserter_next_value_ce <= 1'd1;
+            end
             if ((videoframebuffer_vtg_sink_valid & videoframebuffer_vtg_sink_last)) begin
                 basesoc_resetinserter_next_state <= 1'd1;
             end
@@ -4741,6 +5018,51 @@ always @(*) begin
         csr_bankarray_csrbank1_audio_buffer_fill_we <= (~csr_bankarray_interface1_bank_bus_we);
     end
 end
+assign csr_bankarray_csrbank1_rtc_unix_seconds_r = csr_bankarray_interface1_bank_bus_dat_w[31:0];
+always @(*) begin
+    csr_bankarray_csrbank1_rtc_unix_seconds_re <= 1'd0;
+    csr_bankarray_csrbank1_rtc_unix_seconds_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 5'd24))) begin
+        csr_bankarray_csrbank1_rtc_unix_seconds_re <= csr_bankarray_interface1_bank_bus_we;
+        csr_bankarray_csrbank1_rtc_unix_seconds_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
+assign csr_bankarray_csrbank1_rtc_date_bcd_r = csr_bankarray_interface1_bank_bus_dat_w[31:0];
+always @(*) begin
+    csr_bankarray_csrbank1_rtc_date_bcd_re <= 1'd0;
+    csr_bankarray_csrbank1_rtc_date_bcd_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 5'd25))) begin
+        csr_bankarray_csrbank1_rtc_date_bcd_re <= csr_bankarray_interface1_bank_bus_we;
+        csr_bankarray_csrbank1_rtc_date_bcd_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
+assign csr_bankarray_csrbank1_rtc_time_bcd_r = csr_bankarray_interface1_bank_bus_dat_w[31:0];
+always @(*) begin
+    csr_bankarray_csrbank1_rtc_time_bcd_re <= 1'd0;
+    csr_bankarray_csrbank1_rtc_time_bcd_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 5'd26))) begin
+        csr_bankarray_csrbank1_rtc_time_bcd_re <= csr_bankarray_interface1_bank_bus_we;
+        csr_bankarray_csrbank1_rtc_time_bcd_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
+assign csr_bankarray_csrbank1_chip_id1_r = csr_bankarray_interface1_bank_bus_dat_w[31:0];
+always @(*) begin
+    csr_bankarray_csrbank1_chip_id1_re <= 1'd0;
+    csr_bankarray_csrbank1_chip_id1_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 5'd27))) begin
+        csr_bankarray_csrbank1_chip_id1_re <= csr_bankarray_interface1_bank_bus_we;
+        csr_bankarray_csrbank1_chip_id1_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
+assign csr_bankarray_csrbank1_chip_id0_r = csr_bankarray_interface1_bank_bus_dat_w[31:0];
+always @(*) begin
+    csr_bankarray_csrbank1_chip_id0_re <= 1'd0;
+    csr_bankarray_csrbank1_chip_id0_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 5'd28))) begin
+        csr_bankarray_csrbank1_chip_id0_re <= csr_bankarray_interface1_bank_bus_we;
+        csr_bankarray_csrbank1_chip_id0_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
 assign csr_bankarray_csrbank1_cont1_key_w = cont1_key_status[31:0];
 assign cont1_key_we = csr_bankarray_csrbank1_cont1_key_we;
 assign csr_bankarray_csrbank1_cont2_key_w = cont2_key_status[31:0];
@@ -4778,6 +5100,15 @@ assign bridge_current_address_we = csr_bankarray_csrbank1_bridge_current_address
 assign csr_bankarray_csrbank1_audio_playback_en0_w = audio_playback_en_storage;
 assign csr_bankarray_csrbank1_audio_buffer_fill_w = audio_buffer_fill_status[11:0];
 assign audio_buffer_fill_we = csr_bankarray_csrbank1_audio_buffer_fill_we;
+assign csr_bankarray_csrbank1_rtc_unix_seconds_w = rtc_unix_seconds_status[31:0];
+assign rtc_unix_seconds_we = csr_bankarray_csrbank1_rtc_unix_seconds_we;
+assign csr_bankarray_csrbank1_rtc_date_bcd_w = rtc_date_bcd_status[31:0];
+assign rtc_date_bcd_we = csr_bankarray_csrbank1_rtc_date_bcd_we;
+assign csr_bankarray_csrbank1_rtc_time_bcd_w = rtc_time_bcd_status[31:0];
+assign rtc_time_bcd_we = csr_bankarray_csrbank1_rtc_time_bcd_we;
+assign csr_bankarray_csrbank1_chip_id1_w = chip_id_status[63:32];
+assign csr_bankarray_csrbank1_chip_id0_w = chip_id_status[31:0];
+assign chip_id_we = csr_bankarray_csrbank1_chip_id0_we;
 assign csr_bankarray_csrbank2_sel = (csr_bankarray_interface2_bank_bus_adr[13:9] == 2'd3);
 assign csr_bankarray_csrbank2_dfii_control0_r = csr_bankarray_interface2_bank_bus_dat_w[3:0];
 always @(*) begin
@@ -7188,8 +7519,8 @@ always @(posedge sys_clk) begin
         end
     end
     basesoc_litedramdmareader_state <= basesoc_litedramdmareader_next_state;
-    if (videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value_ce) begin
-        videoframebuffer_litedramdmareader_offset <= videoframebuffer_litedramdmareader_offset_videoframebuffer_next_value;
+    if (videoframebuffer_litedramdmareader_offset_litedramdmareader_next_value_ce) begin
+        videoframebuffer_litedramdmareader_offset <= videoframebuffer_litedramdmareader_offset_litedramdmareader_next_value;
     end
     if (videoframebuffer_litedramdmareader_reset) begin
         videoframebuffer_litedramdmareader_offset <= 24'd0;
@@ -7313,6 +7644,21 @@ always @(posedge sys_clk) begin
             5'd23: begin
                 csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_audio_buffer_fill_w;
             end
+            5'd24: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_rtc_unix_seconds_w;
+            end
+            5'd25: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_rtc_date_bcd_w;
+            end
+            5'd26: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_rtc_time_bcd_w;
+            end
+            5'd27: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_chip_id1_w;
+            end
+            5'd28: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_chip_id0_w;
+            end
         endcase
     end
     cont1_key_re <= csr_bankarray_csrbank1_cont1_key_re;
@@ -7351,6 +7697,10 @@ always @(posedge sys_clk) begin
     end
     audio_playback_en_re <= csr_bankarray_csrbank1_audio_playback_en0_re;
     audio_buffer_fill_re <= csr_bankarray_csrbank1_audio_buffer_fill_re;
+    rtc_unix_seconds_re <= csr_bankarray_csrbank1_rtc_unix_seconds_re;
+    rtc_date_bcd_re <= csr_bankarray_csrbank1_rtc_date_bcd_re;
+    rtc_time_bcd_re <= csr_bankarray_csrbank1_rtc_time_bcd_re;
+    chip_id_re <= csr_bankarray_csrbank1_chip_id0_re;
     csr_bankarray_interface2_bank_bus_dat_r <= 1'd0;
     if (csr_bankarray_csrbank2_sel) begin
         case (csr_bankarray_interface2_bank_bus_adr[8:0])
@@ -7887,6 +8237,10 @@ always @(posedge sys_clk) begin
         audio_playback_en_storage <= 1'd0;
         audio_playback_en_re <= 1'd0;
         audio_buffer_fill_re <= 1'd0;
+        rtc_unix_seconds_re <= 1'd0;
+        rtc_date_bcd_re <= 1'd0;
+        rtc_time_bcd_re <= 1'd0;
+        chip_id_re <= 1'd0;
         basesoc_we <= 1'd0;
         grant <= 1'd0;
         slave_sel_r <= 7'd0;
@@ -8134,7 +8488,11 @@ always @(posedge vid_clk) begin
     videoframebuffer_cdc_cdc_graycounter1_q_binary <= videoframebuffer_cdc_cdc_graycounter1_q_next_binary;
     videoframebuffer_cdc_cdc_graycounter1_q <= videoframebuffer_cdc_cdc_graycounter1_q_next;
     basesoc_resetinserter_state <= basesoc_resetinserter_next_state;
+    if (videoframebuffer_first_resetinserter_next_value_ce) begin
+        videoframebuffer_first <= videoframebuffer_first_resetinserter_next_value;
+    end
     if (videoframebuffer_fsm_reset) begin
+        videoframebuffer_first <= 1'd0;
         basesoc_resetinserter_state <= 1'd0;
     end
     if (vid_rst) begin
@@ -8148,6 +8506,7 @@ always @(posedge vid_clk) begin
         vtg_vactive <= 1'd0;
         videoframebuffer_cdc_cdc_graycounter1_q <= 3'd0;
         videoframebuffer_cdc_cdc_graycounter1_q_binary <= 3'd0;
+        videoframebuffer_first <= 1'd0;
         basesoc_clockdomainsrenamer_state <= 1'd0;
         basesoc_resetinserter_state <= 1'd0;
     end
@@ -8181,10 +8540,10 @@ end
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-// Memory rom: 5079-words x 32-bit
+// Memory rom: 5033-words x 32-bit
 //------------------------------------------------------------------------------
 // Port 0 | Read: Sync  | Write: ---- | 
-reg [31:0] rom[0:5078];
+reg [31:0] rom[0:5032];
 initial begin
 	$readmemh("litex_rom.init", rom);
 end
@@ -8454,78 +8813,91 @@ assign videoframebuffer_cdc_cdc_wrport_dat_r = storage_8_dat0;
 assign videoframebuffer_cdc_cdc_rdport_dat_r = storage_8_dat1;
 
 
+//------------------------------------------------------------------------------
+// Instance VexRiscvLitexSmpCluster_Cc1_Iw64Is4096Iy1_Dw64Ds4096Dy1_ITs4DTs4_Ldw32_Ood_Fpu4_Hb1_Rvc of VexRiscvLitexSmpCluster_Cc1_Iw64Is4096Iy1_Dw64Ds4096Dy1_ITs4DTs4_Ldw32_Ood_Fpu4_Hb1_Rvc Module.
+//------------------------------------------------------------------------------
 VexRiscvLitexSmpCluster_Cc1_Iw64Is4096Iy1_Dw64Ds4096Dy1_ITs4DTs4_Ldw32_Ood_Fpu4_Hb1_Rvc VexRiscvLitexSmpCluster_Cc1_Iw64Is4096Iy1_Dw64Ds4096Dy1_ITs4DTs4_Ldw32_Ood_Fpu4_Hb1_Rvc(
-	.clintWishbone_ADR(basesoc_clintbus_adr),
-	.clintWishbone_CYC(basesoc_clintbus_cyc),
-	.clintWishbone_DAT_MOSI(basesoc_clintbus_dat_w),
-	.clintWishbone_STB(basesoc_clintbus_stb),
-	.clintWishbone_WE(basesoc_clintbus_we),
-	.dBridge_dram_cmd_ready(dbus_cmd_ready),
-	.dBridge_dram_rdata_payload_data(dbus_rdata_payload_data),
-	.dBridge_dram_rdata_valid(dbus_rdata_valid),
-	.dBridge_dram_wdata_ready(dbus_wdata_ready),
-	.debugCd_external_clk(sys_clk),
-	.debugCd_external_reset((sys_rst | basesoc_reset)),
-	.debugPort_capture(basesoc_jtag_capture),
-	.debugPort_enable(basesoc_jtag_enable),
-	.debugPort_reset(basesoc_jtag_reset),
-	.debugPort_shift(basesoc_jtag_shift),
-	.debugPort_tdi(basesoc_jtag_tdi),
-	.debugPort_update(basesoc_jtag_update),
-	.iBridge_dram_cmd_ready(ibus_cmd_ready),
-	.iBridge_dram_rdata_payload_data(ibus_rdata_payload_data),
-	.iBridge_dram_rdata_valid(ibus_rdata_valid),
-	.iBridge_dram_wdata_ready(ibus_wdata_ready),
-	.interrupts(basesoc_interrupt),
-	.jtag_clk(basesoc_jtag_clk),
-	.peripheral_ACK(basesoc_pbus_ack),
-	.peripheral_DAT_MISO(basesoc_pbus_dat_r),
-	.peripheral_ERR(basesoc_pbus_err),
-	.plicWishbone_ADR(basesoc_plicbus_adr),
-	.plicWishbone_CYC(basesoc_plicbus_cyc),
-	.plicWishbone_DAT_MOSI(basesoc_plicbus_dat_w),
-	.plicWishbone_STB(basesoc_plicbus_stb),
-	.plicWishbone_WE(basesoc_plicbus_we),
-	.clintWishbone_ACK(basesoc_clintbus_ack),
-	.clintWishbone_DAT_MISO(basesoc_clintbus_dat_r),
-	.dBridge_dram_cmd_payload_addr(dbus_cmd_payload_addr),
-	.dBridge_dram_cmd_payload_we(dbus_cmd_payload_we),
-	.dBridge_dram_cmd_valid(dbus_cmd_valid),
-	.dBridge_dram_rdata_ready(dbus_rdata_ready),
-	.dBridge_dram_wdata_payload_data(dbus_wdata_payload_data),
-	.dBridge_dram_wdata_payload_we(dbus_wdata_payload_we),
-	.dBridge_dram_wdata_valid(dbus_wdata_valid),
-	.debugPort_tdo(basesoc_jtag_tdo),
-	.iBridge_dram_cmd_payload_addr(ibus_cmd_payload_addr),
-	.iBridge_dram_cmd_payload_we(ibus_cmd_payload_we),
-	.iBridge_dram_cmd_valid(ibus_cmd_valid),
-	.iBridge_dram_rdata_ready(ibus_rdata_ready),
-	.iBridge_dram_wdata_payload_data(ibus_wdata_payload_data),
-	.iBridge_dram_wdata_payload_we(ibus_wdata_payload_we),
-	.iBridge_dram_wdata_valid(ibus_wdata_valid),
-	.peripheral_ADR(basesoc_pbus_adr),
-	.peripheral_BTE(basesoc_pbus_bte),
-	.peripheral_CTI(basesoc_pbus_cti),
-	.peripheral_CYC(basesoc_pbus_cyc),
-	.peripheral_DAT_MOSI(basesoc_pbus_dat_w),
-	.peripheral_SEL(basesoc_pbus_sel),
-	.peripheral_STB(basesoc_pbus_stb),
-	.peripheral_WE(basesoc_pbus_we),
-	.plicWishbone_ACK(basesoc_plicbus_ack),
-	.plicWishbone_DAT_MISO(basesoc_plicbus_dat_r)
+	// Inputs.
+	.clintWishbone_ADR               (basesoc_clintbus_adr),
+	.clintWishbone_CYC               (basesoc_clintbus_cyc),
+	.clintWishbone_DAT_MOSI          (basesoc_clintbus_dat_w),
+	.clintWishbone_STB               (basesoc_clintbus_stb),
+	.clintWishbone_WE                (basesoc_clintbus_we),
+	.dBridge_dram_cmd_ready          (dbus_cmd_ready),
+	.dBridge_dram_rdata_payload_data (dbus_rdata_payload_data),
+	.dBridge_dram_rdata_valid        (dbus_rdata_valid),
+	.dBridge_dram_wdata_ready        (dbus_wdata_ready),
+	.debugCd_external_clk            (sys_clk),
+	.debugCd_external_reset          ((sys_rst | basesoc_reset)),
+	.debugPort_capture               (basesoc_jtag_capture),
+	.debugPort_enable                (basesoc_jtag_enable),
+	.debugPort_reset                 (basesoc_jtag_reset),
+	.debugPort_shift                 (basesoc_jtag_shift),
+	.debugPort_tdi                   (basesoc_jtag_tdi),
+	.debugPort_update                (basesoc_jtag_update),
+	.iBridge_dram_cmd_ready          (ibus_cmd_ready),
+	.iBridge_dram_rdata_payload_data (ibus_rdata_payload_data),
+	.iBridge_dram_rdata_valid        (ibus_rdata_valid),
+	.iBridge_dram_wdata_ready        (ibus_wdata_ready),
+	.interrupts                      (basesoc_interrupt),
+	.jtag_clk                        (basesoc_jtag_clk),
+	.peripheral_ACK                  (basesoc_pbus_ack),
+	.peripheral_DAT_MISO             (basesoc_pbus_dat_r),
+	.peripheral_ERR                  (basesoc_pbus_err),
+	.plicWishbone_ADR                (basesoc_plicbus_adr),
+	.plicWishbone_CYC                (basesoc_plicbus_cyc),
+	.plicWishbone_DAT_MOSI           (basesoc_plicbus_dat_w),
+	.plicWishbone_STB                (basesoc_plicbus_stb),
+	.plicWishbone_WE                 (basesoc_plicbus_we),
+
+	// Outputs.
+	.clintWishbone_ACK               (basesoc_clintbus_ack),
+	.clintWishbone_DAT_MISO          (basesoc_clintbus_dat_r),
+	.dBridge_dram_cmd_payload_addr   (dbus_cmd_payload_addr),
+	.dBridge_dram_cmd_payload_we     (dbus_cmd_payload_we),
+	.dBridge_dram_cmd_valid          (dbus_cmd_valid),
+	.dBridge_dram_rdata_ready        (dbus_rdata_ready),
+	.dBridge_dram_wdata_payload_data (dbus_wdata_payload_data),
+	.dBridge_dram_wdata_payload_we   (dbus_wdata_payload_we),
+	.dBridge_dram_wdata_valid        (dbus_wdata_valid),
+	.debugPort_tdo                   (basesoc_jtag_tdo),
+	.iBridge_dram_cmd_payload_addr   (ibus_cmd_payload_addr),
+	.iBridge_dram_cmd_payload_we     (ibus_cmd_payload_we),
+	.iBridge_dram_cmd_valid          (ibus_cmd_valid),
+	.iBridge_dram_rdata_ready        (ibus_rdata_ready),
+	.iBridge_dram_wdata_payload_data (ibus_wdata_payload_data),
+	.iBridge_dram_wdata_payload_we   (ibus_wdata_payload_we),
+	.iBridge_dram_wdata_valid        (ibus_wdata_valid),
+	.peripheral_ADR                  (basesoc_pbus_adr),
+	.peripheral_BTE                  (basesoc_pbus_bte),
+	.peripheral_CTI                  (basesoc_pbus_cti),
+	.peripheral_CYC                  (basesoc_pbus_cyc),
+	.peripheral_DAT_MOSI             (basesoc_pbus_dat_w),
+	.peripheral_SEL                  (basesoc_pbus_sel),
+	.peripheral_STB                  (basesoc_pbus_stb),
+	.peripheral_WE                   (basesoc_pbus_we),
+	.plicWishbone_ACK                (basesoc_plicbus_ack),
+	.plicWishbone_DAT_MISO           (basesoc_plicbus_dat_r)
 );
 
+//------------------------------------------------------------------------------
+// Instance ALTDDIO_OUT of ALTDDIO_OUT Module.
+//------------------------------------------------------------------------------
 ALTDDIO_OUT #(
-	.WIDTH(1'd1)
+	// Parameters.
+	.WIDTH (1'd1)
 ) ALTDDIO_OUT (
-	.datain_h(1'd1),
-	.datain_l(1'd0),
-	.outclock(clk_sys2x_90deg),
-	.dataout(sdram_clock)
+	// Inputs.
+	.datain_h (1'd1),
+	.datain_l (1'd0),
+	.outclock (clk_sys2x_90deg),
+
+	// Outputs.
+	.dataout  (sdram_clock)
 );
 
 endmodule
 
 // -----------------------------------------------------------------------------
-//  Auto-Generated by LiteX on 2023-11-19 07:56:28.
+//  Auto-Generated by LiteX on 2023-11-20 17:26:37.
 //------------------------------------------------------------------------------

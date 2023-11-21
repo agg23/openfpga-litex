@@ -15,3 +15,4 @@ set_global_assignment -name SYSTEMVERILOG_FILE        [file join $::quartus(qip_
 
 set_global_assignment -name SYSTEMVERILOG_FILE        [file join $::quartus(qip_path) "../../../../analogue-pocket-utils/ip/mem/dual_psram.sv"]
 set_global_assignment -name SYSTEMVERILOG_FILE        [file join $::quartus(qip_path) "../../../../analogue-pocket-utils/ip/mem/psram.sv"]
+set_global_assignment -name QIP_FILE                  [file join $::quartus(qip_path) "chip_id.qip"]

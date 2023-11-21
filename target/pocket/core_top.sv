@@ -528,7 +528,7 @@ module core_top (
   wire uart_tx;
 
   debug_key debug_key (
-      .clk(clk_sys_66_12),
+      .clk(clk_sys_57_12),
 
       .cart_tran_bank0_dir(cart_tran_bank0_dir),
       .cart_tran_bank0(cart_tran_bank0),
@@ -548,6 +548,17 @@ module core_top (
   );
 
   ////////////////////////////////////////////////////////////////////////////////////////
+  // Chip ID
+
+  wire [63:0] chip_id;
+
+  chip_id chip_id_controller (
+      .clkin  (clk_sys_57_12),
+      .reset  (~reset_n_s),
+      .chip_id(chip_id)
+  );
+
+  ////////////////////////////////////////////////////////////////////////////////////////
   // Core
 
   wire reset_button_s;
@@ -558,7 +569,7 @@ module core_top (
   ) reset_button_synch (
       {cont1_key[14], cont1_key[15]},
       {trigger_button_s, reset_button_s},
-      clk_sys_66_12
+      clk_sys_57_12
   );
 
   wire reset_n_s;
@@ -566,14 +577,49 @@ module core_top (
   synch_3 settings_synch (
       reset_n,
       reset_n_s,
-      clk_sys_66_12
+      clk_sys_57_12
   );
+
+  wire rtc_valid_s;
+  wire [31:0] rtc_epoch_seconds_s;
+  wire [31:0] rtc_date_bcd_s;
+  wire [31:0] rtc_time_bcd_s;
+
+  // These values won't change, so normal multibit synchs are fine
+  synch_3 #(
+      .WIDTH(97)
+  ) rtc_synch (
+      {rtc_valid, rtc_epoch_seconds, rtc_date_bcd, rtc_time_bcd},
+      {rtc_valid_s, rtc_epoch_seconds_s, rtc_date_bcd_s, rtc_time_bcd_s},
+      clk_sys_57_12
+  );
+
+  reg [31:0] rtc_counter = 0;
+  reg [31:0] rtc_second_counter = 0;
+
+  reg prev_rtc_valid = 0;
+
+  always @(posedge clk_sys_57_12) begin
+    prev_rtc_valid <= rtc_valid_s;
+
+    if (rtc_second_counter > 0) begin
+      rtc_second_counter <= rtc_second_counter - 32'h1;
+    end else begin
+      rtc_second_counter <= 57_120_000;
+      rtc_counter <= rtc_counter + 32'h1;
+    end
+
+    if (rtc_valid_s && ~prev_rtc_valid) begin
+      rtc_counter <= rtc_epoch_seconds_s;
+      rtc_second_counter <= 57_120_000;
+    end
+  end
 
   reg [15:0] reset_timer = 0;
 
   reg prev_reset_button_s = 0;
 
-  always @(posedge clk_sys_66_12) begin
+  always @(posedge clk_sys_57_12) begin
     prev_reset_button_s <= reset_button_s;
 
     if (reset_button_s && ~prev_reset_button_s) begin
@@ -616,7 +662,7 @@ module core_top (
 
   reg prev_apf_bridge_request_read = 0;
 
-  always @(posedge clk_sys_66_12) begin
+  always @(posedge clk_sys_57_12) begin
     prev_apf_bridge_request_read <= apf_bridge_request_read;
 
     if (apf_bridge_request_read && ~prev_apf_bridge_request_read) begin
@@ -638,7 +684,7 @@ module core_top (
   ) from_bridge_s (
       {active_file_size, target_dataslot_done},
       {active_file_size_s, target_dataslot_done_s},
-      clk_sys_66_12
+      clk_sys_57_12
   );
 
   synch_3 #(
@@ -673,7 +719,7 @@ module core_top (
 
   reg prev_target_dataslot_done_s = 0;
 
-  always @(posedge clk_sys_66_12) begin
+  always @(posedge clk_sys_57_12) begin
     prev_target_dataslot_done_s <= target_dataslot_done_s;
 
     if (apf_bridge_request_read) begin
@@ -682,12 +728,31 @@ module core_top (
   end
 
   litex litex (
-      .clk_sys(clk_sys_66_12),
-      .clk_sys2x(clk_mem_132_24),
-      .clk_sys2x_90deg(clk_mem_132_24_90deg),
-      .clk_vid(clk_vid_6_612),
+      .clk_sys(clk_sys_57_12),
+      .clk_sys2x(clk_mem_114_24),
+      .clk_sys2x_90deg(clk_mem_114_24_90deg),
+      .clk_vid(clk_vid_5_712),
 
       .reset(reset),
+
+      .apf_audio_bus_out(audio_bus_out),
+      .apf_audio_bus_wr(audio_bus_wr),
+      .apf_audio_playback_en(audio_playback_en),
+      .apf_audio_flush(audio_flush),
+      .apf_audio_buffer_fill(audio_buffer_fill),
+
+      .apf_bridge_request_read(apf_bridge_request_read),
+
+      .apf_bridge_data_offset(apf_bridge_data_offset),
+      .apf_bridge_length(apf_bridge_length),
+      .apf_bridge_ram_data_address(ram_data_address),
+      .apf_bridge_slot_id(apf_bridge_slot_id),
+      .apf_bridge_file_size(active_file_size_s),
+      .apf_bridge_current_address(current_address),
+      // Pulse complete on rising edge of done
+      .apf_bridge_complete_trigger(target_dataslot_done_s && ~prev_target_dataslot_done_s),
+
+      .apf_id_chip_id(chip_id),
 
       .apf_input_cont1_key (cont1_key),
       .apf_input_cont1_joy (cont1_joy),
@@ -705,22 +770,9 @@ module core_top (
       .apf_input_cont4_joy (cont4_joy),
       .apf_input_cont4_trig(cont4_trig),
 
-      .apf_bridge_request_read(apf_bridge_request_read),
-
-      .apf_bridge_data_offset(apf_bridge_data_offset),
-      .apf_bridge_length(apf_bridge_length),
-      .apf_bridge_ram_data_address(ram_data_address),
-      .apf_bridge_slot_id(apf_bridge_slot_id),
-      .apf_bridge_file_size(active_file_size_s),
-      .apf_bridge_current_address(current_address),
-      // Pulse complete on rising edge of done
-      .apf_bridge_complete_trigger(target_dataslot_done_s && ~prev_target_dataslot_done_s),
-
-      .apf_audio_bus_out(audio_bus_out),
-      .apf_audio_bus_wr(audio_bus_wr),
-      .apf_audio_playback_en(audio_playback_en),
-      .apf_audio_flush(audio_flush),
-      .apf_audio_buffer_fill(audio_buffer_fill),
+      .apf_rtc_date_bcd(rtc_date_bcd_s),
+      .apf_rtc_time_bcd(rtc_time_bcd_s),
+      .apf_rtc_unix_seconds(rtc_counter),
 
       // .wishbone_ack(ack),
       // .wishbone_adr(addr),
@@ -777,7 +829,7 @@ module core_top (
   );
 
   // wishbone wishbone (
-  //     .clk(clk_sys_66_12),
+  //     .clk(clk_sys_57_12),
 
   //     .reset(reset),
 
@@ -796,7 +848,7 @@ module core_top (
 
   apf_wishbone_master apf_wishbone_master (
       .clk_74a(clk_74a),
-      .clk_sys(clk_sys_66_12),
+      .clk_sys(clk_sys_57_12),
 
       .bridge_addr(bridge_addr),
       .bridge_wr_data(bridge_wr_data),
@@ -844,7 +896,7 @@ module core_top (
   reg prev_de = 0;
   reg prev2_de = 0;
 
-  always @(posedge clk_vid_6_612) begin
+  always @(posedge clk_vid_5_712) begin
     prev_de   <= de;
     prev2_de  <= prev_de;
 
@@ -857,8 +909,8 @@ module core_top (
 
   reg [3:0] de_counter = 0;
 
-  assign video_rgb_clock = clk_vid_6_612;
-  assign video_rgb_clock_90 = clk_vid_6_612_90deg;
+  assign video_rgb_clock = clk_vid_5_712;
+  assign video_rgb_clock_90 = clk_vid_5_712_90deg;
   assign video_rgb = de_delay ? rgb888 : 24'h0;
   // Extend DE for one extra cycle at beginning and end to insert a black column
   // I don't understand why I have DE high for 2 extra cycles on the back end
@@ -872,7 +924,7 @@ module core_top (
 
   audio audio (
       .clk_74b(clk_74b),
-      .clk_sys(clk_sys_66_12),
+      .clk_sys(clk_sys_57_12),
 
       .reset(reset),
 
@@ -892,11 +944,11 @@ module core_top (
   ////////////////////////////////////////////////////////////////////////////////////////
   // PLL
 
-  wire clk_sys_66_12;
-  wire clk_mem_132_24;
-  wire clk_mem_132_24_90deg;
-  wire clk_vid_6_612;
-  wire clk_vid_6_612_90deg;
+  wire clk_sys_57_12;
+  wire clk_mem_114_24;
+  wire clk_mem_114_24_90deg;
+  wire clk_vid_5_712;
+  wire clk_vid_5_712_90deg;
 
   wire pll_core_locked;
   wire pll_core_locked_s74;
@@ -910,11 +962,11 @@ module core_top (
       .refclk(clk_74a),
       .rst   (0),
 
-      .outclk_0(clk_sys_66_12),
-      .outclk_1(clk_mem_132_24),
-      .outclk_2(clk_mem_132_24_90deg),
-      .outclk_3(clk_vid_6_612),
-      .outclk_4(clk_vid_6_612_90deg),
+      .outclk_0(clk_sys_57_12),
+      .outclk_1(clk_mem_114_24),
+      .outclk_2(clk_mem_114_24_90deg),
+      .outclk_3(clk_vid_5_712),
+      .outclk_4(clk_vid_5_712_90deg),
 
       .locked(pll_core_locked)
   );
