@@ -332,6 +332,22 @@ module core_top (
     endcase
   end
 
+  always @(posedge clk_74a) begin
+    if (menu_reset > 0) begin
+      menu_reset <= menu_reset - 4'h1;
+    end
+
+    if (bridge_addr[31:28] == 4'h1 && bridge_wr) begin
+      casex (bridge_addr[27:0])
+        28'h0: begin
+          menu_reset <= 4'hF;
+        end
+        28'h4: begin
+          enable_reset_plus <= bridge_wr_data[0];
+        end
+      endcase
+    end
+  end
 
   //
   // host/target command handler
@@ -561,22 +577,26 @@ module core_top (
   ////////////////////////////////////////////////////////////////////////////////////////
   // Core
 
-  wire reset_button_s;
-  wire trigger_button_s;
+  wire reset_input_button_s;
 
-  synch_3 #(
-      .WIDTH(2)
-  ) reset_button_synch (
-      {cont1_key[14], cont1_key[15]},
-      {trigger_button_s, reset_button_s},
+  synch_3 reset_button_synch (
+      cont1_key[15],
+      reset_input_button_s,
       clk_sys_57_12
   );
 
-  wire reset_n_s;
+  reg [3:0] menu_reset = 0;
+  reg enable_reset_plus = 0;
 
-  synch_3 settings_synch (
-      reset_n,
-      reset_n_s,
+  wire reset_n_s;
+  wire menu_reset_s;
+  wire enable_reset_plus_s;
+
+  synch_3 #(
+      .WIDTH(3)
+  ) settings_synch (
+      {reset_n, menu_reset == 4'h1, enable_reset_plus},
+      {reset_n_s, menu_reset_s, enable_reset_plus_s},
       clk_sys_57_12
   );
 
@@ -617,12 +637,14 @@ module core_top (
 
   reg [15:0] reset_timer = 0;
 
-  reg prev_reset_button_s = 0;
+  reg prev_reset_button = 0;
+
+  wire reset_button = menu_reset_s || (reset_input_button_s && enable_reset_plus_s);
 
   always @(posedge clk_sys_57_12) begin
-    prev_reset_button_s <= reset_button_s;
+    prev_reset_button <= reset_button;
 
-    if (reset_button_s && ~prev_reset_button_s) begin
+    if (reset_button && ~prev_reset_button) begin
       reset_timer = 16'hFFFF;
     end else if (reset_timer > 0) begin
       reset_timer <= reset_timer - 16'h1;
