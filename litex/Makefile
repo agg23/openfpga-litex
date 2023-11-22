@@ -1,2 +1,3 @@
-build2: analogue_pocket.py target.py
-	python3 analogue_pocket.py --cpu-variant imac --csr-svd pocket.svd --build
+build2:
+	python3 ./analogue_pocket.py --build
+	cp ./build/litex/software/include/generated/regions.ld ../lang/linker/regions.ld

@@ -1,0 +1,20 @@
+[target.riscv32imafdc-unknown-none-elf]
+rustflags = [
+  "-C", "link-arg=-Tregions.ld",
+  "-C", "link-arg=-Tmemory.x",
+  "-C", "link-arg=-Tlink.x",
+]
+
+# Set up building for custom target
+# This requires nightly
+[unstable]
+build-std-features = ["compiler-builtins-mem"]
+build-std = ["core", "compiler_builtins", "alloc"]
+
+[build]
+target = "riscv32imafdc-unknown-none-elf.json"
+
+[env]
+# Ensure CC builds properly for platform
+CC_riscv32imafdc_unknown_none_elf = "riscv64-unknown-elf-gcc"
+CFLAGS_riscv32imafdc_unknown_none_elf = "-mabi=ilp32d -march=rv32imafdc"

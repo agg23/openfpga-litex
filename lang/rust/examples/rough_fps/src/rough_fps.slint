@@ -1,0 +1,22 @@
+export global UIPositioner {
+    in property <length> x;
+    in property <length> y;
+}
+
+export global FPSReadout {
+    in property <string> text;
+}
+
+export component MyUI {
+    Text {
+        x: UIPositioner.x;
+        y: UIPositioner.y;
+        text: "hello world";
+        color: green;
+    }
+    Text {
+        x: 10px;
+        y: 10px;
+        text: FPSReadout.text;
+    }
+}

@@ -9,9 +9,9 @@ sim/
 
 litex/build/
 
-litex/rust/target
-litex/rust/output.txt
-litex/rust/*.bin
+lang/rust/**/target
+lang/rust/output.txt
+lang/rust/**/*.bin
 
 # Python
 __pycache__/
@@ -74,7 +74,6 @@ cr_ie_info.json
 /staging/*
 /release/*
 # Editor directories and files
-.vscode
 .idea
 *.suo
 *.ntvs*

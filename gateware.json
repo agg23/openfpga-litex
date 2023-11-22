@@ -5,7 +5,7 @@
     "author": "agg23",
     "version": "1.0.0",
     "license": "MIT",
-    "repository": "https://github.com/agg23/openFPGA-RISC-V",
+    "repository": "https://github.com/agg23/openfpga-litex",
     "keywords": [
         "ecosystem:gateman"
     ],
