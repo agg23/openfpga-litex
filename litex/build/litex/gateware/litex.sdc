@@ -1,0 +1,1 @@
+derive_pll_clocks -use_net_name

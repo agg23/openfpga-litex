@@ -7,7 +7,12 @@ sim/
 *.rbf_r
 *.rev
 
-litex/build/
+# Apparently gitignore exclusion patterns are much harder than I thought due to you needing to manually exclude each directory
+/litex/build/litex/sim/
+/litex/build/litex/software/**/*
+!/litex/build/litex/software/include/
+!/litex/build/litex/software/include/generated/
+!/litex/build/litex/software/include/generated/*
 
 lang/rust/**/target
 lang/rust/output.txt
