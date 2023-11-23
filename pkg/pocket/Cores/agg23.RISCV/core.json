@@ -6,9 +6,9 @@
       "shortname": "RISCV",
       "description": "A RISC-V dev environment for the Analogue Pocket",
       "author": "agg23",
-      "url": "https://github.com/agg23/openFPGA-RISC-V",
-      "version": "0.1-beta",
-      "date_release": "2023-11-17"
+      "url": "https://github.com/agg23/openfpga-litex",
+      "version": "0.1.0-beta1",
+      "date_release": "2023-11-23"
     },
     "framework": {
       "target_product": "Analogue Pocket",
@@ -20,7 +20,7 @@
       },
       "hardware": {
         "link_port": false,
-        "cartridge_adapter": 0
+        "cartridge_adapter": -1
       }
     },
     "cores": [

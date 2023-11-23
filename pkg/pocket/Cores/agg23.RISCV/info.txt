@@ -1,3 +1,3 @@
-openFPGA-RISC-V
+RISC-V Development Core
 
-Add information about your core here.
+Built by agg23 and LiteX

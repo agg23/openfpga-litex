@@ -3,7 +3,7 @@
     "magic": "APF_VER_1",
     "data_slots": [
       {
-        "name": "Boot",
+        "name": "Program",
         "id": 0,
         "required": true,
         "filename": "boot.bin",
