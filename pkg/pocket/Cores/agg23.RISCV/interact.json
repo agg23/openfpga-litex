@@ -20,6 +20,17 @@
         "writeonly": true,
         "defaultval": 0,
         "value": 1
+      },
+      {
+        "name": "Enable JTAG UART",
+        "id": 101,
+        "type": "check",
+        "enabled": true,
+        "address": "0x10000008",
+        "persist": true,
+        "writeonly": true,
+        "defaultval": 0,
+        "value": 1
       }
     ],
     "messages": []

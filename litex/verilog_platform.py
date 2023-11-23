@@ -32,6 +32,9 @@ class Platform(AlteraPlatform):
                 Subsignal("rx", Pins(1))
             ),
 
+            # JTAG Pins
+            ("use_jtag", 0, Pins(1)),
+
             ("sdram_clock", 0, Pins(1)),
             ("sdram", 0,
                 Subsignal("a",     Pins(13)),

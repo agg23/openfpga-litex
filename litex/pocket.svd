@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-11-21 11:55:44]]></description>
+    <description><![CDATA[Litex SoC 2023-11-23 07:10:47]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -1190,7 +1190,7 @@ register to disable individual events.]]></description>
             </addressBlock>
             <interrupt>
                 <name>timer0</name>
-                <value>2</value>
+                <value>1</value>
             </interrupt>
         </peripheral>
         <peripheral>
@@ -1352,7 +1352,7 @@ register to disable individual events.]]></description>
             </addressBlock>
             <interrupt>
                 <name>uart</name>
-                <value>1</value>
+                <value>2</value>
             </interrupt>
         </peripheral>
         <peripheral>
@@ -1666,8 +1666,8 @@ register to disable individual events.]]></description>
             <constant name="CONFIG_BUS_ADDRESS_WIDTH" value="32" />
             <constant name="CONFIG_BUS_BURSTING" value="0" />
             <constant name="CONFIG_CPU_INTERRUPTS" value="3" />
-            <constant name="TIMER0_INTERRUPT" value="2" />
-            <constant name="UART_INTERRUPT" value="1" />
+            <constant name="TIMER0_INTERRUPT" value="1" />
+            <constant name="UART_INTERRUPT" value="2" />
         </constants>
     </vendorExtensions>
 </device>

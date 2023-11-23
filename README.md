@@ -53,7 +53,7 @@ git clone --recursive https://github.com/agg23/openfpga-litex.git
 ...
 
 # Install Python dependencies
-pip3 install migen pyserial
+pip3 install pyserial
 ```
 
 [Build and install the RISC-V GNU Toolchain](https://github.com/riscv/riscv-gnu-toolchain):

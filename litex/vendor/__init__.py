@@ -2,12 +2,16 @@
 import sys
 import os
 
+
 # Set up the import paths for the LiteX packages
 def listdirs(path: str):
     return [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
 
+
 rootdir = os.path.dirname(__file__)
-directories = [rootdir + "/" + directory_name for directory_name in listdirs(rootdir)]
+directories = [
+    os.path.join(rootdir, directory_name) for directory_name in listdirs(rootdir)
+]
 
 for path in directories:
     # Some things (LiteX) don't like to play nice with PYTHONPATH, so we override them by inserting at the beginning

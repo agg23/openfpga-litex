@@ -345,6 +345,9 @@ module core_top (
         28'h4: begin
           enable_reset_plus <= bridge_wr_data[0];
         end
+        28'h8: begin
+          use_jtag <= bridge_wr_data[0];
+        end
       endcase
     end
   end
@@ -587,16 +590,18 @@ module core_top (
 
   reg [3:0] menu_reset = 0;
   reg enable_reset_plus = 0;
+  reg use_jtag = 0;
 
   wire reset_n_s;
   wire menu_reset_s;
   wire enable_reset_plus_s;
+  wire use_jtag_s;
 
   synch_3 #(
-      .WIDTH(3)
+      .WIDTH(4)
   ) settings_synch (
-      {reset_n, menu_reset == 4'h1, enable_reset_plus},
-      {reset_n_s, menu_reset_s, enable_reset_plus_s},
+      {reset_n, menu_reset == 4'h1, enable_reset_plus, use_jtag},
+      {reset_n_s, menu_reset_s, enable_reset_plus_s, use_jtag_s},
       clk_sys_57_12
   );
 
@@ -827,17 +832,17 @@ module core_top (
       .vga_vsync(vsync),
       .vga_de(de),
 
+      .use_jtag(use_jtag_s),
+
       // Altera JTAG UART
-`ifdef JTAG_UART
       .altera_reserved_tck(altera_reserved_tck),
       .altera_reserved_tdi(altera_reserved_tdi),
       .altera_reserved_tdo(altera_reserved_tdo),
       .altera_reserved_tms(altera_reserved_tms),
-`else
+
       // Dev cart UART
       .serial_rx(uart_rx),
       .serial_tx(uart_tx),
-`endif
 
       .sdram_a(dram_a),
       .sdram_ba(dram_ba),
