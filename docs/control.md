@@ -1,3 +1,5 @@
+# Control Registers
+
 It is very important that you remain aware that register locations and offsets can change between hardware revisions, and instead you should be using the `SVD` file to derive constants to these registers.
 
 # Audio

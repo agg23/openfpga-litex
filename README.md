@@ -8,6 +8,7 @@ The core is not intended for use by end users directly, but for developers, who 
 
 * Full input handing
 * ~~Cart slot and link port access~~ - `Coming soon`
+* Serial bus, with program hot reloading, via USB Blaster JTAG adapter or Analogue Pocket Dev Kit UART cart
 * File access API for load/store - [See Analogue Docs](https://www.analogue.co/developer/docs/core-definition-files/data-json) - `Writing to disk coming soon`
 * Vblank and vsync access; frame counter
 * 48kHz audio playback with 4096 sample buffer
@@ -28,6 +29,47 @@ Pocket RAM used:
 
 * 31% of FPGA BRAM
 * SDRAM
+
+## General Operation
+
+### Data
+
+The core automatically loads and boots from the `data.json` slot id 0 entry. This defaults to a file named `/Assets/riscv/common/boot.bin`. Replacing this allows you to automatically start your own program. The program is written to `0x4000_0000`, with the jump vector at that address.
+
+Adding additional dataslots allows you to request reads/writes via [File API](./docs/control.md#file-api). You can choose the address you send the data to. I would recommend not clobbering your loaded program, but maybe you can do something neat with self-modifying programs.
+
+### UART
+
+The core supports UART over serial and JTAG, and can boot programs over UART. JTAG requires [a supported USB Blaster](https://www.digikey.com/en/products/detail/terasic-inc/P0302/2003484) (**NOTE:** Don't buy a Chinese clone. This has killed at least one Pocket). Serial requires the developer kit dev cart (not available for purchase), OR you could build the cart yourself (contact me and our group of devs will help you figure out what you need). `/lang/rust` gives an example of how to write to the UART with `println!()`; just like writing to `stdout`.
+
+The serial UART is pinned to the max speed supported by the dev cart, 2,000,000bps. Serial UART is disabled when JTAG is enabled. You can connect using the LiteX tooling via:
+```bash
+python3 ./litex/vendor/litex/litex/tools/litex_term.py --speed 2000000 /dev/ttyUSB0
+
+# To automatically upload a program named `rust.bin`
+python3 ./litex/vendor/litex/litex/tools/litex_term.py --speed 2000000 --kernel rust.bin /dev/ttyUSB0
+```
+
+JTAG UART must be explicitly enabled in the [Core Settings](#core-settings). JTAG UART has fewer options:
+```bash
+python3 ./litex/vendor/litex/litex/tools/litex_term.py --jtag-config=openocd_usb_blaster.cfg jtag
+
+# To automatically upload a program named `rust.bin`
+python3 ./litex/vendor/litex/litex/tools/litex_term.py --jtag-config=openocd_usb_blaster.cfg --kernel rust.bin jtag
+```
+
+The kernel program will be uploaded on core reset, so you can either start the core fresh, or reset it from the menu (or configured reset button).
+
+You may opt to send a custom command over UART to your running core that causes reset. This would allow for full automation and deployment of a program when building.
+
+### Core Settings
+
+Core Settings are defined in `interact.json`, and the core defaults with two options:
+
+* `Enable + Btn Reset` - When enabled, the + button (to the right of the Analogue button) will be configured to act as a core reset. This is handy if you are actively developing a core, and quickly want to upload a new version.
+* `Enable JTAG UART` - When enabled, the JTAG adapter will be used for platform UART; the serial UART port will be disabled.
+
+When releasing your core, you likely want to remove both of these options, as they are not likely to be beneficial to your users.
 
 ## Getting Started
 
