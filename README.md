@@ -56,6 +56,26 @@ git clone --recursive https://github.com/agg23/openfpga-litex.git
 pip3 install migen pyserial
 ```
 
+[Build and install the RISC-V GNU Toolchain](https://github.com/riscv/riscv-gnu-toolchain):
+
+**NOTE:** The Ubuntu repository version of the toolchain is missing some functionality. You may need to manually compile the toolchain anyway.
+
+```bash
+cd ~
+
+# Clone the repo
+git clone https://github.com/riscv/riscv-gnu-toolchain.git
+
+# Install dependencies
+...
+
+# Build the newlib, multilib variant of the toolchain
+./configure --prefix=/opt/riscv --enable-multilib
+make
+```
+
+This will produce binaries like `riscv64-unknown-elf-gcc`. Note that even though they're `riscv64`, they can be used to build for `riscv32`. The `--enable-multilib` allows building for various RISC-V extensions, so we don't have to create a specialized version of the toolchain.
+
 To build the LiteX SoC:
 
 ```bash
