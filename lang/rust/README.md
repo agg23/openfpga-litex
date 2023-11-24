@@ -42,6 +42,7 @@ rustup default nightly
 rustup target add riscv32imac-unknown-none-elf
 
 # Set up tools to build the final elf binary (cargo objcopy)
+cargo install svd2rust
 cargo +nightly install cargo-binutils
 rustup +nightly component add llvm-tools-preview
 ```
