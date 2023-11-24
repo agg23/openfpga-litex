@@ -118,7 +118,7 @@ class GENSDRAMPocketPHY(Module):
             rdphase=0,
             wrphase=0,
             cl=cl,
-            read_latency=cl + 1,
+            read_latency=cl + 2,
             write_latency=0,
         )
 
@@ -171,7 +171,9 @@ class GENSDRAMPocketPHY(Module):
             # IO, O, OE, I
             self.specials += Tristate(
                 pads.dq[i],
+                # dfi.p0.wrdata[i],
                 output_reg,
+                # dfi.p0.wrdata_en,
                 output_en_reg,
                 input_reg,
             )
@@ -200,8 +202,13 @@ class HalfRateGENSDRAMPocketPHY(Module):
         nphases = 2
 
         # Parameters -------------------------------------------------------------------------------
-        cl = get_default_cl(memtype="SDR", tck=1 / sys_clk_freq) if cl is None else cl
+        # Call fails due to frequency being higher than expected
         cl = 3
+        # cl = (
+        #     get_default_cl(memtype="SDR", tck=1 / (sys_clk_freq * 2))
+        #     if cl is None
+        #     else cl
+        # )
 
         # FullRate PHY -----------------------------------------------------------------------------
         full_rate_phy = GENSDRAMPocketPHY(pads, 2 * sys_clk_freq, cl)
