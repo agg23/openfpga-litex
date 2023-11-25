@@ -42,7 +42,24 @@ Adding additional dataslots allows you to request reads/writes via [File API](./
 
 The core supports UART over serial and JTAG, and can boot programs over UART. JTAG requires [a supported USB Blaster](https://www.digikey.com/en/products/detail/terasic-inc/P0302/2003484) (**NOTE:** Don't buy a Chinese clone. This has killed at least one Pocket). Serial requires the developer kit dev cart (not available for purchase), OR you could build the cart yourself (contact me and our group of devs will help you figure out what you need). `/lang/rust` gives an example of how to write to the UART with `println!()`; just like writing to `stdout`.
 
-The serial UART is pinned to the max speed supported by the dev cart, 2,000,000bps. Serial UART is disabled when JTAG is enabled. You can connect using the LiteX tooling via:
+The serial UART is pinned to the max speed supported by the dev cart, 2,000,000bps. Serial UART is disabled when JTAG is enabled. Before you can use the dev cart, you must first enable the cart slot and link port power. Edit `core.json`, and change:
+```json
+"hardware": {
+  "link_port": false,
+  "cartridge_adapter": -1
+}
+
+// to
+
+"hardware": {
+  "link_port": false,
+  "cartridge_adapter": 0
+}
+```
+
+Without performing this change, you will not be able to do anything over the cartridge slot, including serial UART.
+
+You can connect using the LiteX tooling via:
 ```bash
 python3 ./litex/vendor/litex/litex/tools/litex_term.py --speed 2000000 /dev/ttyUSB0
 
