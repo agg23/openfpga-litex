@@ -9,7 +9,7 @@
 // Filename   : litex.v
 // Device     : 5CEBA4F23C8
 // LiteX sha1 : bf081324
-// Date       : 2023-11-24 13:58:21
+// Date       : 2023-11-26 12:06:39
 //------------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -289,8 +289,6 @@ BaseSoC
 │    │    └─── csrstatus_2* (CSRStatus)
 │    └─── csrbank_5* (CSRBank)
 │    │    └─── csrstatus_0* (CSRStatus)
-│    │    └─── csrstatus_1* (CSRStatus)
-│    │    └─── csrstatus_2* (CSRStatus)
 │    └─── csrbank_6* (CSRBank)
 │    │    └─── csrstorage_0* (CSRStorage)
 │    │    └─── csrstorage_1* (CSRStorage)
@@ -367,6 +365,17 @@ wire          apf_bridge_master_err;
 wire    [3:0] apf_bridge_master_sel;
 wire          apf_bridge_master_stb;
 wire          apf_bridge_master_we;
+reg           apfid_re = 1'd0;
+wire   [63:0] apfid_status;
+wire          apfid_we;
+reg    [29:0] apfvideo_frame_counter = 30'd0;
+reg           apfvideo_prev_vblank_triggered = 1'd0;
+reg           apfvideo_re = 1'd0;
+reg    [31:0] apfvideo_status = 32'd0;
+reg           apfvideo_vblank = 1'd0;
+reg           apfvideo_vblank_status = 1'd0;
+reg           apfvideo_vblank_triggered = 1'd0;
+wire          apfvideo_we;
 reg     [1:0] array_muxed0 = 2'd0;
 reg    [12:0] array_muxed1 = 13'd0;
 reg           array_muxed10 = 1'd0;
@@ -2219,19 +2228,11 @@ wire   [31:0] csr_bankarray_csrbank4_unix_seconds_r;
 reg           csr_bankarray_csrbank4_unix_seconds_re = 1'd0;
 wire   [31:0] csr_bankarray_csrbank4_unix_seconds_w;
 reg           csr_bankarray_csrbank4_unix_seconds_we = 1'd0;
-wire   [31:0] csr_bankarray_csrbank5_frame_counter_r;
-reg           csr_bankarray_csrbank5_frame_counter_re = 1'd0;
-wire   [31:0] csr_bankarray_csrbank5_frame_counter_w;
-reg           csr_bankarray_csrbank5_frame_counter_we = 1'd0;
 wire          csr_bankarray_csrbank5_sel;
-wire          csr_bankarray_csrbank5_vblank_status_r;
-reg           csr_bankarray_csrbank5_vblank_status_re = 1'd0;
-wire          csr_bankarray_csrbank5_vblank_status_w;
-reg           csr_bankarray_csrbank5_vblank_status_we = 1'd0;
-wire          csr_bankarray_csrbank5_vsync_status_r;
-reg           csr_bankarray_csrbank5_vsync_status_re = 1'd0;
-wire          csr_bankarray_csrbank5_vsync_status_w;
-reg           csr_bankarray_csrbank5_vsync_status_we = 1'd0;
+wire   [31:0] csr_bankarray_csrbank5_video_r;
+reg           csr_bankarray_csrbank5_video_re = 1'd0;
+wire   [31:0] csr_bankarray_csrbank5_video_w;
+reg           csr_bankarray_csrbank5_video_we = 1'd0;
 wire   [31:0] csr_bankarray_csrbank6_bus_errors_r;
 reg           csr_bankarray_csrbank6_bus_errors_re = 1'd0;
 wire   [31:0] csr_bankarray_csrbank6_bus_errors_w;
@@ -2479,9 +2480,6 @@ wire          example_slave_we;
 reg           file_size_re = 1'd0;
 wire   [31:0] file_size_status;
 wire          file_size_we;
-reg           frame_counter_re = 1'd0;
-reg    [31:0] frame_counter_status = 32'd0;
-wire          frame_counter_we;
 reg           full_rate_phy_dfi_p0_act_n = 1'd1;
 reg    [12:0] full_rate_phy_dfi_p0_address = 13'd0;
 reg     [1:0] full_rate_phy_dfi_p0_bank = 2'd0;
@@ -2612,11 +2610,9 @@ reg           phase_sys2x = 1'd0;
 reg           playback_en_re = 1'd0;
 reg           playback_en_storage = 1'd0;
 reg           prev_complete_trigger = 1'd0;
-reg           prev_vsync_trigger = 1'd0;
 reg           ram_data_address_re = 1'd0;
 reg    [31:0] ram_data_address_storage = 32'd0;
 reg    [15:0] rddata_d = 16'd0;
-reg           re = 1'd0;
 wire    [1:0] request;
 wire          request_read_r;
 reg           request_read_re = 1'd0;
@@ -2679,7 +2675,6 @@ reg     [6:0] slave_sel = 7'd0;
 reg     [6:0] slave_sel_r = 7'd0;
 reg           slot_id_re = 1'd0;
 reg    [15:0] slot_id_storage = 16'd0;
-wire   [63:0] status;
 reg           status_re = 1'd0;
 reg           status_status = 1'd0;
 wire          status_we;
@@ -2704,17 +2699,9 @@ reg    [31:0] transfer_length_storage = 32'd0;
 reg           unix_seconds_re = 1'd0;
 wire   [31:0] unix_seconds_status;
 wire          unix_seconds_we;
-reg           vblank = 1'd0;
-reg           vblank_status_re = 1'd0;
-wire          vblank_status_status;
-wire          vblank_status_we;
 wire          vid_clk;
 reg           vid_rst = 1'd0;
-reg           vsync_status_re = 1'd0;
-reg           vsync_status_status = 1'd0;
-wire          vsync_status_we;
 wire          wait_1;
-wire          we;
 reg           wr_data_en_d = 1'd0;
 
 //------------------------------------------------------------------------------
@@ -4769,7 +4756,7 @@ assign apf_bridge_length = transfer_length_storage;
 assign apf_bridge_ram_data_address = ram_data_address_storage;
 assign file_size_status = apf_bridge_file_size;
 assign current_address_status = apf_bridge_current_address;
-assign status = apf_id_chip_id;
+assign apfid_status = apf_id_chip_id;
 assign cont1_key_status = apf_input_cont1_key;
 assign cont2_key_status = apf_input_cont2_key;
 assign cont3_key_status = apf_input_cont3_key;
@@ -4785,15 +4772,6 @@ assign cont4_trig_status = apf_input_cont4_trig;
 assign unix_seconds_status = apf_rtc_unix_seconds;
 assign date_bcd_status = apf_rtc_date_bcd;
 assign time_bcd_status = apf_rtc_time_bcd;
-always @(*) begin
-    vblank <= 1'd0;
-    if ((basesoc_vtg_source_payload_vcount >= 8'd240)) begin
-        vblank <= 1'd1;
-    end else begin
-        vblank <= 1'd0;
-    end
-end
-assign vblank_status_status = vblank;
 assign jtag_clk = basesoc_jtag_uart_phy_jtag_tck;
 assign basesoc_jtag_uart_phy_tx_cdc_sink_valid = basesoc_jtag_uart_phy_sink_sink_valid;
 assign basesoc_jtag_uart_phy_tx_cdc_sink_first = basesoc_jtag_uart_phy_sink_sink_first;
@@ -5552,9 +5530,9 @@ always @(*) begin
         csr_bankarray_csrbank2_id0_we <= (~csr_bankarray_interface2_bank_bus_we);
     end
 end
-assign csr_bankarray_csrbank2_id1_w = status[63:32];
-assign csr_bankarray_csrbank2_id0_w = status[31:0];
-assign we = csr_bankarray_csrbank2_id0_we;
+assign csr_bankarray_csrbank2_id1_w = apfid_status[63:32];
+assign csr_bankarray_csrbank2_id0_w = apfid_status[31:0];
+assign apfid_we = csr_bankarray_csrbank2_id0_we;
 assign csr_bankarray_csrbank3_sel = (csr_bankarray_interface3_bank_bus_adr[13:9] == 2'd3);
 assign csr_bankarray_csrbank3_cont1_key_r = csr_bankarray_interface3_bank_bus_dat_w[31:0];
 always @(*) begin
@@ -5723,39 +5701,23 @@ assign date_bcd_we = csr_bankarray_csrbank4_date_bcd_we;
 assign csr_bankarray_csrbank4_time_bcd_w = time_bcd_status[31:0];
 assign time_bcd_we = csr_bankarray_csrbank4_time_bcd_we;
 assign csr_bankarray_csrbank5_sel = (csr_bankarray_interface5_bank_bus_adr[13:9] == 3'd5);
-assign csr_bankarray_csrbank5_vsync_status_r = csr_bankarray_interface5_bank_bus_dat_w[0];
+assign csr_bankarray_csrbank5_video_r = csr_bankarray_interface5_bank_bus_dat_w[31:0];
 always @(*) begin
-    csr_bankarray_csrbank5_vsync_status_re <= 1'd0;
-    csr_bankarray_csrbank5_vsync_status_we <= 1'd0;
+    csr_bankarray_csrbank5_video_re <= 1'd0;
+    csr_bankarray_csrbank5_video_we <= 1'd0;
     if ((csr_bankarray_csrbank5_sel & (csr_bankarray_interface5_bank_bus_adr[8:0] == 1'd0))) begin
-        csr_bankarray_csrbank5_vsync_status_re <= csr_bankarray_interface5_bank_bus_we;
-        csr_bankarray_csrbank5_vsync_status_we <= (~csr_bankarray_interface5_bank_bus_we);
+        csr_bankarray_csrbank5_video_re <= csr_bankarray_interface5_bank_bus_we;
+        csr_bankarray_csrbank5_video_we <= (~csr_bankarray_interface5_bank_bus_we);
     end
 end
-assign csr_bankarray_csrbank5_vblank_status_r = csr_bankarray_interface5_bank_bus_dat_w[0];
 always @(*) begin
-    csr_bankarray_csrbank5_vblank_status_re <= 1'd0;
-    csr_bankarray_csrbank5_vblank_status_we <= 1'd0;
-    if ((csr_bankarray_csrbank5_sel & (csr_bankarray_interface5_bank_bus_adr[8:0] == 1'd1))) begin
-        csr_bankarray_csrbank5_vblank_status_re <= csr_bankarray_interface5_bank_bus_we;
-        csr_bankarray_csrbank5_vblank_status_we <= (~csr_bankarray_interface5_bank_bus_we);
-    end
+    apfvideo_status <= 32'd0;
+    apfvideo_status[0] <= apfvideo_vblank_status;
+    apfvideo_status[1] <= apfvideo_vblank_triggered;
+    apfvideo_status[31:2] <= apfvideo_frame_counter;
 end
-assign csr_bankarray_csrbank5_frame_counter_r = csr_bankarray_interface5_bank_bus_dat_w[31:0];
-always @(*) begin
-    csr_bankarray_csrbank5_frame_counter_re <= 1'd0;
-    csr_bankarray_csrbank5_frame_counter_we <= 1'd0;
-    if ((csr_bankarray_csrbank5_sel & (csr_bankarray_interface5_bank_bus_adr[8:0] == 2'd2))) begin
-        csr_bankarray_csrbank5_frame_counter_re <= csr_bankarray_interface5_bank_bus_we;
-        csr_bankarray_csrbank5_frame_counter_we <= (~csr_bankarray_interface5_bank_bus_we);
-    end
-end
-assign csr_bankarray_csrbank5_vsync_status_w = vsync_status_status;
-assign vsync_status_we = csr_bankarray_csrbank5_vsync_status_we;
-assign csr_bankarray_csrbank5_vblank_status_w = vblank_status_status;
-assign vblank_status_we = csr_bankarray_csrbank5_vblank_status_we;
-assign csr_bankarray_csrbank5_frame_counter_w = frame_counter_status[31:0];
-assign frame_counter_we = csr_bankarray_csrbank5_frame_counter_we;
+assign csr_bankarray_csrbank5_video_w = apfvideo_status[31:0];
+assign apfvideo_we = csr_bankarray_csrbank5_video_we;
 assign csr_bankarray_csrbank6_sel = (csr_bankarray_interface6_bank_bus_adr[13:9] == 3'd6);
 assign csr_bankarray_csrbank6_reset0_r = csr_bankarray_interface6_bank_bus_dat_w[1:0];
 always @(*) begin
@@ -8219,14 +8181,16 @@ always @(posedge sys_clk) begin
     if ((apf_bridge_complete_trigger & (~prev_complete_trigger))) begin
         status_status <= 1'd1;
     end
-    prev_vsync_trigger <= basesoc_vtg_source_payload_vsync;
-    if (vsync_status_we) begin
-        vsync_status_status <= 1'd0;
+    apfvideo_vblank <= (basesoc_vtg_source_payload_vcount >= 8'd240);
+    apfvideo_prev_vblank_triggered <= apfvideo_vblank;
+    if (apfvideo_we) begin
+        apfvideo_vblank_triggered <= 1'd0;
     end
-    if ((basesoc_vtg_source_payload_vsync & (~prev_vsync_trigger))) begin
-        vsync_status_status <= 1'd1;
-        frame_counter_status <= (frame_counter_status + 1'd1);
+    if ((apfvideo_vblank & (~apfvideo_prev_vblank_triggered))) begin
+        apfvideo_vblank_triggered <= 1'd1;
+        apfvideo_frame_counter <= (apfvideo_frame_counter + 1'd1);
     end
+    apfvideo_vblank_status <= apfvideo_vblank;
     {basesoc_tx_tick, basesoc_tx_phase} <= 28'd150384008;
     if (basesoc_tx_enable) begin
         {basesoc_tx_tick, basesoc_tx_phase} <= (basesoc_tx_phase + 28'd150384008);
@@ -8402,7 +8366,7 @@ always @(posedge sys_clk) begin
             end
         endcase
     end
-    re <= csr_bankarray_csrbank2_id0_re;
+    apfid_re <= csr_bankarray_csrbank2_id0_re;
     csr_bankarray_interface3_bank_bus_dat_r <= 1'd0;
     if (csr_bankarray_csrbank3_sel) begin
         case (csr_bankarray_interface3_bank_bus_adr[8:0])
@@ -8477,19 +8441,11 @@ always @(posedge sys_clk) begin
     if (csr_bankarray_csrbank5_sel) begin
         case (csr_bankarray_interface5_bank_bus_adr[8:0])
             1'd0: begin
-                csr_bankarray_interface5_bank_bus_dat_r <= csr_bankarray_csrbank5_vsync_status_w;
-            end
-            1'd1: begin
-                csr_bankarray_interface5_bank_bus_dat_r <= csr_bankarray_csrbank5_vblank_status_w;
-            end
-            2'd2: begin
-                csr_bankarray_interface5_bank_bus_dat_r <= csr_bankarray_csrbank5_frame_counter_w;
+                csr_bankarray_interface5_bank_bus_dat_r <= csr_bankarray_csrbank5_video_w;
             end
         endcase
     end
-    vsync_status_re <= csr_bankarray_csrbank5_vsync_status_re;
-    vblank_status_re <= csr_bankarray_csrbank5_vblank_status_re;
-    frame_counter_re <= csr_bankarray_csrbank5_frame_counter_re;
+    apfvideo_re <= csr_bankarray_csrbank5_video_re;
     csr_bankarray_interface6_bank_bus_dat_r <= 1'd0;
     if (csr_bankarray_csrbank6_sel) begin
         case (csr_bankarray_interface6_bank_bus_adr[8:0])
@@ -9013,7 +8969,7 @@ always @(posedge sys_clk) begin
         status_re <= 1'd0;
         current_address_re <= 1'd0;
         prev_complete_trigger <= 1'd0;
-        re <= 1'd0;
+        apfid_re <= 1'd0;
         cont1_key_re <= 1'd0;
         cont2_key_re <= 1'd0;
         cont3_key_re <= 1'd0;
@@ -9029,12 +8985,12 @@ always @(posedge sys_clk) begin
         unix_seconds_re <= 1'd0;
         date_bcd_re <= 1'd0;
         time_bcd_re <= 1'd0;
-        vsync_status_status <= 1'd0;
-        vsync_status_re <= 1'd0;
-        vblank_status_re <= 1'd0;
-        frame_counter_status <= 32'd0;
-        frame_counter_re <= 1'd0;
-        prev_vsync_trigger <= 1'd0;
+        apfvideo_vblank <= 1'd0;
+        apfvideo_vblank_status <= 1'd0;
+        apfvideo_vblank_triggered <= 1'd0;
+        apfvideo_frame_counter <= 30'd0;
+        apfvideo_re <= 1'd0;
+        apfvideo_prev_vblank_triggered <= 1'd0;
         serial_tx <= 1'd1;
         basesoc_tx_tick <= 1'd0;
         basesoc_rx_tick <= 1'd0;
@@ -9825,5 +9781,5 @@ DFF ars_cd_jtag_ff1(
 endmodule
 
 // -----------------------------------------------------------------------------
-//  Auto-Generated by LiteX on 2023-11-24 13:58:21.
+//  Auto-Generated by LiteX on 2023-11-26 12:06:39.
 //------------------------------------------------------------------------------

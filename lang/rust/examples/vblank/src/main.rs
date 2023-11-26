@@ -63,21 +63,22 @@ fn main() -> ! {
     let mut in_vblank = false;
 
     loop {
-        let frame_count = peripherals.APF_VIDEO.frame_counter.read().bits();
+        let video_data = peripherals.APF_VIDEO.video.read();
+        let vblank_triggered = video_data.vblank_triggered().bit();
 
-        let vsync = peripherals.APF_VIDEO.vsync_status.read().bits();
+        let frame_count = video_data.frame_counter().bits();
 
-        if vsync != 0 {
-            println!("Vsync at {counter} {frame_count}");
+        if vblank_triggered {
+            println!("Vblank started at {counter} {frame_count}");
         }
 
-        let vblank = peripherals.APF_VIDEO.vblank_status.read().bits();
+        let vblank = video_data.vblank_status().bit();
 
-        if vblank != 0 && !in_vblank {
+        if vblank && !in_vblank {
             in_vblank = true;
 
             println!("Entered vblank at {counter} {frame_count}");
-        } else if vblank == 0 && in_vblank {
+        } else if !vblank && in_vblank {
             in_vblank = false;
 
             println!("Exited vblank at {counter} {frame_count}");

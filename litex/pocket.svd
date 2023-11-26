@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-11-24 13:57:10]]></description>
+    <description><![CDATA[Litex SoC 2023-11-26 11:59:30]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -528,25 +528,8 @@ analog on controllers with analog triggers. See docs.]]></description>
             <groupName>APF_VIDEO</groupName>
             <registers>
                 <register>
-                    <name>VSYNC_STATUS</name>
-                    <description><![CDATA[Indicates when vsync occurs. Becomes 1 at vsync, and is set to 0 whenever read.
-If you read 1, vsync has occured between your two reads.]]></description>
+                    <name>VIDEO</name>
                     <addressOffset>0x0000</addressOffset>
-                    <resetValue>0x00</resetValue>
-                    <size>32</size>
-                    <fields>
-                        <field>
-                            <name>vsync_status</name>
-                            <msb>0</msb>
-                            <bitRange>[0:0]</bitRange>
-                            <lsb>0</lsb>
-                        </field>
-                    </fields>
-                </register>
-                <register>
-                    <name>VBLANK_STATUS</name>
-                    <description><![CDATA[1 when in vblank, 0 otherwise.]]></description>
-                    <addressOffset>0x0004</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -555,29 +538,31 @@ If you read 1, vsync has occured between your two reads.]]></description>
                             <msb>0</msb>
                             <bitRange>[0:0]</bitRange>
                             <lsb>0</lsb>
+                            <description><![CDATA[1 when in vblank, 0 otherwise.]]></description>
                         </field>
-                    </fields>
-                </register>
-                <register>
-                    <name>FRAME_COUNTER</name>
-                    <description><![CDATA[Counts the number of frames displayed since startup. Comparing this value to a
-previous value can be used to track frame changes.]]></description>
-                    <addressOffset>0x0008</addressOffset>
-                    <resetValue>0x00</resetValue>
-                    <size>32</size>
-                    <fields>
+                        <field>
+                            <name>vblank_triggered</name>
+                            <msb>1</msb>
+                            <bitRange>[1:1]</bitRange>
+                            <lsb>1</lsb>
+                            <description><![CDATA[Indicates when vblank occurs. Becomes 1 at vblank, and is set to 0 whenever
+read. If you read 1, vblank has started between your two reads.]]></description>
+                        </field>
                         <field>
                             <name>frame_counter</name>
                             <msb>31</msb>
-                            <bitRange>[31:0]</bitRange>
-                            <lsb>0</lsb>
+                            <bitRange>[31:2]</bitRange>
+                            <lsb>2</lsb>
+                            <description><![CDATA[Counts the number of frames displayed since startup. Comparing this value to a
+previous value can be used to track frame changes. A frame change is considered
+to occur at the start of vblank]]></description>
                         </field>
                     </fields>
                 </register>
             </registers>
             <addressBlock>
                 <offset>0</offset>
-                <size>0xc</size>
+                <size>0x4</size>
                 <usage>registers</usage>
             </addressBlock>
         </peripheral>

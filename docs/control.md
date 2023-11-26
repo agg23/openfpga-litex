@@ -211,10 +211,10 @@ Base address (`APF_RTC` block): `0xF000_2000`
 
 ## CSR
 
-Base address (`APF_VIDEO` block): `0xF000_2800`
+Base address (`APF_VIDEO` block): `0xF000_2800`. Single 32 bit video register at `0x0`. Split as follows:
 
-| Name            | Offset | Dir | Width | Description                                                                                                                              |
-| --------------- | ------ | --- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `vsync_status`  | `0x0`  | R   | 1     | Indicates when vsync occurs. Becomes 1 at vsync, and is set to 0 whenever read. If you read 1, vsync has occured between your two reads. |
-| `vblank_status` | `0x4`  | R   | 1     | 1 when in vblank, 0 otherwise.                                                                                                           |
-| `frame_counter` | `0x8`  | R   | 32    | Counts the number of frames displayed since startup. Comparing this value to a previous value can be used to track frame changes.        |
+| Name               | Dir | Width | Description                                                                                                                                                                                     |
+| ------------------ | --- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vblank_status`    | R   | 1     | 1 when in vblank, 0 otherwise.                                                                                                                                                                  |
+| `vblank_triggered` | R   | 1     | Indicates when vblank occurs. Becomes 1 at vblank, and is set to 0 whenever read. If you read 1, vblank has started between your two reads.                                                     |
+| `frame_counter`    | R   | 30    | Counts the number of frames displayed since startup. Comparing this value to a previous value can be used to track frame changes. A frame change is considered to occur at the start of vblank. |
