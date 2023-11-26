@@ -211,6 +211,21 @@ class BaseSoC(SoCCore):
 # Build --------------------------------------------------------------------------------------------
 
 
+def rewrite_output_variables(root_dir: str, generated_dir: str):
+    filename = os.path.join(generated_dir, "variables.mak")
+
+    print(f"Rewriting {filename} from {root_dir}")
+
+    if os.path.exists(filename):
+        from fileinput import FileInput
+
+        with FileInput(filename, inplace=True, backup=".bak") as file:
+            for line in file:
+                print(line.replace(root_dir, "$(LITEX_ROOT_DIRECTORY)"), end="")
+    else:
+        print("Cannot find `variables.mak`")
+
+
 def main():
     from litex.build.parser import LiteXArgumentParser
     import sys
@@ -245,6 +260,10 @@ def main():
     builder_args = parser.builder_argdict
     builder_args["csr_svd"] = "pocket.svd"
     builder = Builder(soc, **builder_args)
+
+    root_dir = os.path.abspath("")
+    generated_dir = builder.generated_dir
+
     if args.build:
         builder.build(**parser.toolchain_argdict)
 
@@ -253,6 +272,9 @@ def main():
         prog.load_bitstream(
             builder.get_bitstream_filename(mode="sram").replace(".sof", ".rbf")
         )
+
+    # Make `variables.mak` use relative paths off of `LITEX_ROOT_DIRECTORY`
+    rewrite_output_variables(root_dir, generated_dir)
 
 
 if __name__ == "__main__":

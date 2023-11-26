@@ -24,7 +24,11 @@ __pycache__/
 *$py.class
 
 # C extensions
+*.o
+*.d
 *.so
+*.elf
+*.elf.map
 
 # Quartus directories and files
 db
