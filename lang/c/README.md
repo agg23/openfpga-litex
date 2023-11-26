@@ -3,13 +3,13 @@
 ## Examples
 
 * `helloworld` - A simple hello world demonstration in C, with the included `printf()` function.
-* `helloworld-cpp` - A simple hello world class demononstration in C++, with the included `printf()` function.
+* `helloworld-cpp` - A simple hello world class demonstration in C++, with the included `printf()` function.
 
 ## Overview
 
-C/C++ is one of the simpliest targets because you just need the appropriate `riscv[32/64]-unknown-elf-gcc` and supporting tools, otherwise known as the RISC-V GNU Toolchain. LiteX generates/includes a number of supporting libraries with utility methods and constants for accessing the various parts of the SoC. If you use the included `Makefile` (see any of the `/example` directories) and set up the variables at the top of the file, you will automatically pull in all of those object libraries.
+C/C++ is one of the simplest targets because you just need the appropriate `riscv[32/64]-unknown-elf-gcc` and supporting tools, otherwise known as the RISC-V GNU Toolchain. LiteX generates/includes a number of supporting libraries with utility methods and constants for accessing the various parts of the SoC. If you use the included `Makefile` (see any of the `/example` directories) and set up the variables at the top of the file, you will automatically pull in all of those object libraries.
 
-The `Makefile` is based off of a LiteX design and is designed to be portable. You configure your LiteX root directory (that is `/litex/` in this repo) and your object filenames, and it takes care of the rest of building and linking. Much of this functionality is provided thanks to `common.mak`, which is part of the LiteX distribution and contains references to many variables, and `variables.mak`, which is part of the LiteX build and is included alongside the generated BIOS and headers, setting all of those variables used by `common.mak` and the shared `Makefile`. A shared linker assembly, which is shared with other languages such as Rust, is located at `/lang/linker`.
+The `Makefile` is based off of a LiteX design and is designed to be portable. You configure your LiteX root directory (that is `/litex/` in this repo) and your object filenames, and it takes care of the rest of building and linking. Much of this functionality is provided thanks to `common.mak`, which is part of the LiteX distribution and contains references to many variables, and `variables.mak`, which is part of the LiteX build and is included alongside the generated BIOS and headers, which sets all of the variables used by `common.mak` and the shared `Makefile`. A shared linker assembly, which is shared with other languages such as Rust, is located at `/lang/linker`.
 
 ## Setup
 
@@ -33,7 +33,7 @@ git clone https://github.com/riscv/riscv-gnu-toolchain.git
 make
 ```
 
-This will produce binaries like `riscv64-unknown-elf-gcc`. Note that even though they're `riscv64`, they can be used to build for `riscv32`. The `--enable-multilib` allows building for various RISC-V extensions, so we don't have to create a specialized version of the toolchain.
+This will produce binaries like `riscv64-unknown-elf-gcc`. Note that even though they're named `riscv64`, they can be used to build for `riscv32`. The `--enable-multilib` allows building for various RISC-V extensions, so we don't have to create a specialized version of the toolchain.
 
 ## Design
 
