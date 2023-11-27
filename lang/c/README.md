@@ -53,4 +53,16 @@ There is a collection of custom functions and constants, generated off of SoC pa
 
 ## Building
 
-The `Makefile` should set everything up for you. Update the variables at the top of the file, making sure to include all of your object names, and simply run `make`. When it completes, you should find a `build.bin` in your output directory; this is your RISC-V program ready to be copied over or [uploaded to the CPU over UART](/README.md#uart).
+Due to the libraries and headers LiteX provides, you need to do a full project build in order to have the right assets ready to go.
+
+```bash
+cd litex
+
+make
+```
+
+See [README](/README.md#modifying-the-hardware) for more instructions on how to get the required dependencies and set up the build.
+
+----
+
+The provided C/C++ `Makefile` should set everything up for you. Update the variables at the top of the file, making sure to include all of your object names, and simply run `make`. When it completes, you should find a `build.bin` in your output directory; this is your RISC-V program ready to be copied over or [uploaded to the CPU over UART](/README.md#uart).
