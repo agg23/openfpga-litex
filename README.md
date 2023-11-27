@@ -94,7 +94,7 @@ When releasing your core, you likely want to remove both of these options, as th
 
 You can simply [download the latest release](https://github.com/agg23/openfpga-litex2/releases/latest) and start writing code. For language setup help and examples, see [Languages](/lang/README.md).
 
-I suggest you make this repo a submodule of your main project so you can reference import libraries and files, along with pinning the core version.
+I suggest you make this repo a submodule of your main project so you can reference import libraries and files, along with pinning the core version. Otherwise, you may want to download the repo recursively (to grab the submodules) so that you have the expected headers and libraries for your software to link to.
 
 ### Customize Hardware
 
@@ -111,8 +111,11 @@ git clone --recursive https://github.com/agg23/openfpga-litex.git
 # Create a Python virtualenv with your manager of choice
 ...
 
-# Install Python dependencies
+# Install Python dependencies for LiteX
 pip3 install pyserial
+
+# Install Scala (to build the Vexriscv-smp processor)
+# See https://www.scala-lang.org/download/
 ```
 
 [Build and install the RISC-V GNU Toolchain](https://github.com/riscv/riscv-gnu-toolchain):
