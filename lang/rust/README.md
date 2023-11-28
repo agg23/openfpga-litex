@@ -3,7 +3,7 @@
 ## Examples
 
 * `rough_fps` - A very dirty demonstration of manipulating rendering registers to display a blinking FPS counter.
-* `rtd_id` - Renders the Cyclone V chip ID and the current, updating Unix time on the screen via Slint.
+* `rtd_id` - Renders the Cyclone V chip ID and the current, updating Unix time on the screen via [Slint](https://crates.io/crates/slint).
 * `vblank` - Watches [the control registers](/docs/control.md) to determine when vblank starts and ends, and when vsync itself occurs.
 
 ## Overview
@@ -60,7 +60,7 @@ As stated above, you need to ensure you have the `/.cargo/config.toml` and `risc
 
 If you have updated your LiteX platform, register locations and other constants may have changed, and thus you need to rebuild the `litex-pac` crate. You will want to execute `make` in `/lang/rust/crates/litex-pac`. This converts the `/litex/pocket.svd` file into Rust code to access the registers in a safe manner.
 
-Unless you are building for another platform, there is no reason to produce debug builds (they will massively bloat your binary size). Thus builds look like:
+Unless you are building for another platform, there is no reason to produce debug builds (they will massively bloat your binary size and be much slower). Thus builds look like:
 
 ```bash
 cargo build --release
