@@ -9,7 +9,7 @@
 
 C/C++ is one of the simplest targets because you just need the appropriate `riscv[32/64]-unknown-elf-gcc` and supporting tools, otherwise known as the RISC-V GNU Toolchain. LiteX generates/includes a number of supporting libraries with utility methods and constants for accessing the various parts of the SoC. If you use the included `Makefile` (see any of the `/example` directories) and set up the variables at the top of the file, you will automatically pull in all of those object libraries.
 
-The `Makefile` is based off of a LiteX design and is designed to be portable. You configure your LiteX root directory (that is `/litex/` in this repo) and your object filenames, and it takes care of the rest of building and linking. Much of this functionality is provided thanks to `common.mak`, which is part of the LiteX distribution and contains references to many variables, and `variables.mak`, which is part of the LiteX build and is included alongside the generated BIOS and headers, which sets all of the variables used by `common.mak` and the shared `Makefile`. A shared linker assembly, which is shared with other languages such as Rust, is located at `/lang/linker`.
+This functionality is provided thanks to the generated `variables.mak`, containing variables and references to various directories, and the LiteX included `common.mak` file, which combines the set variables to create the constructs for the user's `Makefile`. A shared linker assembly, which is shared with other languages such as Rust, is located at `/lang/linker`.
 
 ## Setup
 
