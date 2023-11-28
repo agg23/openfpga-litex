@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-11-26 11:59:30]]></description>
+    <description><![CDATA[Litex SoC 2023-11-28 11:10:57]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -110,9 +110,56 @@ playback otherwise.]]></description>
                     </fields>
                 </register>
                 <register>
+                    <name>REQUEST_WRITE</name>
+                    <description><![CDATA[Writing 1 to this register will trigger a write request.]]></description>
+                    <addressOffset>0x0004</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>request_write</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>REQUEST_GETFILE</name>
+                    <description><![CDATA[Writing 1 to this register will trigger a request for the filepath of the active
+slot.]]></description>
+                    <addressOffset>0x0008</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>request_getfile</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>REQUEST_OPENFILE</name>
+                    <description><![CDATA[Writing 1 to this register will trigger a request to change the file in the
+active slot to the one specified by the path in memory.]]></description>
+                    <addressOffset>0x000c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>request_openfile</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
                     <name>SLOT_ID</name>
                     <description><![CDATA[The slot ID defined in `data.json` for the desired asset/slot.]]></description>
-                    <addressOffset>0x0004</addressOffset>
+                    <addressOffset>0x0010</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -127,7 +174,7 @@ playback otherwise.]]></description>
                 <register>
                     <name>DATA_OFFSET</name>
                     <description><![CDATA[The offset from the start of the asset in the selected data slot to operate on.]]></description>
-                    <addressOffset>0x0008</addressOffset>
+                    <addressOffset>0x0014</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -144,7 +191,7 @@ playback otherwise.]]></description>
                     <description><![CDATA[The length of data to transfer as part of this bridge operation. A length of
 `0xFFFFFFFF` will request the entire file (NOTE: As of Pocket firmware 1.1, this
 is bugged, and you just request the file size instead).]]></description>
-                    <addressOffset>0x000c</addressOffset>
+                    <addressOffset>0x0018</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -161,7 +208,7 @@ is bugged, and you just request the file size instead).]]></description>
                     <description><![CDATA[The address of RISC-V RAM to be manipulated in this operation. It is either the
 first write address for a read request, or the first read address for a write
 request.]]></description>
-                    <addressOffset>0x0010</addressOffset>
+                    <addressOffset>0x001c</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -175,8 +222,11 @@ request.]]></description>
                 </register>
                 <register>
                     <name>FILE_SIZE</name>
-                    <description><![CDATA[The file size on disk of the current selected asset in slot `bridge_slot_id`.]]></description>
-                    <addressOffset>0x0014</addressOffset>
+                    <description><![CDATA[The file size on disk of the current selected asset in slot `bridge_slot_id`.
+Writing to this register will update the internal size representation for this
+file. Note that if you do this for a readonly file, you will mess up any future
+reads of that slot ID.]]></description>
+                    <addressOffset>0x0020</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -192,7 +242,7 @@ request.]]></description>
                     <name>STATUS</name>
                     <description><![CDATA[Indicates when the bridge is currently transferring a file. 1 when transferring,
 0 otherwise. Clears its value on read.]]></description>
-                    <addressOffset>0x0018</addressOffset>
+                    <addressOffset>0x0024</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -208,7 +258,7 @@ request.]]></description>
                     <name>CURRENT_ADDRESS</name>
                     <description><![CDATA[The current address the bridge is operating on. Can be used to show a progress
 bar/estimate time until completion.]]></description>
-                    <addressOffset>0x001c</addressOffset>
+                    <addressOffset>0x0028</addressOffset>
                     <resetValue>0x00</resetValue>
                     <size>32</size>
                     <fields>
@@ -220,10 +270,27 @@ bar/estimate time until completion.]]></description>
                         </field>
                     </fields>
                 </register>
+                <register>
+                    <name>COMMAND_RESULT_CODE</name>
+                    <description><![CDATA[Reports the results of the recent file command. See
+https://www.analogue.co/developer/docs/host-target-commands for details on
+expected codes.]]></description>
+                    <addressOffset>0x002c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>command_result_code</name>
+                            <msb>2</msb>
+                            <bitRange>[2:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
             </registers>
             <addressBlock>
                 <offset>0</offset>
-                <size>0x20</size>
+                <size>0x30</size>
                 <usage>registers</usage>
             </addressBlock>
         </peripheral>
@@ -555,7 +622,7 @@ read. If you read 1, vblank has started between your two reads.]]></description>
                             <lsb>2</lsb>
                             <description><![CDATA[Counts the number of frames displayed since startup. Comparing this value to a
 previous value can be used to track frame changes. A frame change is considered
-to occur at the start of vblank]]></description>
+to occur at the start of vblank.]]></description>
                         </field>
                     </fields>
                 </register>

@@ -21,34 +21,50 @@ Base address (`APF_AUDIO` block): `0xF000_0000`
 
 The main control mechanism from the user's core (the RISC-V soft-processor) to the host hardware, PIC, and scaler FPGA. Of primary relevance to this system is the file IO processes, which are exposed here:
 
-**NOTE:** Write (to SD card) mechanism is currently not exposed, and will come in a future release.
+**NOTE:** Write (to SD card) mechanism appears to be broken in the Pocket firmware at the moment. The functionality is exposed, but it seems to exhibit weird behavior. I recommend you avoid using it.
 
 ## File API
 
 Base address (`APF_BRIDGE` block): `0xF000_0800`
 
+For all of these operations, it is recommended to read through the [Host/Target Command Docs](https://www.analogue.co/developer/docs/host-target-commands). It details nuance and return codes that are relevant to software development.
+
 ### Common
 
-| Name               | Offset | Dir | Width | Description                                                                                                                                                                                                           |
-| ------------------ | ------ | --- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `slot_id`          | `0x4`  | RW  | 16    | The slot ID defined in `data.json` for the desired asset/slot.                                                                                                                                                        |
-| `data_offset`      | `0x8`  | RW  | 32    | The offset from the start of the asset in the selected data slot to operate on.                                                                                                                                       |
-| `transfer_length`  | `0xC`  | RW  | 32    | The length of data to transfer as part of this bridge operation. A length of `0xFFFFFFFF` will request the entire file (NOTE: As of Pocket firmware 1.1, this is bugged, and you just request the file size instead). |
-| `ram_data_address` | `0x10` | RW  | 32    | The address of RISC-V RAM to be manipulated in this operation. It is either the first write address for a read request, or the first read address for a write request.                                                |
-| `file_size`        | `0x14` | R   | 32    | The file size on disk of the current selected asset in slot `slot_id`.                                                                                                                                                |
-| `status`           | `0x18` | R   | 1     | Indicates when the bridge is currently transferring a file. 1 when transferring, 0 otherwise. Clears its value on read.                                                                                               |
-| `current_address`  | `0x1C` | R   | 32    | The current address the bridge is operating on. Can be used to show a progress bar/estimate time until completion.                                                                                                    |
+| Name                  | Offset | Dir | Width | Description                                                                                                                                                                                                                                                  |
+| --------------------- | ------ | --- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `slot_id`             | `0x10` | RW  | 16    | The slot ID defined in `data.json` for the desired asset/slot.                                                                                                                                                                                               |
+| `data_offset`         | `0x14` | RW  | 32    | The offset from the start of the asset in the selected data slot to operate on.                                                                                                                                                                              |
+| `transfer_length`     | `0x18` | RW  | 32    | The length of data to transfer as part of this bridge operation. A length of `0xFFFFFFFF` will request the entire file (NOTE: As of Pocket firmware 1.1, this is bugged, and you just request the file size instead).                                        |
+| `ram_data_address`    | `0x1C` | RW  | 32    | The address of RISC-V RAM to be manipulated in this operation. It is either the first write address for a read request, or the first read address for a write request.                                                                                       |
+| `file_size`           | `0x20` | R   | 32    | The file size on disk of the current selected asset in slot `slot_id`. Writing to this register will update the internal size representation for this file. Note that if you do this for a readonly file, you will mess up any future reads of that slot ID. |
+| `status`              | `0x24` | R   | 1     | Indicates when the bridge is currently transferring a file. 1 when transferring, 0 otherwise. Clears its value on read.                                                                                                                                      |
+| `current_address`     | `0x28` | R   | 32    | The current address the bridge is operating on. Can be used to show a progress bar/estimate time until completion.                                                                                                                                           |
+| `command_result_code` | `0x2C` | R   | 3     | Reports the results of the recent file command. See https://www.analogue.co/developer/docs/host-target-commands for details on expected codes.                                                                                                               |
 
 
 ### Reading
 
 | Name           | Offset | Dir | Width | Description                                             |
 | -------------- | ------ | --- | ----- | ------------------------------------------------------- |
-| `request_read` | `0x0`  | R   | 1     | Writing 1 to this register will trigger a read request. |
+| `request_read` | `0x0`  | W   | 1     | Writing 1 to this register will trigger a read request. |
 
 ### Writing
 
-**TODO:** Currently unimplemented
+**NOTE:** Write (to SD card) mechanism appears to be broken in the Pocket firmware at the moment. The functionality is exposed, but it seems to exhibit weird behavior. I recommend you avoid using it.
+
+| Name            | Offset | Dir | Width | Description                                              |
+| --------------- | ------ | --- | ----- | -------------------------------------------------------- |
+| `request_write` | `0x4`  | W   | 1     | Writing 1 to this register will trigger a write request. |
+
+### Manipulation
+
+See [the Analogue Docs](https://www.analogue.co/developer/docs/host-target-commands#target-command-structs) for detailed information of what is required to make these requests.
+
+| Name               | Offset | Dir | Width | Description                                                                                                                         |
+| ------------------ | ------ | --- | ----- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `request_getfile`  | `0x8`  | W   | 1     | Writing 1 to this register will trigger a request for the filepath of the active slot.                                              |
+| `request_openfile` | `0xC`  | W   | 1     | Writing 1 to this register will trigger a request to change the file in the active slot to the one specified by the path in memory. |
 
 # ID
 
@@ -180,14 +196,14 @@ Base address (`UART` block): `0xF000_2800` + `0x0`
 
 Base address (`VIDEO_FRAMEBUFFER` block): `0xF000_3000` + `0x0`
 
-| Name         | Offset | Dir | Width | Description                                                                                                          |
-| ------------ | ------ | --- | ----- | -------------------------------------------------------------------------------------------------------------------- |
-| `dma_base`   | `0x0`  | RW  | 32    | The base address of the framebuffer. Defaults to `0x40C0_0000`.                                                      |
-| `dma_length` | `0x4`  | RW  | 32    | The number of bytes read per "frame" of the framebuffer. Defaults to `0x1_F2C0`.                                     |
-| `dma_enable` | `0x8`  | RW  | 1     | Enable framebuffer DMA when set to 1. Disabling DMA can be used to decrease bus contention for faster memory access. |
-| `dma_done`   | `0xC`  | R   | 1     | Indicates completion of a DMA when 1.                                                                                |
-| `dma_loop`   | `0x10` | RW  | 1     | When 1, DMA will continue to loop when it completes a frame. When 0, it stops.                                       |
-| `dma_offset` | `0x14` | RW  | 32    | The current offset of the DMA into a frame. This can be used to restart drawing partially through a frame.           |
+| Name         | Offset | Dir | Width | Description                                                                                                           |
+| ------------ | ------ | --- | ----- | --------------------------------------------------------------------------------------------------------------------- |
+| `dma_base`   | `0x0`  | RW  | 32    | The base address of the framebuffer. Defaults to `0x40C0_0000`.                                                       |
+| `dma_length` | `0x4`  | RW  | 32    | The number of bytes read per "frame" of the framebuffer. Defaults to `0x1_F2C0`.                                      |
+| `dma_enable` | `0x8`  | RW  | 1     | Enable framebuffer DMA when set to 1. Disabling DMA can be used to decrease bus contention for faster memory access.  |
+| `dma_done`   | `0xC`  | R   | 1     | Indicates completion of a DMA when 1.                                                                                 |
+| `dma_loop`   | `0x10` | RW  | 1     | When 1, DMA will continue to loop when it completes a frame. When 0, it stops.                                        |
+| `dma_offset` | `0x14` | RW  | 32    | The current offset (in bytes) of the DMA into a frame. This can be used to restart drawing partially through a frame. |
 
 Base address (`VIDEO_FRAMEBUFFER_VTG` block): `0xF000_3800` + `0x0`
 

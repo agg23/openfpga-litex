@@ -41,7 +41,17 @@ class APFBridge(LiteXModule):
         self.request_read.description = (
             "Writing 1 to this register will trigger a read request."
         )
-        self.comb += bridge_pins.request_read.eq(self.request_read.re)
+
+        self.request_write = CSR(1)
+        self.request_write.description = (
+            "Writing 1 to this register will trigger a write request."
+        )
+
+        self.request_getfile = CSR(1)
+        self.request_getfile.description = "Writing 1 to this register will trigger a request for the filepath of the active slot."
+
+        self.request_openfile = CSR(1)
+        self.request_openfile.description = "Writing 1 to this register will trigger a request to change the file in the active slot to the one specified by the path in memory."
 
         self.slot_id = CSRStorage(
             16,
@@ -61,10 +71,10 @@ class APFBridge(LiteXModule):
             description="The address of RISC-V RAM to be manipulated in this operation. It is either the first write address for a read request, or the first read address for a write request.",
         )
 
-        self.file_size = CSRStatus(
+        self.file_size = CSR(
             32,
-            description="The file size on disk of the current selected asset in slot `bridge_slot_id`.",
         )
+        self.file_size.description = "The file size on disk of the current selected asset in slot `bridge_slot_id`. Writing to this register will update the internal size representation for this file. Note that if you do this for a readonly file, you will mess up any future reads of that slot ID."
 
         # Will go high when operation completes. Goes low after read
         self.status = CSRStatus(
@@ -75,6 +85,11 @@ class APFBridge(LiteXModule):
         self.current_address = CSRStatus(
             32,
             description="The current address the bridge is operating on. Can be used to show a progress bar/estimate time until completion.",
+        )
+
+        self.command_result_code = CSRStatus(
+            3,
+            description="Reports the results of the recent file command. See https://www.analogue.co/developer/docs/host-target-commands for details on expected codes.",
         )
 
         self.prev_complete_trigger = Signal()
@@ -95,12 +110,19 @@ class APFBridge(LiteXModule):
         ]
 
         self.comb += [
+            bridge_pins.request_read.eq(self.request_read.re),
+            bridge_pins.request_write.eq(self.request_write.re),
+            bridge_pins.request_getfile.eq(self.request_getfile.re),
+            bridge_pins.request_openfile.eq(self.request_openfile.re),
             bridge_pins.slot_id.eq(self.slot_id.storage),
             bridge_pins.data_offset.eq(self.data_offset.storage),
             # bridge_pins.local_address.eq(self.bridge_local_address.storage),
             bridge_pins.length.eq(self.transfer_length.storage),
             bridge_pins.ram_data_address.eq(self.ram_data_address.storage),
-            self.file_size.status.eq(bridge_pins.file_size),
+            self.command_result_code.status.eq(bridge_pins.command_result_code),
+            self.file_size.w.eq(bridge_pins.file_size),
+            bridge_pins.file_size_wr.eq(self.file_size.re),
+            bridge_pins.new_file_size_data.eq(self.file_size.r),
             self.current_address.status.eq(bridge_pins.current_address),
         ]
 
@@ -202,11 +224,6 @@ class APFVideo(LiteXModule):
     def __init__(self, soc):
         vblank = Signal()
 
-        # 240 is what vactive is set to
-        # self.comb += If(
-        #     soc.video_framebuffer_vtg.source.vcount >= 240, vblank.eq(1)
-        # ).Else(vblank.eq(0))
-
         self.video = CSRStatus(
             fields=[
                 CSRField(
@@ -230,19 +247,10 @@ class APFVideo(LiteXModule):
             ]
         )
 
-        # self.vblank_triggered = CSRStatus(
-        #     1,
-        #     description="Indicates when vblank occurs. Becomes 1 at vblank, and is set to 0 whenever read. If you read 1, vblank has started between your two reads.",
-        # )
-        # self.vblank_status = CSRStatus(1, description="1 when in vblank, 0 otherwise.")
-        # self.frame_counter = CSRStatus(
-        #     32,
-        #     description="Counts the number of frames displayed since startup. Comparing this value to a previous value can be used to track frame changes. A frame change is considered to occur at the start of vblank",
-        # )
-
         self.prev_vblank_triggered = Signal()
 
         self.sync += [
+            # 240 is what vactive is set to
             vblank.eq(soc.video_framebuffer_vtg.source.vcount >= 240),
             self.prev_vblank_triggered.eq(vblank),
             # Read clear must apply before write set, because otherwise you can miss a signal

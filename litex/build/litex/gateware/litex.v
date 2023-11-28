@@ -9,7 +9,7 @@
 // Filename   : litex.v
 // Device     : 5CEBA4F23C8
 // LiteX sha1 : bf081324
-// Date       : 2023-11-26 12:06:39
+// Date       : 2023-11-28 11:20:52
 //------------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -28,13 +28,19 @@ module litex (
     output wire          apf_audio_bus_wr,
     output wire          apf_audio_flush,
     output wire          apf_audio_playback_en,
+    input  wire    [2:0] apf_bridge_command_result_code,
     input  wire          apf_bridge_complete_trigger,
     input  wire   [31:0] apf_bridge_current_address,
     output wire   [31:0] apf_bridge_data_offset,
     input  wire   [31:0] apf_bridge_file_size,
+    output wire          apf_bridge_file_size_wr,
     output wire   [31:0] apf_bridge_length,
+    output wire   [31:0] apf_bridge_new_file_size_data,
     output wire   [31:0] apf_bridge_ram_data_address,
+    output wire          apf_bridge_request_getfile,
+    output wire          apf_bridge_request_openfile,
     output wire          apf_bridge_request_read,
+    output wire          apf_bridge_request_write,
     output wire   [15:0] apf_bridge_slot_id,
     input  wire   [63:0] apf_id_chip_id,
     input  wire   [31:0] apf_input_cont1_joy,
@@ -344,8 +350,8 @@ BaseSoC
 │    │    └─── csrstorage_8* (CSRStorage)
 └─── csr_interconnect (InterconnectShared)
 └─── [DFF]
-└─── [DFF]
 └─── [ALTDDIO_OUT]
+└─── [DFF]
 * : Generated name.
 []: BlackBox.
 */
@@ -2018,6 +2024,9 @@ wire          buffer_flush_r;
 reg           buffer_flush_re = 1'd0;
 reg           buffer_flush_w = 1'd0;
 reg           buffer_flush_we = 1'd0;
+reg           command_result_code_re = 1'd0;
+wire    [2:0] command_result_code_status;
+wire          command_result_code_we;
 reg           cont1_joy_re = 1'd0;
 wire   [31:0] cont1_joy_status;
 wire          cont1_joy_we;
@@ -2128,6 +2137,10 @@ wire   [11:0] csr_bankarray_csrbank11_vsync_start0_r;
 reg           csr_bankarray_csrbank11_vsync_start0_re = 1'd0;
 wire   [11:0] csr_bankarray_csrbank11_vsync_start0_w;
 reg           csr_bankarray_csrbank11_vsync_start0_we = 1'd0;
+wire    [2:0] csr_bankarray_csrbank1_command_result_code_r;
+reg           csr_bankarray_csrbank1_command_result_code_re = 1'd0;
+wire    [2:0] csr_bankarray_csrbank1_command_result_code_w;
+reg           csr_bankarray_csrbank1_command_result_code_we = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_current_address_r;
 reg           csr_bankarray_csrbank1_current_address_re = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_current_address_w;
@@ -2136,10 +2149,6 @@ wire   [31:0] csr_bankarray_csrbank1_data_offset0_r;
 reg           csr_bankarray_csrbank1_data_offset0_re = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_data_offset0_w;
 reg           csr_bankarray_csrbank1_data_offset0_we = 1'd0;
-wire   [31:0] csr_bankarray_csrbank1_file_size_r;
-reg           csr_bankarray_csrbank1_file_size_re = 1'd0;
-wire   [31:0] csr_bankarray_csrbank1_file_size_w;
-reg           csr_bankarray_csrbank1_file_size_we = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_ram_data_address0_r;
 reg           csr_bankarray_csrbank1_ram_data_address0_re = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_ram_data_address0_w;
@@ -2477,9 +2486,10 @@ wire          example_slave_err;
 wire    [3:0] example_slave_sel;
 wire          example_slave_stb;
 wire          example_slave_we;
+wire   [31:0] file_size_r;
 reg           file_size_re = 1'd0;
-wire   [31:0] file_size_status;
-wire          file_size_we;
+wire   [31:0] file_size_w;
+reg           file_size_we = 1'd0;
 reg           full_rate_phy_dfi_p0_act_n = 1'd1;
 reg    [12:0] full_rate_phy_dfi_p0_address = 13'd0;
 reg     [1:0] full_rate_phy_dfi_p0_bank = 2'd0;
@@ -2614,10 +2624,22 @@ reg           ram_data_address_re = 1'd0;
 reg    [31:0] ram_data_address_storage = 32'd0;
 reg    [15:0] rddata_d = 16'd0;
 wire    [1:0] request;
+wire          request_getfile_r;
+reg           request_getfile_re = 1'd0;
+reg           request_getfile_w = 1'd0;
+reg           request_getfile_we = 1'd0;
+wire          request_openfile_r;
+reg           request_openfile_re = 1'd0;
+reg           request_openfile_w = 1'd0;
+reg           request_openfile_we = 1'd0;
 wire          request_read_r;
 reg           request_read_re = 1'd0;
 reg           request_read_w = 1'd0;
 reg           request_read_we = 1'd0;
+wire          request_write_r;
+reg           request_write_re = 1'd0;
+reg           request_write_w = 1'd0;
+reg           request_write_we = 1'd0;
 reg    [29:0] rhs_array_muxed0 = 30'd0;
 reg    [31:0] rhs_array_muxed1 = 32'd0;
 reg     [1:0] rhs_array_muxed10 = 2'd0;
@@ -4750,11 +4772,17 @@ assign apf_audio_playback_en = playback_en_storage;
 assign apf_audio_flush = buffer_flush_re;
 assign buffer_fill_status = apf_audio_buffer_fill;
 assign apf_bridge_request_read = request_read_re;
+assign apf_bridge_request_write = request_write_re;
+assign apf_bridge_request_getfile = request_getfile_re;
+assign apf_bridge_request_openfile = request_openfile_re;
 assign apf_bridge_slot_id = slot_id_storage;
 assign apf_bridge_data_offset = data_offset_storage;
 assign apf_bridge_length = transfer_length_storage;
 assign apf_bridge_ram_data_address = ram_data_address_storage;
-assign file_size_status = apf_bridge_file_size;
+assign command_result_code_status = apf_bridge_command_result_code;
+assign file_size_w = apf_bridge_file_size;
+assign apf_bridge_file_size_wr = file_size_re;
+assign apf_bridge_new_file_size_data = file_size_r;
 assign current_address_status = apf_bridge_current_address;
 assign apfid_status = apf_id_chip_id;
 assign cont1_key_status = apf_input_cont1_key;
@@ -5438,11 +5466,38 @@ always @(*) begin
         request_read_we <= (~csr_bankarray_interface1_bank_bus_we);
     end
 end
+assign request_write_r = csr_bankarray_interface1_bank_bus_dat_w[0];
+always @(*) begin
+    request_write_re <= 1'd0;
+    request_write_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 1'd1))) begin
+        request_write_re <= csr_bankarray_interface1_bank_bus_we;
+        request_write_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
+assign request_getfile_r = csr_bankarray_interface1_bank_bus_dat_w[0];
+always @(*) begin
+    request_getfile_re <= 1'd0;
+    request_getfile_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 2'd2))) begin
+        request_getfile_re <= csr_bankarray_interface1_bank_bus_we;
+        request_getfile_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
+assign request_openfile_r = csr_bankarray_interface1_bank_bus_dat_w[0];
+always @(*) begin
+    request_openfile_re <= 1'd0;
+    request_openfile_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 2'd3))) begin
+        request_openfile_re <= csr_bankarray_interface1_bank_bus_we;
+        request_openfile_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
 assign csr_bankarray_csrbank1_slot_id0_r = csr_bankarray_interface1_bank_bus_dat_w[15:0];
 always @(*) begin
     csr_bankarray_csrbank1_slot_id0_re <= 1'd0;
     csr_bankarray_csrbank1_slot_id0_we <= 1'd0;
-    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 1'd1))) begin
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 3'd4))) begin
         csr_bankarray_csrbank1_slot_id0_re <= csr_bankarray_interface1_bank_bus_we;
         csr_bankarray_csrbank1_slot_id0_we <= (~csr_bankarray_interface1_bank_bus_we);
     end
@@ -5451,7 +5506,7 @@ assign csr_bankarray_csrbank1_data_offset0_r = csr_bankarray_interface1_bank_bus
 always @(*) begin
     csr_bankarray_csrbank1_data_offset0_re <= 1'd0;
     csr_bankarray_csrbank1_data_offset0_we <= 1'd0;
-    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 2'd2))) begin
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 3'd5))) begin
         csr_bankarray_csrbank1_data_offset0_re <= csr_bankarray_interface1_bank_bus_we;
         csr_bankarray_csrbank1_data_offset0_we <= (~csr_bankarray_interface1_bank_bus_we);
     end
@@ -5460,7 +5515,7 @@ assign csr_bankarray_csrbank1_transfer_length0_r = csr_bankarray_interface1_bank
 always @(*) begin
     csr_bankarray_csrbank1_transfer_length0_re <= 1'd0;
     csr_bankarray_csrbank1_transfer_length0_we <= 1'd0;
-    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 2'd3))) begin
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 3'd6))) begin
         csr_bankarray_csrbank1_transfer_length0_re <= csr_bankarray_interface1_bank_bus_we;
         csr_bankarray_csrbank1_transfer_length0_we <= (~csr_bankarray_interface1_bank_bus_we);
     end
@@ -5469,25 +5524,25 @@ assign csr_bankarray_csrbank1_ram_data_address0_r = csr_bankarray_interface1_ban
 always @(*) begin
     csr_bankarray_csrbank1_ram_data_address0_re <= 1'd0;
     csr_bankarray_csrbank1_ram_data_address0_we <= 1'd0;
-    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 3'd4))) begin
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 3'd7))) begin
         csr_bankarray_csrbank1_ram_data_address0_re <= csr_bankarray_interface1_bank_bus_we;
         csr_bankarray_csrbank1_ram_data_address0_we <= (~csr_bankarray_interface1_bank_bus_we);
     end
 end
-assign csr_bankarray_csrbank1_file_size_r = csr_bankarray_interface1_bank_bus_dat_w[31:0];
+assign file_size_r = csr_bankarray_interface1_bank_bus_dat_w[31:0];
 always @(*) begin
-    csr_bankarray_csrbank1_file_size_re <= 1'd0;
-    csr_bankarray_csrbank1_file_size_we <= 1'd0;
-    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 3'd5))) begin
-        csr_bankarray_csrbank1_file_size_re <= csr_bankarray_interface1_bank_bus_we;
-        csr_bankarray_csrbank1_file_size_we <= (~csr_bankarray_interface1_bank_bus_we);
+    file_size_re <= 1'd0;
+    file_size_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 4'd8))) begin
+        file_size_re <= csr_bankarray_interface1_bank_bus_we;
+        file_size_we <= (~csr_bankarray_interface1_bank_bus_we);
     end
 end
 assign csr_bankarray_csrbank1_status_r = csr_bankarray_interface1_bank_bus_dat_w[0];
 always @(*) begin
     csr_bankarray_csrbank1_status_re <= 1'd0;
     csr_bankarray_csrbank1_status_we <= 1'd0;
-    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 3'd6))) begin
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 4'd9))) begin
         csr_bankarray_csrbank1_status_re <= csr_bankarray_interface1_bank_bus_we;
         csr_bankarray_csrbank1_status_we <= (~csr_bankarray_interface1_bank_bus_we);
     end
@@ -5496,21 +5551,30 @@ assign csr_bankarray_csrbank1_current_address_r = csr_bankarray_interface1_bank_
 always @(*) begin
     csr_bankarray_csrbank1_current_address_re <= 1'd0;
     csr_bankarray_csrbank1_current_address_we <= 1'd0;
-    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 3'd7))) begin
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 4'd10))) begin
         csr_bankarray_csrbank1_current_address_re <= csr_bankarray_interface1_bank_bus_we;
         csr_bankarray_csrbank1_current_address_we <= (~csr_bankarray_interface1_bank_bus_we);
+    end
+end
+assign csr_bankarray_csrbank1_command_result_code_r = csr_bankarray_interface1_bank_bus_dat_w[2:0];
+always @(*) begin
+    csr_bankarray_csrbank1_command_result_code_re <= 1'd0;
+    csr_bankarray_csrbank1_command_result_code_we <= 1'd0;
+    if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 4'd11))) begin
+        csr_bankarray_csrbank1_command_result_code_re <= csr_bankarray_interface1_bank_bus_we;
+        csr_bankarray_csrbank1_command_result_code_we <= (~csr_bankarray_interface1_bank_bus_we);
     end
 end
 assign csr_bankarray_csrbank1_slot_id0_w = slot_id_storage[15:0];
 assign csr_bankarray_csrbank1_data_offset0_w = data_offset_storage[31:0];
 assign csr_bankarray_csrbank1_transfer_length0_w = transfer_length_storage[31:0];
 assign csr_bankarray_csrbank1_ram_data_address0_w = ram_data_address_storage[31:0];
-assign csr_bankarray_csrbank1_file_size_w = file_size_status[31:0];
-assign file_size_we = csr_bankarray_csrbank1_file_size_we;
 assign csr_bankarray_csrbank1_status_w = status_status;
 assign status_we = csr_bankarray_csrbank1_status_we;
 assign csr_bankarray_csrbank1_current_address_w = current_address_status[31:0];
 assign current_address_we = csr_bankarray_csrbank1_current_address_we;
+assign csr_bankarray_csrbank1_command_result_code_w = command_result_code_status[2:0];
+assign command_result_code_we = csr_bankarray_csrbank1_command_result_code_we;
 assign csr_bankarray_csrbank2_sel = (csr_bankarray_interface2_bank_bus_adr[13:9] == 2'd2);
 assign csr_bankarray_csrbank2_id1_r = csr_bankarray_interface2_bank_bus_dat_w[31:0];
 always @(*) begin
@@ -8314,25 +8378,37 @@ always @(posedge sys_clk) begin
                 csr_bankarray_interface1_bank_bus_dat_r <= request_read_w;
             end
             1'd1: begin
-                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_slot_id0_w;
+                csr_bankarray_interface1_bank_bus_dat_r <= request_write_w;
             end
             2'd2: begin
-                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_data_offset0_w;
+                csr_bankarray_interface1_bank_bus_dat_r <= request_getfile_w;
             end
             2'd3: begin
-                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_transfer_length0_w;
+                csr_bankarray_interface1_bank_bus_dat_r <= request_openfile_w;
             end
             3'd4: begin
-                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_ram_data_address0_w;
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_slot_id0_w;
             end
             3'd5: begin
-                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_file_size_w;
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_data_offset0_w;
             end
             3'd6: begin
-                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_status_w;
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_transfer_length0_w;
             end
             3'd7: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_ram_data_address0_w;
+            end
+            4'd8: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= file_size_w;
+            end
+            4'd9: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_status_w;
+            end
+            4'd10: begin
                 csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_current_address_w;
+            end
+            4'd11: begin
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_command_result_code_w;
             end
         endcase
     end
@@ -8352,9 +8428,9 @@ always @(posedge sys_clk) begin
         ram_data_address_storage[31:0] <= csr_bankarray_csrbank1_ram_data_address0_r;
     end
     ram_data_address_re <= csr_bankarray_csrbank1_ram_data_address0_re;
-    file_size_re <= csr_bankarray_csrbank1_file_size_re;
     status_re <= csr_bankarray_csrbank1_status_re;
     current_address_re <= csr_bankarray_csrbank1_current_address_re;
+    command_result_code_re <= csr_bankarray_csrbank1_command_result_code_re;
     csr_bankarray_interface2_bank_bus_dat_r <= 1'd0;
     if (csr_bankarray_csrbank2_sel) begin
         case (csr_bankarray_interface2_bank_bus_adr[8:0])
@@ -8964,10 +9040,10 @@ always @(posedge sys_clk) begin
         transfer_length_re <= 1'd0;
         ram_data_address_storage <= 32'd0;
         ram_data_address_re <= 1'd0;
-        file_size_re <= 1'd0;
         status_status <= 1'd0;
         status_re <= 1'd0;
         current_address_re <= 1'd0;
+        command_result_code_re <= 1'd0;
         prev_complete_trigger <= 1'd0;
         apfid_re <= 1'd0;
         cont1_key_re <= 1'd0;
@@ -9781,5 +9857,5 @@ DFF ars_cd_jtag_ff1(
 endmodule
 
 // -----------------------------------------------------------------------------
-//  Auto-Generated by LiteX on 2023-11-26 12:06:39.
+//  Auto-Generated by LiteX on 2023-11-28 11:20:52.
 //------------------------------------------------------------------------------

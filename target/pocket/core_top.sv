@@ -312,6 +312,7 @@ module core_top (
   assign aux_scl                 = 1'bZ;
   assign vpll_feed               = 1'bZ;
 
+  wire [31:0] apf_wishbone_bridge_rd_data;
 
   // for bridge write data, we just broadcast it to all bus devices
   // for bridge read data, we have to mux it
@@ -320,6 +321,9 @@ module core_top (
     casex (bridge_addr)
       default: begin
         bridge_rd_data <= 0;
+      end
+      32'h0xxxxxxx: begin
+        bridge_rd_data <= apf_wishbone_bridge_rd_data;
       end
       32'h10xxxxxx: begin
         // example
@@ -408,10 +412,13 @@ module core_top (
   // bridge target commands
   // synchronous to clk_74a
 
-  wire target_dataslot_read;
-  wire target_dataslot_write;
-  wire target_dataslot_getfile;  // require additional param/resp structs to be mapped
-  wire target_dataslot_openfile;  // require additional param/resp structs to be mapped
+  wire target_dataslot_request;
+  wire [1:0] target_dataslot_request_type;
+
+  wire target_dataslot_read = target_dataslot_request && target_dataslot_request_type == 2'h0;
+  wire target_dataslot_write = target_dataslot_request && target_dataslot_request_type == 2'h1;
+  wire target_dataslot_getfile = target_dataslot_request && target_dataslot_request_type == 2'h2;
+  wire target_dataslot_openfile = target_dataslot_request && target_dataslot_request_type == 2'h3;
 
   wire target_dataslot_ack;
   wire target_dataslot_done;
@@ -422,8 +429,8 @@ module core_top (
   wire [31:0] target_dataslot_bridgeaddr;
   wire [31:0] target_dataslot_length;
 
-  wire    [31:0]  target_buffer_param_struct; // to be mapped/implemented when using some Target commands
-  wire    [31:0]  target_buffer_resp_struct;  // to be mapped/implemented when using some Target commands
+  wire [31:0] target_buffer_param_struct = target_dataslot_bridgeaddr;
+  wire [31:0] target_buffer_resp_struct = target_dataslot_bridgeaddr;
 
   // bridge data slot access
   // synchronous to clk_74a
@@ -514,7 +521,11 @@ module core_top (
 
   );
 
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // Dataslot Management
+
   reg [31:0] active_file_size = 0;
+  reg prev_dataslot_update = 0;
 
   always @(posedge clk_74a) begin
     if (~pll_core_locked) begin
@@ -522,11 +533,51 @@ module core_top (
       datatable_data <= 0;
       datatable_wren <= 0;
     end else begin
+      prev_dataslot_update = dataslot_update;
+
+      datatable_wren   <= 0;
+
       // Read asset size for data slot index set by ID
+      // These are indicies, not IDs, so you must make sure the index matches the ID
       datatable_addr   <= target_dataslot_id[9:0] * 10'h2 + 10'h1;
       active_file_size <= datatable_q;
+
+      if (apf_bridge_file_size_wr_s) begin
+        // Set ID index
+        datatable_addr <= target_dataslot_id[9:0] * 10'h2 + 10'h1;
+
+        datatable_data <= apf_bridge_new_file_size_data_s;
+
+        datatable_wren <= 1;
+      end else if (dataslot_update && ~prev_dataslot_update) begin
+        // Set ID index
+        datatable_addr <= dataslot_update_id * 10'h2 + 10'h1;
+
+        datatable_data <= dataslot_update_size;
+
+        datatable_wren <= 1;
+      end
     end
   end
+
+  wire apf_bridge_file_size_wr;
+  wire [31:0] apf_bridge_new_file_size_data;
+
+  wire apf_bridge_file_size_wr_s;
+  wire [31:0] apf_bridge_new_file_size_data_s;
+
+  sync_fifo #(
+      .WIDTH(32)
+  ) dataslot_update_sync_fifo (
+      .clk_write(clk_sys_57_12),
+      .clk_read (clk_74a),
+
+      .write_en(apf_bridge_file_size_wr),
+      .data(apf_bridge_new_file_size_data),
+
+      .data_s(apf_bridge_new_file_size_data_s),
+      .write_en_s(apf_bridge_file_size_wr_s)
+  );
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // Data loading
@@ -578,7 +629,7 @@ module core_top (
   );
 
   ////////////////////////////////////////////////////////////////////////////////////////
-  // Core
+  // Settings and Sync
 
   wire reset_input_button_s;
 
@@ -656,6 +707,90 @@ module core_top (
     end
   end
 
+  wire apf_bridge_request_read;
+  wire apf_bridge_request_write;
+  wire apf_bridge_request_getfile;
+  wire apf_bridge_request_openfile;
+
+  wire [31:0] apf_bridge_data_offset;
+  wire [31:0] apf_bridge_length;
+  wire [15:0] apf_bridge_slot_id;
+
+  reg [2:0] apf_bridge_request_counter = 0;
+  reg [1:0] apf_bridge_request_type = 0;
+
+  reg prev_apf_bridge_request_read = 0;
+  reg prev_apf_bridge_request_write = 0;
+  reg prev_apf_bridge_request_getfile = 0;
+  reg prev_apf_bridge_request_openfile = 0;
+
+  // Signal lengthener for faster bridge clock domain
+  always @(posedge clk_sys_57_12) begin
+    prev_apf_bridge_request_read <= apf_bridge_request_read;
+    prev_apf_bridge_request_write <= apf_bridge_request_write;
+    prev_apf_bridge_request_getfile <= apf_bridge_request_getfile;
+    prev_apf_bridge_request_openfile <= apf_bridge_request_openfile;
+
+    if (apf_bridge_request_read && ~prev_apf_bridge_request_read) begin
+      apf_bridge_request_counter <= 3'h7;
+      apf_bridge_request_type <= 2'h0;
+    end else if (apf_bridge_request_write && ~prev_apf_bridge_request_write) begin
+      apf_bridge_request_counter <= 3'h7;
+      apf_bridge_request_type <= 2'h1;
+    end else if (apf_bridge_request_getfile && ~prev_apf_bridge_request_getfile) begin
+      apf_bridge_request_counter <= 3'h7;
+      apf_bridge_request_type <= 2'h2;
+    end else if (apf_bridge_request_openfile && ~prev_apf_bridge_request_openfile) begin
+      apf_bridge_request_counter <= 3'h7;
+      apf_bridge_request_type <= 2'h3;
+    end
+
+    if (apf_bridge_request_counter > 3'h0) begin
+      apf_bridge_request_counter <= apf_bridge_request_counter - 3'h1;
+    end
+  end
+
+  wire apf_bridge_request = apf_bridge_request_counter > 3'h0;
+
+  wire [31:0] active_file_size_s;
+  wire target_dataslot_done_s;
+
+  synch_3 #(
+      .WIDTH(33)
+  ) from_bridge_s (
+      {active_file_size, target_dataslot_done},
+      {active_file_size_s, target_dataslot_done_s},
+      clk_sys_57_12
+  );
+
+  // Always have bridge read/write from 0
+  assign target_dataslot_bridgeaddr = 32'h0;
+
+  synch_3 #(
+      .WIDTH(83)
+  ) to_bridge_s (
+      {
+        apf_bridge_request,
+        apf_bridge_request_type,
+        apf_bridge_data_offset,
+        apf_bridge_length,
+        apf_bridge_slot_id
+      },
+      {
+        target_dataslot_request,
+        target_dataslot_request_type,
+        target_dataslot_slotoffset,
+        target_dataslot_length,
+        target_dataslot_id
+      },
+      clk_74a
+  );
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // Core
+
+  wire reset = ~reset_n_s || ioctl_download || reset_timer > 0;
+
   // wire ack;
   // wire [29:0] addr;
   // wire [1:0] bte;
@@ -680,60 +815,6 @@ module core_top (
   wire apf_master_stb;
   wire apf_master_we;
 
-  wire apf_bridge_request_read;
-  wire [31:0] apf_bridge_data_offset;
-  wire [31:0] apf_bridge_length;
-  wire [15:0] apf_bridge_slot_id;
-
-  reg [2:0] apf_bridge_request_read_counter = 0;
-
-  reg prev_apf_bridge_request_read = 0;
-
-  always @(posedge clk_sys_57_12) begin
-    prev_apf_bridge_request_read <= apf_bridge_request_read;
-
-    if (apf_bridge_request_read && ~prev_apf_bridge_request_read) begin
-      apf_bridge_request_read_counter <= 3'h7;
-    end
-
-    if (apf_bridge_request_read_counter > 3'h0) begin
-      apf_bridge_request_read_counter <= apf_bridge_request_read_counter - 3'h1;
-    end
-  end
-
-  wire apf_bridge_request_read_lengthened = apf_bridge_request_read_counter > 3'h0;
-
-  wire [31:0] active_file_size_s;
-  wire target_dataslot_done_s;
-
-  synch_3 #(
-      .WIDTH(33)
-  ) from_bridge_s (
-      {active_file_size, target_dataslot_done},
-      {active_file_size_s, target_dataslot_done_s},
-      clk_sys_57_12
-  );
-
-  synch_3 #(
-      .WIDTH(81)
-  ) to_bridge_s (
-      {
-        apf_bridge_request_read_lengthened,
-        apf_bridge_data_offset,
-        apf_bridge_length,
-        apf_bridge_slot_id
-      },
-      {
-        target_dataslot_read, target_dataslot_slotoffset, target_dataslot_length, target_dataslot_id
-      },
-      clk_74a
-  );
-
-  wire reset = ~reset_n_s || ioctl_download || reset_timer > 0;
-
-  // Always have bridge read/write from 0
-  assign target_dataslot_bridgeaddr = 32'h0;
-
   wire [31:0] ram_data_address;
   reg [31:0] latched_ram_data_address = 0;
   wire [25:0] current_address;
@@ -749,7 +830,7 @@ module core_top (
   always @(posedge clk_sys_57_12) begin
     prev_target_dataslot_done_s <= target_dataslot_done_s;
 
-    if (apf_bridge_request_read) begin
+    if (apf_bridge_request_read || apf_bridge_request_write || apf_bridge_request_getfile || apf_bridge_request_openfile) begin
       latched_ram_data_address <= ram_data_address;
     end
   end
@@ -769,15 +850,21 @@ module core_top (
       .apf_audio_buffer_fill(audio_buffer_fill),
 
       .apf_bridge_request_read(apf_bridge_request_read),
+      .apf_bridge_request_write(apf_bridge_request_write),
+      .apf_bridge_request_getfile(apf_bridge_request_getfile),
+      .apf_bridge_request_openfile(apf_bridge_request_openfile),
 
       .apf_bridge_data_offset(apf_bridge_data_offset),
       .apf_bridge_length(apf_bridge_length),
       .apf_bridge_ram_data_address(ram_data_address),
       .apf_bridge_slot_id(apf_bridge_slot_id),
       .apf_bridge_file_size(active_file_size_s),
+      .apf_bridge_file_size_wr(apf_bridge_file_size_wr),
+      .apf_bridge_new_file_size_data(apf_bridge_new_file_size_data),
       .apf_bridge_current_address(current_address),
       // Pulse complete on rising edge of done
       .apf_bridge_complete_trigger(target_dataslot_done_s && ~prev_target_dataslot_done_s),
+      .apf_bridge_command_result_code(target_dataslot_err),
 
       .apf_id_chip_id(chip_id),
 
@@ -879,7 +966,9 @@ module core_top (
 
       .bridge_addr(bridge_addr),
       .bridge_wr_data(bridge_wr_data),
+      .bridge_rd_data(apf_wishbone_bridge_rd_data),
       .bridge_wr(bridge_wr),
+      .bridge_rd(bridge_rd),
       .bridge_endian_little(bridge_endian_little),
 
       // Write to start of SDRAM when uploading data

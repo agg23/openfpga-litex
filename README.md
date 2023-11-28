@@ -9,7 +9,7 @@ The core is not intended for use by end users directly, but for developers, who 
 * Full input handing
 * ~~Cart slot and link port access~~ - `Coming soon`
 * Serial bus, with program hot reloading, via USB Blaster JTAG adapter or Analogue Pocket Dev Kit UART cart
-* File access API for load/store - [See Analogue Docs](https://www.analogue.co/developer/docs/core-definition-files/data-json) - `Writing to disk coming soon`
+* File access API for load/store - [See Analogue Docs](https://www.analogue.co/developer/docs/core-definition-files/data-json) - `Writing to disk broken in Pocket firmware`
 * Vblank and vsync access; frame counter
 * 48kHz audio playback with 4096 sample buffer
 * Live RTC access

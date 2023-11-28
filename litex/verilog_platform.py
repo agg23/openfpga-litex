@@ -104,6 +104,9 @@ class Platform(AlteraPlatform):
 
             ("apf_bridge", 0,
                 Subsignal("request_read", Pins(1)),
+                Subsignal("request_write", Pins(1)),
+                Subsignal("request_getfile", Pins(1)),
+                Subsignal("request_openfile", Pins(1)),
 
                 Subsignal("slot_id", Pins(16)),
                 Subsignal("data_offset", Pins(32)),
@@ -113,9 +116,12 @@ class Platform(AlteraPlatform):
                 Subsignal("ram_data_address", Pins(32)),
 
                 Subsignal("file_size", Pins(32)),
+                Subsignal("file_size_wr", Pins(1)),
+                Subsignal("new_file_size_data", Pins(32)),
 
                 Subsignal("current_address", Pins(32)),
-                Subsignal("complete_trigger", Pins(1))
+                Subsignal("complete_trigger", Pins(1)),
+                Subsignal("command_result_code", Pins(3))
             ),
 
             ("apf_audio", 0,
