@@ -114,7 +114,7 @@ git clone --recursive https://github.com/agg23/openfpga-litex.git
 # Install Python dependencies for LiteX
 pip3 install pyserial
 
-# Install Scala (to build the Vexriscv-smp processor)
+# Install Scala (to build the Vexriscv-smp processor) and sbt
 # See https://www.scala-lang.org/download/
 ```
 
