@@ -1269,6 +1269,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "minimal"
+version = "0.1.0"
+dependencies = [
+ "embedded-alloc",
+ "embedded-hal",
+ "litex-openfpga",
+ "riscv",
+ "riscv-rt",
+]
+
+[[package]]
 name = "miniz_oxide"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

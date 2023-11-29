@@ -1,6 +1,8 @@
 #![no_std]
 
 extern crate alloc;
+// Export crates
+pub use litex_pac;
 
 pub mod file;
 #[cfg(feature = "slint")]

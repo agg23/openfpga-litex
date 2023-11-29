@@ -1,8 +1,7 @@
 use litex_hal;
-use litex_pac;
 
 litex_hal::uart! {
-    UART: litex_pac::UART,
+    UART: crate::litex_pac::UART,
 }
 
 #[macro_export]
@@ -11,7 +10,7 @@ macro_rules! println {
         {
             use core::fmt::Write;
             // Hopefully this is zero cost
-            let peripherals = unsafe { litex_pac::Peripherals::steal() };
+            let peripherals = unsafe { crate::litex_pac::Peripherals::steal() };
 
             let mut serial = UART::new(peripherals.UART);
 
@@ -26,7 +25,7 @@ macro_rules! print {
         {
             use core::fmt::Write;
             // Hopefully this is zero cost
-            let peripherals = unsafe { litex_pac::Peripherals::steal() };
+            let peripherals = unsafe { crate::litex_pac::Peripherals::steal() };
 
             let mut serial = UART::new(peripherals.UART);
 

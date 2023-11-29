@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "examples/minimal",
     "examples/rough_fps",
     "examples/rtc_id",
     "examples/vblank",

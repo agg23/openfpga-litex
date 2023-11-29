@@ -25,25 +25,6 @@ hal::timer! {
 
 slint::include_modules!();
 
-// Fix for missing main functions
-#[no_mangle]
-fn fminf(a: f32, b: f32) -> f32 {
-    if a < b {
-        a
-    } else {
-        b
-    }
-}
-
-#[no_mangle]
-fn fmaxf(a: f32, b: f32) -> f32 {
-    if a > b {
-        a
-    } else {
-        b
-    }
-}
-
 use core::mem::MaybeUninit;
 const HEAP_SIZE: usize = 200 * 1024;
 static mut HEAP_MEM: [MaybeUninit<u8>; HEAP_SIZE] = [MaybeUninit::uninit(); HEAP_SIZE];
