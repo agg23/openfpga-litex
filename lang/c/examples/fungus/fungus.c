@@ -46,6 +46,24 @@ inline Candidate make_candidate(int x, int y) {
 	return candidate;
 }
 
+// Standalone random number generator
+#include "xoshiro128starstar.h"
+
+// Fisher-Yates Shuffle, modeled on discussion at https://stackoverflow.com/a/42322025
+// This will efficiently reorder an array randomly
+static void fisher_yates(Candidate *array, int len) {
+     Candidate temp;
+
+     for (int idx_ceiling = len-1; idx_ceiling > 0; idx_ceiling--) { // Iterate array backward
+         int idx_rand = xo_rand(idx_ceiling + 1); // Swap each member with a random member below it 
+         if (idx_ceiling != idx_rand) {
+	         temp = array[idx_ceiling];
+	         array[idx_ceiling] = array[idx_rand];
+	         array[idx_rand] = temp;
+	     }
+     }
+}
+
 int main(void)
 {
 	printf("-- Fungus --\n");
@@ -55,6 +73,11 @@ int main(void)
 	// Fill screen with black
 	for(int c = 0; c < DISPLAY_WIDTH*DISPLAY_HEIGHT; c++)
 		fb[c] = 0;
+
+	{ // Primitive randomness seed
+		uint32_t time = apf_rtc_unix_seconds_read();
+		xo_jump(time+5, time+3, time+2, time);
+	}
 
 	// Draw a 3x3 grid of rectangles with a hole in the middle, to break up the field
 	int y_root = PILLARS_BASE(DISPLAY_HEIGHT), x_root = PILLARS_BASE(DISPLAY_WIDTH);
@@ -137,6 +160,9 @@ int main(void)
 				CANDIDATE_PUSH(neighbors[n]);
 			}
 		}
+
+		// Randomize candidates list so we don't just go continually downward
+		fisher_yates(candidates_next, candidates_len[next]);
 
 		candidates_len[current] = 0;
 		current = next;
