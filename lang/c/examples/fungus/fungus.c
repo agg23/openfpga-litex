@@ -336,6 +336,14 @@ int main(void)
 			// Randomize candidates list so we don't just go continually downward
 			fisher_yates(candidates_next, candidates_len[next]);
 
+			// Trick: It's really easy in this specific configuration to get "stuck",
+			// so instead of resetting to 0, just hold until you get "unstuck", because it looks cool
+			if (super_grow && speed == 2 !candidates_len[next]) {
+				int tmp = next;
+				next = current;
+				current = tmp;
+			}
+
 			candidates_len[current] = 0;
 			current = next;
 		} else {
