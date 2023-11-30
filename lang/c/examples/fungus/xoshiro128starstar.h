@@ -113,7 +113,7 @@ static void xo_long_jump(uint32_t s0, uint32_t s1, uint32_t s2, uint32_t s3) {
 static uint32_t xo_rand_last = 0;
 static uint32_t xo_rand_remaining = 0;
 
-// Frontend to xoroshiro**, gives random number under given ceiling
+// Frontend to xoroshiro**, gives random number UNDER given ceiling
 // This is designed to reduce calls to next(); its statistics are unanalyzed
 // This is probably NOT constant time
 static uint32_t xo_rand(uint32_t ceiling) {

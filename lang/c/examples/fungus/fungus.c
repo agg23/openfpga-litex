@@ -22,16 +22,26 @@
 // Takes 3 numbers in range 0..64. Lowest bit on R and B will be discarded.
 #define COLOR(r,g,b) ( ( (((r)>>1)&BITS5)<<11 ) | ( ((g)&BITS6)<<5 ) | ( (((b)>>1)&BITS5) ))
 
+// Sizes and spacing of "pillar" squares
 #define PILLAR_COUNT 3
 #define PILLAR_SIZE 10
 #define PILLAR_GAP 60
-#define PILLAR_COLOR 0x
+#define PILLAR_COLOR (COLOR(20, 0, 0))
 #define PILLARS_SIZE (PILLAR_GAP*(PILLAR_COUNT-1)+PILLAR_SIZE*PILLAR_COUNT)
 // Given an axis of size n, what offset is needed to center the group of pillars?
 #define PILLARS_BASE(n) (((n)-PILLARS_SIZE)/2)
 
+// How many points to grow to and how many points to draw to
 #define CANDIDATE_COUNT 100
 #define WINNER_COUNT 100
+
+// How full to keep audio buffer and how much to amplify
+// AUDIO_GAP must be at least 2; if it's above 2, gaps will be put between wavebumps
+// Setting AUDIO_SCALE to 256 and AUDIO_GAP to 4 is also pretty fun
+#define AUDIO_TARGET (48000/60 + 200)
+#define AUDIO_SCALE 128
+#define AUDIO_CEILING (1<<15)
+#define AUDIO_GAP 2
 
 // What index within the framebuffer is this pixel at?
 #define AT(x,y) (((y)*DISPLAY_WIDTH)+(x))
@@ -89,7 +99,7 @@ int main(void)
 				int y_block = y_root+by*(PILLAR_SIZE+PILLAR_GAP), x_block = x_root+bx*(PILLAR_SIZE+PILLAR_GAP);
 				for(int y = 0; y < PILLAR_SIZE; y++) {
 					for(int x = 0; x < PILLAR_SIZE; x++) {
-						fb[AT(x_block+x, y_block+y)] = COLOR(32, 0, 0);
+						fb[AT(x_block+x, y_block+y)] = PILLAR_COLOR;
 					}
 				}
 			}
@@ -102,7 +112,13 @@ int main(void)
 	int current = 0;
 	int color = COLOR(0,32,0);
 	#define SHADOW_FRAMEBUFFER_SIZE ((DISPLAY_WIDTH*DISPLAY_HEIGHT)/8)
-	static uint8_t shadow_framebuffer[SHADOW_FRAMEBUFFER_SIZE]; // Too big for heap
+	static uint8_t shadow_framebuffer[SHADOW_FRAMEBUFFER_SIZE]; // Too big for stack
+
+	// Start descending from signed 0 to avoid a pop at the beginning
+	uint16_t audio_cycle = 1;
+	uint16_t audio_silence = 1<<15;
+	uint16_t audio_wave = 0;
+	uint16_t audio_wave_ceil = 0;
 
 	while (1)
 	{
@@ -130,6 +146,44 @@ int main(void)
 			Candidate winner = candidates_current[idx];
 			fb[AT(winner.x, winner.y)] = color;
 		}
+
+		// Do audio
+		// We will generate a triangle wave which randomly changes its frequency each cycle.
+		// Lower-pitched cycles are louder and higher-pitched cycles are quieter
+		// I intended this to sound like fungus growing. And it doesn't,
+		// but it did wind up sounding like a kind of bubbling cauldron, which I like.
+		size_t audio_needed = AUDIO_TARGET - apf_audio_buffer_fill_read();
+		for(size_t idx = 0; idx < audio_needed; idx++) {
+			if (0 == audio_cycle % AUDIO_GAP) {
+				if (audio_wave >= audio_wave_ceil) {
+					audio_cycle++;
+				} else {
+					audio_wave += AUDIO_SCALE;
+				}
+			} else if (1 == audio_cycle % AUDIO_GAP) {
+				if (audio_wave == 0) {
+					audio_wave_ceil = xo_rand(AUDIO_CEILING);
+					audio_silence = 0;
+					audio_cycle++;
+
+				} else {
+					audio_wave -= AUDIO_SCALE;
+				}
+			} else { // Unused
+				if (audio_silence >= audio_wave_ceil) {
+					audio_wave = 0;
+					audio_silence = 0;
+					audio_cycle++;
+				} else {
+					audio_silence += AUDIO_SCALE;
+				}
+			}
+			// Convert from mono unsigned to packed stereo signed 
+			uint32_t value = audio_wave;
+			value = (value + (1<<15)) & 0xFFFF;
+			apf_audio_out_write(value | (value<<16));
+		}
+		apf_audio_playback_en_write(1);
 
 		// Prepare for next frame
 		// Since we don't have to worry about vblank finishing, we can take our time now.
