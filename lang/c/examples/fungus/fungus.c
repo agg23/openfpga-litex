@@ -51,9 +51,8 @@ typedef enum {
 // Given an axis of size n, what offset is needed to center the group of pillars?
 #define PILLARS_BASE(n) (((n)-PILLARS_SIZE)/2)
 
-// How many points to grow to and how many points to draw to
-#define CANDIDATE_COUNT 400
-#define WINNER_COUNT 100
+// Candidate buffer size
+#define CANDIDATE_TRUE_MAX 1600
 
 // How full to keep audio buffer and how much to amplify
 // AUDIO_GAP must be at least 2; if it's above 2, gaps will be put between wavebumps
@@ -62,6 +61,8 @@ typedef enum {
 #define AUDIO_SCALE 128
 #define AUDIO_CEILING (1<<15)
 #define AUDIO_GAP 2
+
+#define SPEED_COUNT 3
 
 // What index within the framebuffer is this pixel at?
 #define AT(x,y) (((y)*DISPLAY_WIDTH)+(x))
@@ -132,12 +133,17 @@ int main(void)
 	}
 
 	// Who needs a heap anyway
-	Candidate candidates[2][CANDIDATE_COUNT];
+	Candidate candidates[2][CANDIDATE_TRUE_MAX];
 	int candidates_len[2] = {0,0};
 	int current = 0;
 	int color = COLOR(0,32,0);
 	#define SHADOW_FRAMEBUFFER_SIZE ((DISPLAY_WIDTH*DISPLAY_HEIGHT)/8)
 	static uint8_t shadow_framebuffer[SHADOW_FRAMEBUFFER_SIZE]; // Too big for stack
+
+	// "Candidates" are points which are currently drawing,
+	// "winners" are points that are currently being drawn
+	// Col 1 is candidate count, col 2 is winner ratio (when winner_cut on)
+	const int speeds[2][SPEED_COUNT] = { {100, 10}, {400, 4}, {1600, 2} };
 
 	// Start descending from signed 0 to avoid a pop at the beginning
 	uint16_t audio_cycle = 1;
@@ -147,6 +153,11 @@ int main(void)
 
 	bool paused = false;
 	uint16_t cont1_key_last = 0;
+
+	bool super_grow = false;
+	bool super_cycle = false;
+	bool winner_cut = true;
+	int speed = 1;
 
 	while (1)
 	{
@@ -170,7 +181,10 @@ int main(void)
 		}
 
 		// Draw the current list (but only the lucky first handful)
-		for(int idx = 0; idx < WINNER_COUNT && idx < candidates_len[current]; idx++) {
+		int candidates_max = speeds[0][speed];
+		int winner_count = candidates_max;
+		if (winner_cut) winner_count /= speeds[1][speed];
+		for(int idx = 0; idx < winner_count && idx < candidates_len[current]; idx++) {
 			Candidate winner = candidates_current[idx];
 			fb[AT(winner.x, winner.y)] = color;
 		}
@@ -215,6 +229,7 @@ int main(void)
 		}
 		apf_audio_playback_en_write(1);
 
+		// Handle controls
         uint16_t cont1_key = apf_input_cont1_key_read(); // Crop out analog sticks
         uint16_t cont1_key_edge = (~cont1_key_last) & cont1_key;
         cont1_key_last = cont1_key;
@@ -227,8 +242,20 @@ int main(void)
             ctrl_reset_write(1); // 1 resets entire SOC
         }
 
-        if (cont1_key_edge & face_start) {
-            ctrl_reset_write(1); // 1 resets entire SOC
+        if (cont1_key_edge & face_y) {
+        	super_cycle = !super_cycle;
+        }
+
+        if (cont1_key_edge & face_x) {
+        	super_grow = !super_grow;
+        }
+
+        if (cont1_key_edge & face_b) {
+        	winner_cut = !winner_cut;
+        }
+
+        if (cont1_key_edge & face_a) {
+        	speed = (speed + 1) % SPEED_COUNT;
         }
 
         if (cont1_key_edge & trig_l1) {
@@ -244,7 +271,7 @@ int main(void)
 		if (!paused) { // Note we DON'T pause drawing, only updates and sound
 			for(int idx = 0; idx < SHADOW_FRAMEBUFFER_SIZE; idx++)
 				shadow_framebuffer[idx] = 0;
-			for(int idx = 0; idx < candidates_len[current] && candidates_len[next] < CANDIDATE_COUNT; idx++) {
+			for(int idx = 0; idx < candidates_len[current] && candidates_len[next] < candidates_max; idx++) {
 				Candidate check = candidates_current[idx];
 				Candidate neighbors[4] = {
 					{check.x, (check.y+1)%DISPLAY_HEIGHT},
@@ -253,7 +280,7 @@ int main(void)
 					{(check.x+DISPLAY_WIDTH-1)%DISPLAY_WIDTH, check.y}
 				};
 				for(int n = 0; n < 4; n++) {
-					if (candidates_len[next] >= CANDIDATE_COUNT)
+					if (candidates_len[next] >= candidates_max)
 						break;
 					size_t neighbor_at = AT(neighbors[n].x, neighbors[n].y);
 					// Use the shadow framebuffer to check for pixels we've checked this frame
@@ -262,10 +289,18 @@ int main(void)
 					if (shadow_framebuffer[neighbor_shadow_idx] & neighbor_shadow_bit)
 						continue;
 					shadow_framebuffer[neighbor_shadow_idx] |= neighbor_shadow_bit;
-					uint16_t color_minus_current = color-fb[neighbor_at];
-					int16_t color_minus_current_diff = color_minus_current;
-					if (color_minus_current_diff <= 0)
-						continue;
+					uint16_t color_prev = fb[neighbor_at];
+					uint16_t color_minus_current = color-color_prev;
+					if (super_grow) {
+						color_minus_current += 0x100;
+						if (color_prev && color_minus_current < 0x200) {
+							continue;
+						}
+					} else {
+						int16_t color_minus_current_diff = color_minus_current;
+						if (color_minus_current_diff <= 0)
+							continue;
+					}
 					CANDIDATE_PUSH(neighbors[n]);
 				}
 			}
@@ -279,7 +314,13 @@ int main(void)
 			// Also randomize candidates list while paused, for cool fuzz
 			fisher_yates(candidates_current, candidates_len[current]);
 		}
-		color++; // Treat the 565 bit-packed color as a single integer. Normally, you don't want this.
+
+		// Color cycle: Treat the 565 bit-packed color as a single integer. Normally, you don't want this.
+		if (super_cycle) {
+			color += 16;
+		} else {
+			color++;
+		}
 	}
 
 	return 0;
