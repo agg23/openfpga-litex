@@ -12,8 +12,8 @@
 // #include <libbase/console.h>
 #include <generated/csr.h>
 
-// Turn on to print warnings when frame fails to draw within vblank
-#define SPEED_DEBUG 0
+// Set 1 to use the slower (??) 128-bit xoshiro RNG
+#define XO_128 0
 
 #define DISPLAY_WIDTH 266
 #define DISPLAY_HEIGHT 240
@@ -57,7 +57,7 @@ typedef enum {
 // How full to keep audio buffer and how much to amplify
 // AUDIO_GAP must be at least 2; if it's above 2, gaps will be put between wavebumps
 // Setting AUDIO_SCALE to 256 and AUDIO_GAP to 4 is also pretty fun
-#define AUDIO_TARGET (48000/60 + 200)
+#define AUDIO_TARGET (48000/60 * 2)
 #define AUDIO_SCALE 128
 #define AUDIO_CEILING (1<<15)
 #define AUDIO_GAP 2
@@ -81,7 +81,11 @@ inline Candidate make_candidate(int x, int y) {
 }
 
 // Standalone random number generator
+#if XO_128
 #include "xoshiro128starstar.h"
+#else
+#include "xoroshiro64starstar.h"
+#endif
 
 // Will use for colors
 static inline uint32_t xo_rotr(const uint32_t x, int k) {
@@ -125,7 +129,11 @@ int main(void)
 
     { // Primitive randomness seed
         uint32_t time = apf_rtc_unix_seconds_read();
+#if XO_128
         xo_jump(time+5, time+3, time+2, time);
+#else
+        xo_seed(~time, time);
+#endif
     }
 
     // Draw a 3x3 grid of rectangles with a hole in the middle, to break up the field
