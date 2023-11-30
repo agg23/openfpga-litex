@@ -24,15 +24,15 @@
 
 // Sizes and spacing of "pillar" squares
 #define PILLAR_COUNT 3
-#define PILLAR_SIZE 10
-#define PILLAR_GAP 60
+#define PILLAR_SIZE 40
+#define PILLAR_GAP 30
 #define PILLAR_COLOR (COLOR(20, 0, 0))
 #define PILLARS_SIZE (PILLAR_GAP*(PILLAR_COUNT-1)+PILLAR_SIZE*PILLAR_COUNT)
 // Given an axis of size n, what offset is needed to center the group of pillars?
 #define PILLARS_BASE(n) (((n)-PILLARS_SIZE)/2)
 
 // How many points to grow to and how many points to draw to
-#define CANDIDATE_COUNT 100
+#define CANDIDATE_COUNT 400
 #define WINNER_COUNT 100
 
 // How full to keep audio buffer and how much to amplify
