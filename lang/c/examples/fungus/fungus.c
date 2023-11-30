@@ -79,6 +79,11 @@ inline Candidate make_candidate(int x, int y) {
 // Standalone random number generator
 #include "xoshiro128starstar.h"
 
+// Will use for colors
+static inline uint32_t xo_rotr(const uint32_t x, int k) {
+	return (x >> k) | (x << (32 - k));
+}
+
 // Fisher-Yates Shuffle, modeled on discussion at https://stackoverflow.com/a/42322025
 // This will efficiently reorder an array randomly
 static void fisher_yates(Candidate *array, int len) {
@@ -220,6 +225,18 @@ int main(void)
 
         if (cont1_key_edge & face_start) {
             ctrl_reset_write(1); // 1 resets entire SOC
+        }
+
+        if (cont1_key_edge & face_start) {
+            ctrl_reset_write(1); // 1 resets entire SOC
+        }
+
+        if (cont1_key_edge & trig_l1) {
+            color = xo_rotl(color, 5);
+        }
+
+        if (cont1_key_edge & trig_r1) {
+            color = xo_rotr(color, 6);
         }
 
 		// Prepare for next frame
