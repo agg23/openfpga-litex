@@ -166,7 +166,7 @@ int main(void)
     bool audio_beeping = false;
     uint16_t audio_beep_speed = 1;
     uint16_t audio_beep_time = 0;
-    uint16_t audio_beep_sign = 1;
+    int16_t audio_beep_sign = 1;
 
     bool paused = false;
     uint16_t cont1_key_last = 0;
@@ -309,6 +309,24 @@ int main(void)
                     {check.x, (check.y+DISPLAY_HEIGHT-1)%DISPLAY_HEIGHT},
                     {(check.x+DISPLAY_WIDTH-1)%DISPLAY_WIDTH, check.y}
                 };
+                // Move around with d-pad
+                if (cont1_key & (dpad_up | dpad_down | dpad_left | dpad_right)) {
+                    for(int nidx = 0; nidx < 4; nidx++) {
+                        Candidate *neighbor = &neighbors[nidx];
+                        if (cont1_key & dpad_up) {
+                            neighbor->y = (neighbor->y-1+DISPLAY_HEIGHT)%DISPLAY_HEIGHT;
+                        }
+                        if (cont1_key & dpad_down) {
+                            neighbor->y = (neighbor->y+1)%DISPLAY_HEIGHT;
+                        }
+                        if (cont1_key & dpad_left) {
+                            neighbor->x = (neighbor->x-1+DISPLAY_WIDTH)%DISPLAY_WIDTH;
+                        }
+                        if (cont1_key & dpad_right) {
+                            neighbor->x = (neighbor->x+1)%DISPLAY_WIDTH;
+                        }
+                    }
+                }
                 for(int n = 0; n < 4; n++) {
                     if (candidates_len[next] >= candidates_max)
                         break;
@@ -335,9 +353,6 @@ int main(void)
                 }
             }
 
-            // Randomize candidates list so we don't just go continually downward
-            fisher_yates(candidates_next, candidates_len[next]);
-
             // Trick: It's really easy in this specific configuration to get "stuck",
             // so instead of resetting to 0, just hold until you get "unstuck", because it looks cool
             if (super_grow && speed == 2 && !candidates_len[next]) {
@@ -345,6 +360,9 @@ int main(void)
                 next = current;
                 current = tmp;
             }
+
+            // Randomize candidates list so we don't just go continually downward
+            fisher_yates(candidates_next, candidates_len[next]);
 
             candidates_len[current] = 0;
             current = next;
