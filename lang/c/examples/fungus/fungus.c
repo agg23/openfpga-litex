@@ -116,8 +116,8 @@ int main(void)
 
 	// Start descending from signed 0 to avoid a pop at the beginning
 	uint16_t audio_cycle = 1;
-	uint16_t audio_silence = 1<<15;
-	uint16_t audio_wave = 0;
+	uint16_t audio_silence = 0;
+	uint16_t audio_wave = 1<<15;
 	uint16_t audio_wave_ceil = 0;
 
 	while (1)
