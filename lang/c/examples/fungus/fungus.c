@@ -61,6 +61,9 @@ typedef enum {
 #define AUDIO_SCALE 128
 #define AUDIO_CEILING (1<<15)
 #define AUDIO_GAP 2
+#define AUDIO_BEEP_BASE 150
+#define AUDIO_BEEP_TIME (48000/AUDIO_BEEP_BASE)*10
+#define AUDIO_BEEP_ATTENUATE 16
 
 #define SPEED_COUNT 3
 
@@ -98,6 +101,12 @@ static void fisher_yates(Candidate *array, int len) {
 	         array[idx_rand] = temp;
 	     }
      }
+}
+
+static void beep(uint16_t set_beep_speed, bool *audio_beeping, uint16_t *audio_beep_speed, uint32_t *audio_beep_time) {
+	*audio_beeping = true;
+	*audio_beep_speed = set_beep_speed;
+	*audio_beep_time = 0;
 }
 
 int main(void)
@@ -142,14 +151,17 @@ int main(void)
 
 	// "Candidates" are points which are currently drawing,
 	// "winners" are points that are currently being drawn
-	// Col 1 is candidate count, col 2 is winner ratio (when winner_cut on)
-	const int speeds[2][SPEED_COUNT] = { {100, 10}, {400, 4}, {1600, 2} };
+	// Col 1 is candidate count, col 2 is winner ratio (when winner_cut on), col 3 is beep speed
+	const int speeds[SPEED_COUNT][3] = { {100, 10, 1}, {400, 4, 2}, {1600, 2, 4} };
 
 	// Start descending from signed 0 to avoid a pop at the beginning
 	uint16_t audio_cycle = 1;
 	uint16_t audio_silence = 0;
 	uint16_t audio_wave = 1<<15;
 	uint16_t audio_wave_ceil = 0;
+	bool audio_beeping = false;
+	uint16_t audio_beep_speed = 1;
+	uint32_t audio_beep_time = 0;
 
 	bool paused = false;
 	uint16_t cont1_key_last = 0;
@@ -181,9 +193,9 @@ int main(void)
 		}
 
 		// Draw the current list (but only the lucky first handful)
-		int candidates_max = speeds[0][speed];
+		int candidates_max = speeds[speed][0];
 		int winner_count = candidates_max;
-		if (winner_cut) winner_count /= speeds[1][speed];
+		if (winner_cut) winner_count /= speeds[speed][1];
 		for(int idx = 0; idx < winner_count && idx < candidates_len[current]; idx++) {
 			Candidate winner = candidates_current[idx];
 			fb[AT(winner.x, winner.y)] = color;
@@ -196,7 +208,7 @@ int main(void)
 		// but it did wind up sounding like a kind of bubbling cauldron, which I like.
 		size_t audio_needed = AUDIO_TARGET - apf_audio_buffer_fill_read();
 		for(size_t idx = 0; idx < audio_needed; idx++) {
-			if (paused) {
+			if (paused || audio_beeping) {
 				// Do nothing
 			} else if (0 == audio_cycle % AUDIO_GAP) {
 				if (audio_wave >= audio_wave_ceil) {
@@ -222,9 +234,21 @@ int main(void)
 					audio_silence += AUDIO_SCALE;
 				}
 			}
+			if (audio_beeping) { // Beep even when paused
+				audio_wave += audio_beep_speed; // World's basicest saw wave
+				audio_beep_time++;
+				if (audio_beep_time >= AUDIO_BEEP_TIME)
+					audio_beeping = false;
+			}
+
 			// Convert from mono unsigned to packed stereo signed 
 			uint32_t value = audio_wave;
 			value = (value + (1<<15)) & 0xFFFF;
+			if (audio_beeping) {
+				int16_t signed_value = value;
+				signed_value /= AUDIO_BEEP_ATTENUATE;
+				value = (uint16_t)signed_value;
+			}
 			apf_audio_out_write(value | (value<<16));
 		}
 		apf_audio_playback_en_write(1);
@@ -244,18 +268,22 @@ int main(void)
 
         if (cont1_key_edge & face_y) {
         	super_cycle = !super_cycle;
+        	beep(AUDIO_BEEP_BASE*(super_cycle?4:2), &audio_beeping, &audio_beep_speed, &audio_beep_time);
         }
 
         if (cont1_key_edge & face_x) {
         	super_grow = !super_grow;
+        	beep(AUDIO_BEEP_BASE*(super_grow?4:2), &audio_beeping, &audio_beep_speed, &audio_beep_time);
         }
 
         if (cont1_key_edge & face_b) {
-        	winner_cut = !winner_cut;
+        	speed = (speed + 1) % SPEED_COUNT;
+        	beep(AUDIO_BEEP_BASE*speeds[speed][2], &audio_beeping, &audio_beep_speed, &audio_beep_time);
         }
 
         if (cont1_key_edge & face_a) {
-        	speed = (speed + 1) % SPEED_COUNT;
+        	winner_cut = !winner_cut;
+        	beep(AUDIO_BEEP_BASE*(winner_cut?2:4), &audio_beeping, &audio_beep_speed, &audio_beep_time);
         }
 
         if (cont1_key_edge & trig_l1) {
