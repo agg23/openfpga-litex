@@ -1,4 +1,4 @@
-// Fluidly expanding colors
+// Fluidly expanding colors and grumbling sound
 // Sample contributed by Andi McClure, available under Creative Commons Zero (public domain)
 // If you substantially reuse this code a credit would be appreciated but is not required
 
@@ -12,8 +12,7 @@
 // #include <libbase/console.h>
 #include <generated/csr.h>
 
-// Set 1 to use the slower (??) 128-bit xoshiro RNG
-#define XO_128 0
+// Platform support
 
 #define DISPLAY_WIDTH 266
 #define DISPLAY_HEIGHT 240
@@ -42,6 +41,22 @@ typedef enum {
     face_start  = 1<<15,
 } PocketControls;
 
+// What index within the framebuffer is this pixel at?
+#define AT(x,y) (((y)*DISPLAY_WIDTH)+(x))
+
+// Standalone random number generator
+
+// Set 1 to use the slower (??) 128-bit xoshiro RNG
+#define XO_128 0
+
+#if XO_128
+#include "xoshiro128starstar.h"
+#else
+#include "xoroshiro64starstar.h"
+#endif
+
+// App properties
+
 // Sizes and spacing of "pillar" squares
 #define PILLAR_COUNT 3
 #define PILLAR_SIZE 40
@@ -54,21 +69,31 @@ typedef enum {
 // Candidate buffer size
 #define CANDIDATE_TRUE_MAX 1600
 
-// How full to keep audio buffer and how much to amplify
-// AUDIO_GAP must be at least 2; if it's above 2, gaps will be put between wavebumps
-// Setting AUDIO_SCALE to 256 and AUDIO_GAP to 4 is also pretty fun
-#define AUDIO_TARGET (48000/60 * 2)
-#define AUDIO_SCALE 128
-#define AUDIO_CEILING (1<<15)
-#define AUDIO_GAP 2
-#define AUDIO_BEEP_BASE 5
-#define AUDIO_BEEP_TIME (48000/AUDIO_BEEP_BASE/2)
-#define AUDIO_BEEP_VOLUME ((1<<16)/32)
-
+// How many speeds does the B button cycle between
 #define SPEED_COUNT 3
 
-// What index within the framebuffer is this pixel at?
-#define AT(x,y) (((y)*DISPLAY_WIDTH)+(x))
+// How many colors to "avoid" in super grow mode
+#define SUPER_GROW_MARGIN 0x100
+
+// Audio properties (see "How the audio works" below)
+// Note: setting AUDIO_SCALE to 256 and AUDIO_GAP to 4 is also a pretty fun sound
+
+// How many samples do we want in the audio buffer at any one time? (currently "2 frames worth")
+#define AUDIO_TARGET (48000/60 * 2)
+// What is the rise/fall rate of our triangle wave?
+#define AUDIO_SCALE 128
+// What is the loudest our triangle wave can get?
+#define AUDIO_CEILING (1<<15)
+// If AUDIO_GAP is above 2 (it must be at least 2), gaps will be put between triangle-wave bumps
+#define AUDIO_GAP 2
+// Determines pitch of "beeps" when a button is pressed
+#define AUDIO_BEEP_BASE 5
+// Length of "beep" when a button is pressed
+#define AUDIO_BEEP_TIME (48000/AUDIO_BEEP_BASE/2)
+// Amplitude of "beep" when a button is pressed
+#define AUDIO_BEEP_VOLUME ((1<<16)/32)
+
+// App support
 
 typedef struct {
     uint16_t x;
@@ -79,13 +104,6 @@ inline Candidate make_candidate(int x, int y) {
     Candidate candidate = {x,y};
     return candidate;
 }
-
-// Standalone random number generator
-#if XO_128
-#include "xoshiro128starstar.h"
-#else
-#include "xoroshiro64starstar.h"
-#endif
 
 // Will use for colors
 static inline uint32_t xo_rotr(const uint32_t x, int k) {
@@ -98,7 +116,7 @@ static void fisher_yates(Candidate *array, int len) {
      Candidate temp;
 
      for (int idx_ceiling = len-1; idx_ceiling > 0; idx_ceiling--) { // Iterate array backward
-         int idx_rand = xo_rand(idx_ceiling + 1); // Swap each member with a random member below it 
+         int idx_rand = xo_rand(idx_ceiling + 1); // Swap each member with a random member below it
          if (idx_ceiling != idx_rand) {
              temp = array[idx_ceiling];
              array[idx_ceiling] = array[idx_rand];
@@ -107,6 +125,7 @@ static void fisher_yates(Candidate *array, int len) {
      }
 }
 
+// To beep, call "BEEP" (do not call "beep" directly)
 static void beep(uint16_t set_beep_speed, uint16_t audio_wave, bool *audio_beeping, uint16_t *audio_beep_speed, uint16_t *audio_beep_time, int16_t *audio_beep_sign) {
     *audio_beeping = true;
     *audio_beep_speed = set_beep_speed;
@@ -153,72 +172,112 @@ int main(void)
         }
     }
 
-    // Who needs a heap anyway
-    Candidate candidates[2][CANDIDATE_TRUE_MAX];
-    int candidates_len[2] = {0,0};
-    int current = 0;
-    int color = COLOR(0,32,0);
-    #define SHADOW_FRAMEBUFFER_SIZE ((DISPLAY_WIDTH*DISPLAY_HEIGHT)/8)
-    static uint8_t shadow_framebuffer[SHADOW_FRAMEBUFFER_SIZE]; // Too big for stack
+    // How the graphics work:
+    // Essentially this app runs 100 to 1600 tiny agents that are taking a random walk on the screen.
+    // Each agent leaves behind a trail of colored pixels; the color is shared and changes once per frame.
+    // The current state of the screen, plus a "shadow framebuffer" that is cleared every frame, are
+    // used to prevent the agents from stomping on each other.
+    // The agents live in a pair of "candidate" arrays. On each frame we designate one array "current"
+    // and one array "next". Each candidate in "current" attempts to spawn 4 children in "next".
+    // After filling "next" we fill randomly sort it each frame, to prevent bias in any specific direction.
 
-    // "Candidates" are points which are currently drawing,
-    // "winners" are points that are currently being drawn
-    // Col 1 is candidate count, col 2 is winner ratio (when winner_cut on), col 3 is beep speed
+    // App state
+    // We don't have a heap, so all variables need to be stack or static/global
+
+    // Our two queues of "candidate"
+    Candidate candidates[2][CANDIDATE_TRUE_MAX];
+    int candidates_len[2] = {0,0}; // How many candidates are actually present in each queue?
+    int current = 0; // Which of the two queues is "current"?
+    int color = COLOR(0,32,0); // What color are the candidates currently drawing?
+    #define SHADOW_FRAMEBUFFER_SIZE ((DISPLAY_WIDTH*DISPLAY_HEIGHT)/8)
+    static uint8_t shadow_framebuffer[SHADOW_FRAMEBUFFER_SIZE]; // 1 bit per candidate. Too big for stack
+
+    // "Candidates" are points which are currently spawning other candidates,
+    // "Winners" are candidates that are currently allowed to draw to the screen.
+    // Col 1 is candidate count, col 2 is winner ratio (when winner_cut on), col 3 is beep pitch (when pressing B)
     const int speeds[SPEED_COUNT][3] = { {100, 10, 1}, {400, 4, 2}, {1600, 2, 4} };
 
-    // Start descending from signed 0 to avoid a pop at the beginning
+    // How the audio works:
+    // We are generating a triangle wave which changes its frequency each cycle.
+    // This generates a random combination of mostly low rumbling interspersed with squeaks.
+    // The way this is done is starting from a "floor" of the DAC's lowest value (signed INT_MIN),
+    // Each cycle we pick a "ceiling" and rise to it then descend from it at a constant rate.
+    // (So audio_wave_ceil sets pitch AND amplitude; the low rumbles are louder than the squeaks.)
+    // When the user presses a button, the triangle wave halts and a saw wave plays atop it.
+
+    // Audio state
+    // Note we calculate all sound in uint16_t space and convert to int16_t at the last moment.
+
+    // audio_cycle determines if we are rising (0) resting (1) or waiting (>1)
+    // Note: We start at cycle 1, wave value 2^15; after converting from uint16_t to int16_t,
+    // this means we start by descending from signed 0. This avoids a pop when the app boots.
     uint16_t audio_cycle = 1;
+    // When waiting (audio_cycle>1), this counter determines how long we've been waiting.
     uint16_t audio_silence = 0;
+    // Triangle wave state/output
     uint16_t audio_wave = 1<<15;
+    // Triangle wave target value
     uint16_t audio_wave_ceil = 0;
+    // Is a beep currently occurring?
     bool audio_beeping = false;
+    // If a beep is occurring, how much does it rise per frame?
     uint16_t audio_beep_speed = 1;
+    // If a beep is occurring, this counter determines how long we've been beeping.
     uint16_t audio_beep_time = 0;
+    // Determines whether the beep should "rise" or "fall" from the current audio_wave value
+    // (so if we begin a beep when audio_wave is near UINT_MAX, we don't clip)
     int16_t audio_beep_sign = 1;
 
-    bool paused = false;
-    uint16_t cont1_key_last = 0;
+    // Controls state
 
+    bool paused = false;
+    uint16_t cont1_key_last = 0; // cont1_key on previous loop
+
+    // Switches between two modes for determining which framebuffer colors block growth.
+    // Normal mode: colors > 2^15 away are impassable. This causes the red pillars to act like walls.
+    // Super grow mode: The last 256 colors written are impassable. This causes the fungus to avoid
+    // where it's recently been and habitually grow "outward".
     bool super_grow = false;
+    // Increases the rate at which the write color changes.
     bool super_cycle = false;
+    // When true, only a subset of candidates actually draw to the screen. When false, all do.
     bool winner_cut = true;
+    // Which configuration in "speeds" we are currently using (determines number of candiates/winners)
     int speed = 1;
 
     while (1)
     {
+        // Busy loop until VBLANK begins, signaling next frame ready to go.
+        // We'd like to do all drawing inside VBLANK to prevent tearing.
         while (1) {
             uint32_t video = apf_video_video_read();
             if (apf_video_video_vblank_triggered_extract(video))
                 break;
         }
 
-        // At any one time we have two lists of points we can expand into;
-        // one for the current frame, and one for the next frame.
+        // Designate the "growing from" and "growing into" candidate frames.
         int next = (current+1)%2;
         Candidate *candidates_current = &candidates[current][0];
         Candidate *candidates_next = &candidates[next][0];
 
         #define CANDIDATE_PUSH(candidate) { candidates_next[candidates_len[next]] = candidate; candidates_len[next]++; }
 
+        // All the fungus has died. Attempt to regrow from screen center (will also run on first iteration)
         if (candidates_len[current] == 0) {
             candidates_current[0] = make_candidate(DISPLAY_WIDTH/2, DISPLAY_HEIGHT/2);
             candidates_len[current] = 1;
         }
 
-        // Draw the current list (but only the lucky first handful)
+        // Draw the current list
         int candidates_max = speeds[speed][0];
         int winner_count = candidates_max;
-        if (winner_cut) winner_count /= speeds[speed][1];
+        if (winner_cut) winner_count /= speeds[speed][1]; // (But in winner_cut mode, only the lucky first few)
         for(int idx = 0; idx < winner_count && idx < candidates_len[current]; idx++) {
             Candidate winner = candidates_current[idx];
             fb[AT(winner.x, winner.y)] = color;
         }
 
-        // Do audio
-        // We will generate a triangle wave which randomly changes its frequency each cycle.
-        // Lower-pitched cycles are louder and higher-pitched cycles are quieter
-        // I intended this to sound like fungus growing. And it doesn't,
-        // but it did wind up sounding like a kind of bubbling cauldron, which I like.
+        // Play audio
         size_t audio_needed = AUDIO_TARGET - apf_audio_buffer_fill_read();
         for(size_t idx = 0; idx < audio_needed; idx++) {
             if (paused || audio_beeping) {
@@ -238,7 +297,7 @@ int main(void)
                 } else {
                     audio_wave -= AUDIO_SCALE;
                 }
-            } else { // Unused
+            } else { // Unused unless AUDIO_GAP goes above 1
                 if (audio_silence >= audio_wave_ceil) {
                     audio_wave = 0;
                     audio_silence = 0;
@@ -248,7 +307,7 @@ int main(void)
                 }
             }
 
-            // Convert from mono unsigned to packed stereo signed 
+            // Convert from mono unsigned to packed stereo signed
             uint32_t value = audio_wave;
             value = (value + (1<<15)) & 0xFFFF;
             if (audio_beeping) { // Beep even when paused
@@ -263,9 +322,12 @@ int main(void)
         }
         apf_audio_playback_en_write(1);
 
+        // This frame complete; now prepare for next frame
+        // Since we don't have to worry about vblank finishing, we can take our time now.
+
         // Handle controls
-        uint16_t cont1_key = apf_input_cont1_key_read(); // Crop out analog sticks
-        uint16_t cont1_key_edge = (~cont1_key_last) & cont1_key;
+        uint16_t cont1_key = apf_input_cont1_key_read(); // Bitmask (crop out analog sticks)
+        uint16_t cont1_key_edge = (~cont1_key_last) & cont1_key; // Bitmask is 1 iff a button press is *new this frame*
         cont1_key_last = cont1_key;
 
         if (cont1_key_edge & face_select) {
@@ -296,6 +358,8 @@ int main(void)
             BEEP(AUDIO_BEEP_BASE*(super_cycle?4:2));
         }
 
+        // Triggers rotate color left or right.
+        // Notice these are imbalanced, so mashing L and R will slowly rotate 1 bit
         if (cont1_key_edge & trig_l1) {
             color = xo_rotl(color, 5);
         }
@@ -304,20 +368,25 @@ int main(void)
             color = xo_rotr(color, 6);
         }
 
-        // Prepare for next frame
-        // Since we don't have to worry about vblank finishing, we can take our time now.
-        if (!paused) { // Note we DON'T pause drawing, only updates and sound
+        // Grow fungus
+        if (!paused) { // Note we DON'T halt drawing during pause, only updates and sound
+            // Clear shadow framebuffer
             for(int idx = 0; idx < SHADOW_FRAMEBUFFER_SIZE; idx++)
                 shadow_framebuffer[idx] = 0;
+
+            // Iterate over candidates
             for(int idx = 0; idx < candidates_len[current] && candidates_len[next] < candidates_max; idx++) {
                 Candidate check = candidates_current[idx];
+
+                // Pixels we can grow into
                 Candidate neighbors[4] = {
                     {check.x, (check.y+1)%DISPLAY_HEIGHT},
                     {(check.x+1)%DISPLAY_WIDTH, check.y},
                     {check.x, (check.y+DISPLAY_HEIGHT-1)%DISPLAY_HEIGHT},
                     {(check.x+DISPLAY_WIDTH-1)%DISPLAY_WIDTH, check.y}
                 };
-                // Move around with d-pad
+
+                // Controls: Move around when d-pad held
                 if (cont1_key & (dpad_up | dpad_down | dpad_left | dpad_right)) {
                     for(int nidx = 0; nidx < 4; nidx++) {
                         Candidate *neighbor = &neighbors[nidx];
@@ -335,21 +404,26 @@ int main(void)
                         }
                     }
                 }
+
+                // Act on neighbors
                 for(int n = 0; n < 4; n++) {
                     if (candidates_len[next] >= candidates_max)
                         break;
                     size_t neighbor_at = AT(neighbors[n].x, neighbors[n].y);
-                    // Use the shadow framebuffer to check for pixels we've checked this frame
+
+                    // Use the shadow framebuffer to avoid pixels we've already checked this frame
                     size_t neighbor_shadow_idx = neighbor_at/8;
-                    uint8_t neighbor_shadow_bit = 1<<(neighbor_at%8); 
+                    uint8_t neighbor_shadow_bit = 1<<(neighbor_at%8);
                     if (shadow_framebuffer[neighbor_shadow_idx] & neighbor_shadow_bit)
                         continue;
                     shadow_framebuffer[neighbor_shadow_idx] |= neighbor_shadow_bit;
+
+                    // Use the real framebuffer to see which pixels are "blocked"
                     uint16_t color_prev = fb[neighbor_at];
                     uint16_t color_minus_current = color-color_prev;
                     if (super_grow) {
-                        color_minus_current += 0x100;
-                        if (color_prev && color_minus_current < 0x200) {
+                        color_minus_current += SUPER_GROW_MARGIN;
+                        if (color_prev && color_minus_current < SUPER_GROW_MARGIN*2) { // Multiply by 2 because I feel like it.
                             continue;
                         }
                     } else {
@@ -357,13 +431,16 @@ int main(void)
                         if (color_minus_current_diff <= 0)
                             continue;
                     }
+
+                    // This pixel is allowed to grow
                     CANDIDATE_PUSH(neighbors[n]);
                 }
             }
 
-            // Trick: It's really easy in this specific configuration to get "stuck",
-            // so instead of resetting to 0, just hold until you get "unstuck", because it looks cool
+            // Trick: It's really easy in the specific "speed 2, super grow" configuration to get "stuck",
+            // so instead of resetting to 0, we just hold until we get "unstuck", because it looks cool
             if (super_grow && speed == 2 && !candidates_len[next]) {
+                // Do this by late-swapping current and next
                 int tmp = next;
                 next = current;
                 current = tmp;
@@ -372,6 +449,7 @@ int main(void)
             // Randomize candidates list so we don't just go continually downward
             fisher_yates(candidates_next, candidates_len[next]);
 
+            // Swap next and current
             candidates_len[current] = 0;
             current = next;
         } else {
@@ -379,7 +457,8 @@ int main(void)
             fisher_yates(candidates_current, candidates_len[current]);
         }
 
-        // Color cycle: Treat the 565 bit-packed color as a single integer. Normally, you don't want this.
+        // Color cycle: Treat the 565 bit-packed color as a single integer and increment it.
+        // Normally, you don't want this, but in this case it's a very cheap way to get color cycling.
         if (super_cycle) {
             color += 16;
         } else {
