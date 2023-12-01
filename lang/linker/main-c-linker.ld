@@ -42,7 +42,7 @@ SECTIONS
 		*(.sdata .sdata.* .gnu.linkonce.s.*)
 		. = ALIGN(8);
 		_edata = .;
-	} > main_ram
+	} > sram AT > main_ram
 
 	.bss :
 	{
