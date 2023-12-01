@@ -1,4 +1,4 @@
-# Custom LiteX SoC for Analogue Pocket
+# Custom LiteX RISC-V SoC for Analogue Pocket
 
 This SoC is intended to serve as a host platform for any kind of software that may be useful/fun/interesting to run on the Analogue Pocket, such as calculators, cart dumpers, internet access, custom game consoles/emulation, and more. The system is constructed to provide access to as many of the Pocket's core systems as possible in a simple, software-friendly manner. As opportunities arrive, some functionality may be hardware accelerated.
 
