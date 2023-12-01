@@ -14,7 +14,7 @@ OBJECTS   = crt0.o fungus.o
 BUILD_DIR = $(LITEX_ROOT_DIRECTORY)/build/litex
 SOC_DIRECTORY = $(LITEX_ROOT_DIRECTORY)/vendor/litex/litex/soc
 LINKER_DIRECTORY = ../../../linker
-BASE_LINKER_FILE = $(LINKER_DIRECTORY)/main-c-linker.ld
+BASE_LINKER_FILE = $(LINKER_DIRECTORY)/c-linker.ld
 
 # This uses LiteX generated variables, relative to the build directory, which will not be correct if you are using the committed artifacts
 include $(BUILD_DIR)/software/include/generated/variables.mak
