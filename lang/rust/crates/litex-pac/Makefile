@@ -1,4 +1,5 @@
 build:
-	rm -Rf src
-	mkdir src
-	cd src && svd2rust -i ../../../../../litex/pocket.svd --target riscv
+	rm -Rf src/svd
+	mkdir -p src/svd
+	svd2rust -i ../../../../litex/pocket.svd --output-dir ./src/svd/ --target riscv --make_mod
+	bindgen ../../../../litex/build/litex/software/include/generated/soc.h -o src/constants.rs

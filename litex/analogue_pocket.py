@@ -89,6 +89,9 @@ class BaseSoC(SoCCore):
             self, platform, sys_clk_freq, ident="LiteX SoC on Analog Pocket", **kwargs
         )
 
+        self.add_constant("DEPLOYMENT_PLATFORM", "openfpga")
+        self.add_constant("DEPLOYMENT_TARGET", "pocket")
+
         # Allow booting from the first address in SDRAM
         self.add_constant("ROM_BOOT_ADDRESS", 0x40000000)
         # self.add_constant("SDRAM_TEST_DISABLE", 1)
@@ -108,28 +111,32 @@ class BaseSoC(SoCCore):
                 l2_cache_size=0,
             )
 
-        # This only works with modifications to vendor/litex/litex/soc/cores/video.py to remove the SDR and DDR outputs
         self.submodules.videophy = VideoPocketPHY(platform.request("vga"))
         # 57.12 MHz
+        timings = {
+            "pix_clk": CLOCK_SPEED / 10,
+            "h_active": 266,
+            "h_blanking": 74,  # Max 340
+            "h_sync_offset": 8,
+            "h_sync_width": 32,
+            "v_active": 240,
+            "v_blanking": 40,  # Max 280
+            "v_sync_offset": 1,
+            "v_sync_width": 8,
+        }
+        
         self.add_video_framebuffer(
             phy=self.videophy,
             timings=[
                 "266x240@60Hz",
-                {
-                    "pix_clk": CLOCK_SPEED / 10,
-                    "h_active": 266,
-                    "h_blanking": 74,  # Max 340
-                    "h_sync_offset": 8,
-                    "h_sync_width": 32,
-                    "v_active": 240,
-                    "v_blanking": 40,  # Max 280
-                    "v_sync_offset": 1,
-                    "v_sync_width": 8,
-                },
+                timings,
             ],
             format="rgb565",
             clock_domain="vid",
         )
+
+        self.add_constant("MAX_DISPLAY_WIDTH", timings["h_active"])
+        self.add_constant("MAX_DISPLAY_HEIGHT", timings["v_active"])
 
         # CSR definitions --------------------------------------------------------------------------
         self.add_module("apf_audio", APFAudio(platform))

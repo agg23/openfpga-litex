@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-11-28 11:10:57]]></description>
+    <description><![CDATA[Litex SoC 2023-12-01 13:40:55]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -1706,11 +1706,15 @@ register to disable individual events.]]></description>
             <constant name="CONFIG_CPU_VARIANT_STANDARD" value="None" />
             <constant name="CONFIG_CPU_HUMAN_NAME" value="VexRiscv SMP-STANDARD" />
             <constant name="CONFIG_CPU_NOP" value="nop" />
+            <constant name="DEPLOYMENT_PLATFORM" value="openfpga" />
+            <constant name="DEPLOYMENT_TARGET" value="pocket" />
             <constant name="ROM_BOOT_ADDRESS" value="1073741824" />
             <constant name="VIDEO_FRAMEBUFFER_BASE" value="1086324736" />
             <constant name="VIDEO_FRAMEBUFFER_HRES" value="266" />
             <constant name="VIDEO_FRAMEBUFFER_VRES" value="240" />
             <constant name="VIDEO_FRAMEBUFFER_DEPTH" value="16" />
+            <constant name="MAX_DISPLAY_WIDTH" value="266" />
+            <constant name="MAX_DISPLAY_HEIGHT" value="240" />
             <constant name="CONFIG_CSR_DATA_WIDTH" value="32" />
             <constant name="CONFIG_CSR_ALIGNMENT" value="32" />
             <constant name="CONFIG_BUS_STANDARD" value="WISHBONE" />
