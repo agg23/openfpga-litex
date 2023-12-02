@@ -1,5 +1,12 @@
+.PHONY: fps minibreak minimal rtc vblank
+
 fps:
 	cd examples/rough_fps && \
+	cargo build --release && \
+	cargo objcopy --release -- -O binary ../../rust.bin
+
+minibreak:
+	cd examples/minibreak && \
 	cargo build --release && \
 	cargo objcopy --release -- -O binary ../../rust.bin
 
