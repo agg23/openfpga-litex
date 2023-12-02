@@ -5,6 +5,9 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[build-dependencies]
+litex-pac = { path = "../../crates/litex-pac", features = ["rt"] }
+
 [dependencies]
 embedded-alloc = "0.5.0"
 embedded-hal = "0.2.7"

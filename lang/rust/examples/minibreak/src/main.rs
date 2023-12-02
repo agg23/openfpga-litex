@@ -62,8 +62,8 @@ static HEAP: Heap = Heap::empty();
 
 // Drawing support
 
-const DISPLAY_WIDTH: usize = 266;
-const DISPLAY_HEIGHT: usize = 240;
+const DISPLAY_WIDTH: usize = pac::constants::MAX_DISPLAY_WIDTH as usize;
+const DISPLAY_HEIGHT: usize = pac::constants::MAX_DISPLAY_HEIGHT as usize;
 
 const READ_LENGTH: usize = 0x10000;
 
