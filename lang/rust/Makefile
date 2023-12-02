@@ -1,3 +1,5 @@
+.PHONY: fps minibreak minimal rtc vblank
+
 fps:
 	cd examples/rough_fps && \
 	cargo build --release && \
