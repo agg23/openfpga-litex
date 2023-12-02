@@ -2,10 +2,11 @@
 
 ## Examples
 
-* `minimal` - A minimal Rust project to get you started.
-* `rough_fps` - A very dirty demonstration of manipulating rendering registers to display a blinking FPS counter.
-* `rtd_id` - Renders the Cyclone V chip ID and the current, updating Unix time on the screen via [Slint](https://crates.io/crates/slint).
-* `vblank` - Watches [the control registers](/docs/control.md) to determine when vblank starts and ends, and when vsync itself occurs.
+* [`minimal`](./examples/minimal/) - A minimal Rust project to get you started.
+* [`rough_fps`](./examples/rough_fps/) - A very dirty demonstration of manipulating rendering registers to display a blinking FPS counter.
+* [`rtd_id`](./examples/rtc_id/) - Renders the Cyclone V chip ID and the current, updating Unix time on the screen via [Slint](https://crates.io/crates/slint).
+* [`vblank`](./examples/vblank/) - Watches [the control registers](/docs/control.md) to determine when vblank starts and ends, and when vsync itself occurs.
+* [`minibreak`](./examples/minibreak/) - A difficult Breakout clone implementating diff framebuffer updates.
 
 ## Overview
 
