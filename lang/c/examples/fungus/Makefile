@@ -67,7 +67,7 @@ $(OUTPUT_DIRECTORY)/%.o: %.cpp
 
 $(OUTPUT_DIRECTORY)/%.o: %.c
 	mkdir -p $(OUTPUT_DIRECTORY)
-	$(compile)
+	$(compile) --std=gnu11
 
 $(OUTPUT_DIRECTORY)/%.o: %.S
 	mkdir -p $(OUTPUT_DIRECTORY)
