@@ -1,4 +1,28 @@
 {
+  "git.ignoredRepositories": [
+    "litex/vendor/litedram/",
+    "litex/vendor/liteeth/",
+    "litex/vendor/liteiclink/",
+    "litex/vendor/litejesd204b/",
+    "litex/vendor/litepcie/",
+    "litex/vendor/litesata/",
+    "litex/vendor/litescope/",
+    "litex/vendor/litesdcard/",
+    "litex/vendor/litespi/",
+    "litex/vendor/litex/",
+    "litex/vendor/litex-boards/",
+    "litex/vendor/migen/",
+    "litex/vendor/pythondata-cpu-lm32/",
+    "litex/vendor/pythondata-cpu-mor1kx/",
+    "litex/vendor/pythondata-cpu-naxriscv/",
+    "litex/vendor/pythondata-cpu-serv/",
+    "litex/vendor/pythondata-cpu-vexriscv/",
+    "litex/vendor/pythondata-cpu-vexriscv-smp/",
+    "litex/vendor/pythondata-misc-tapcfg/",
+    "litex/vendor/pythondata-misc-usb_ohci/",
+    "litex/vendor/pythondata-software-compiler_rt/",
+    "litex/vendor/pythondata-software-picolibc"
+  ],
   "python.analysis.extraPaths": [
     "litex/vendor/litedram/",
     "litex/vendor/liteeth/",

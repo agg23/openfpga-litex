@@ -2,9 +2,9 @@
 
 ## Examples
 
-* `helloworld` - A simple hello world demonstration in C, with the included `printf()` function.
-* `helloworld-cpp` - A simple hello world class demonstration in C++, with the included `printf()` function.
-* `fungus` - A demo with visuals, sound and controls.
+* [`helloworld`](./examples/helloworld/) - A simple hello world demonstration in C, with the included `printf()` function.
+* [`helloworld-cpp`](./examples/helloworld-cpp/) - A simple hello world class demonstration in C++, with the included `printf()` function.
+* [`fungus`](./examples/fungus/) - A demo with visuals, sound and controls.
 
 ## Overview
 
