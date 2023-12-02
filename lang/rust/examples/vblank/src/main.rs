@@ -7,34 +7,9 @@ use core::panic::PanicInfo;
 extern crate alloc;
 
 use embedded_alloc::Heap;
-use litex_hal as hal;
 use litex_openfpga::*;
 use litex_pac as pac;
 use riscv_rt::entry;
-
-// Definition is required for uart_printer.rs to work
-hal::uart! {
-    UART: pac::UART,
-}
-
-// Fix for missing main functions
-#[no_mangle]
-fn fminf(a: f32, b: f32) -> f32 {
-    if a < b {
-        a
-    } else {
-        b
-    }
-}
-
-#[no_mangle]
-fn fmaxf(a: f32, b: f32) -> f32 {
-    if a > b {
-        a
-    } else {
-        b
-    }
-}
 
 const HEAP_SIZE: usize = 200 * 1024;
 static mut HEAP_MEM: [MaybeUninit<u8>; HEAP_SIZE] = [MaybeUninit::uninit(); HEAP_SIZE];

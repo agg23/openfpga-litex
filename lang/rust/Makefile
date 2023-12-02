@@ -8,6 +8,11 @@ minibreak:
 	cargo build --release && \
 	cargo objcopy --release -- -O binary ../../rust.bin
 
+minimal:
+	cd examples/minimal && \
+	cargo build --release && \
+	cargo objcopy --release -- -O binary ../../rust.bin
+
 rtc:
 	cd examples/rtc_id && \
 	cargo build --release && \

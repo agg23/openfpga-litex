@@ -757,15 +757,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "glam"
-version = "0.24.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5418c17512bdf42730f9032c74e1ae39afc408745ebb2acf72fbc4691c17945"
-dependencies = [
- "libm",
-]
-
-[[package]]
 name = "half"
 version = "2.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1278,18 +1269,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "minibreak"
+name = "minimal"
 version = "0.1.0"
 dependencies = [
- "cfg-if",
  "embedded-alloc",
  "embedded-hal",
- "glam",
- "litex-hal",
  "litex-openfpga",
- "litex-pac",
- "nb 1.1.0",
- "num-traits",
  "riscv",
  "riscv-rt",
 ]

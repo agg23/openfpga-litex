@@ -43,6 +43,9 @@ impl File {
                 .slot_id
                 .write(|w| w.bits(bridge_slot_id));
 
+            // Ensure slot change and size read has occured, as it takes several cycles
+            peripherals.APF_BRIDGE.slot_id.read().bits();
+
             peripherals.APF_BRIDGE.file_size.read().bits()
         }
     }

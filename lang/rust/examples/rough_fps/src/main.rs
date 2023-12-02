@@ -8,6 +8,7 @@ use core::cell::RefCell;
 use core::panic::PanicInfo;
 use core::slice::from_raw_parts_mut;
 use core::time::Duration;
+use pac::constants;
 use slint::platform::software_renderer::MinimalSoftwareWindow;
 use slint::platform::software_renderer::{RepaintBufferType, Rgb565Pixel};
 use slint::Timer;
@@ -25,25 +26,6 @@ hal::timer! {
 
 slint::include_modules!();
 
-// Fix for missing main functions
-#[no_mangle]
-fn fminf(a: f32, b: f32) -> f32 {
-    if a < b {
-        a
-    } else {
-        b
-    }
-}
-
-#[no_mangle]
-fn fmaxf(a: f32, b: f32) -> f32 {
-    if a > b {
-        a
-    } else {
-        b
-    }
-}
-
 use core::mem::MaybeUninit;
 const HEAP_SIZE: usize = 200 * 1024;
 static mut HEAP_MEM: [MaybeUninit<u8>; HEAP_SIZE] = [MaybeUninit::uninit(); HEAP_SIZE];
@@ -59,12 +41,10 @@ fn panic(info: &PanicInfo) -> ! {
 #[global_allocator]
 static HEAP: Heap = Heap::empty();
 
-const DISPLAY_WIDTH: usize = 266;
-const DISPLAY_HEIGHT: usize = 240;
+const TEST_BUFFER_INTERNAL_ADDRESS: u32 = constants::VIDEO_FRAMEBUFFER_BASE;
 
-const TEST_BUFFER_INTERNAL_ADDRESS: u32 = 0x40C0_0000;
-
-const TEST_PIXEL_BUFFER_ADDRESS: *mut Rgb565Pixel = 0x40C0_0000 as *mut Rgb565Pixel;
+const TEST_PIXEL_BUFFER_ADDRESS: *mut Rgb565Pixel =
+    constants::VIDEO_FRAMEBUFFER_BASE as *mut Rgb565Pixel;
 
 const TEST_WORD_ADDRESS: *mut u32 = 0x4030_0000 as *mut u32;
 
@@ -79,8 +59,12 @@ fn main() -> ! {
 
     println!("Heap created");
 
-    let buffer =
-        unsafe { from_raw_parts_mut(TEST_PIXEL_BUFFER_ADDRESS, DISPLAY_WIDTH * DISPLAY_HEIGHT) };
+    let buffer = unsafe {
+        from_raw_parts_mut(
+            TEST_PIXEL_BUFFER_ADDRESS,
+            (constants::MAX_DISPLAY_WIDTH * constants::MAX_DISPLAY_HEIGHT) as usize,
+        )
+    };
 
     // Initialize a window (we'll need it later).
     let window = MinimalSoftwareWindow::new(RepaintBufferType::NewBuffer);
@@ -97,8 +81,8 @@ fn main() -> ! {
     println!("Setting window size");
 
     window.set_size(slint::PhysicalSize::new(
-        DISPLAY_WIDTH as u32,
-        DISPLAY_HEIGHT as u32,
+        constants::MAX_DISPLAY_WIDTH as u32,
+        constants::MAX_DISPLAY_HEIGHT as u32,
     ));
 
     // FB Off
@@ -171,7 +155,7 @@ fn main() -> ! {
         slint::platform::update_timers_and_animations();
 
         window.draw_if_needed(|renderer| {
-            renderer.render(buffer, DISPLAY_WIDTH);
+            renderer.render(buffer, constants::MAX_DISPLAY_WIDTH as usize);
 
             let ui = shared_ui.borrow();
 

@@ -2,6 +2,7 @@
 
 ## Examples
 
+* `minimal` - A minimal Rust project to get you started.
 * `rough_fps` - A very dirty demonstration of manipulating rendering registers to display a blinking FPS counter.
 * `rtd_id` - Renders the Cyclone V chip ID and the current, updating Unix time on the screen via [Slint](https://crates.io/crates/slint).
 * `vblank` - Watches [the control registers](/docs/control.md) to determine when vblank starts and ends, and when vsync itself occurs.
@@ -12,7 +13,19 @@ The `riscv32imafdc` Rust target doesn't exist as something you can install via `
 
 This custom target is specified in `/.cargo/config.toml`, at the root of the workspace (and repo). This file sets up our custom JSON target, adds additional linker arguments, enables building `core` and `alloc` core crates for this new target (requires nightly) and provides additional envvars to fix compilation with `cc` for any C/C++ dependencies.
 
-Finally, your parent level Rust crate requires a `build.rs` script to add a linker search path to `/lang/linker/` (TODO: Can this be set in the `/.cargo/config.toml` file instead?):
+Finally, your parent level Rust crate requires a properly set up linker path. If you will always be building from a static location (say from the root of the directory), you can set this path in `.cargo/config.toml`:
+
+```
+[target.riscv32imafdc-unknown-none-elf]
+rustflags = [
+  "-L", "./vendor/openfpga-litex/lang/linker/",
+  "-C", "link-arg=-Tregions.ld",
+  "-C", "link-arg=-Tmemory.x",
+  "-C", "link-arg=-Tlink.x",
+]
+```
+
+Otherwise, create a `build.rs` script to add the linker search path to `/lang/linker/`:
 
 ```rust
 let dest_path = Path::new("../../../linker/");
