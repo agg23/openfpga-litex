@@ -6,16 +6,18 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <assert.h>
 
 // #include <irq.h>
 // #include <libbase/uart.h>
 // #include <libbase/console.h>
 #include <generated/csr.h>
+#include <generated/soc.h>
 
 // Platform support
 
-#define DISPLAY_WIDTH 266
-#define DISPLAY_HEIGHT 240
+#define DISPLAY_WIDTH MAX_DISPLAY_WIDTH
+#define DISPLAY_HEIGHT MAX_DISPLAY_HEIGHT
 
 #define BITS5 ((1<<5)-1)
 #define BITS6 ((1<<6)-1)
@@ -65,6 +67,8 @@ typedef enum {
 #define PILLARS_SIZE (PILLAR_GAP*(PILLAR_COUNT-1)+PILLAR_SIZE*PILLAR_COUNT)
 // Given an axis of size n, what offset is needed to center the group of pillars?
 #define PILLARS_BASE(n) (((n)-PILLARS_SIZE)/2)
+
+static_assert(PILLARS_SIZE <= DISPLAY_WIDTH && PILLARS_SIZE <= DISPLAY_HEIGHT, "The screen size you are compiling for is too small for this app. (Hint: Try reducing the PILLAR_SIZE constant.)");
 
 // Candidate buffer size
 #define CANDIDATE_TRUE_MAX 1600
