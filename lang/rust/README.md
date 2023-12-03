@@ -2,6 +2,7 @@
 
 ## Examples
 
+* [`interact`](./examples/interact/) - A demo of the Pocket `interact.json` functionality.
 * [`minimal`](./examples/minimal/) - A minimal Rust project to get you started.
 * [`rough_fps`](./examples/rough_fps/) - A very dirty demonstration of manipulating rendering registers to display a blinking FPS counter.
 * [`rtd_id`](./examples/rtc_id/) - Renders the Cyclone V chip ID and the current, updating Unix time on the screen via [Slint](https://crates.io/crates/slint).
