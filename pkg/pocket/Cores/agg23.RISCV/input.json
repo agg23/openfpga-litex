@@ -28,12 +28,12 @@
           {
             "id": 10,
             "name": "L Button",
-            "key": "pad_btn_l"
+            "key": "pad_trig_l"
           },
           {
             "id": 11,
             "name": "R Button",
-            "key": "pad_btn_r"
+            "key": "pad_trig_r"
           },
           {
             "id": 20,

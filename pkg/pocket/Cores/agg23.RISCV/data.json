@@ -7,7 +7,7 @@
         "id": 0,
         "required": true,
         "filename": "boot.bin",
-        "parameters": "0x9",
+        "parameters": "0x49",
         "deferload": true,
         "extensions": ["bin"],
         "address": "0x00000000"
