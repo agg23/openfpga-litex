@@ -19,10 +19,6 @@ Fluidly expanding colors and grumbling sound. Draws to the framebuffer with an o
 | Select | Pause                                                  |
 | Start  | System reset                                           |
 
-## License
-
-This sample is written by [Andi McClure](https://pocket.runhello.com/). It is available under [Creative Commons Zero](https://creativecommons.org/publicdomain/zero/1.0/legalcode), in other words, it is public domain. If you substantially reuse the code, a credit would be appreciated, but this is not legally required.
-
 ## Suggestions
 
 Notes from Andi:
@@ -50,3 +46,7 @@ If you want to try improving the example as written, some fun things to try migh
 * "Super grow mode" was intended to make the fungus grow outward in organic, concentric shapes like tree rings, but even in super grow mode the agents tend to just sorta to spin in place. Maybe you can do better?
 * The audio was supposed to sound like a kind of rustling squeaking noise because I thought that was what growing fungus might sound like, but it wound up kind of more like a burbling cauldron. Again, maybe you can do better than I could? (Remember: Never test new audio code with headphones on! Clipping is easy to do by accident and will produce the most painful sound you've ever heard.)
 * Could you make a two player game with two blobs of fungi trying to consume each other?
+
+## License
+
+This sample is written by [Andi McClure](https://pocket.runhello.com/). It is available under [Creative Commons Zero](https://creativecommons.org/publicdomain/zero/1.0/legalcode), in other words, it is public domain. If you substantially reuse the code, a credit would be appreciated, but this is not legally required.

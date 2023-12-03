@@ -14,10 +14,6 @@ A minimal, very difficult brick breaking game implementing damage-based framebuf
 | Select     | Pause         |
 | Start      | System reset  |
 
-## License
-
-This sample is written by [Andi McClure](https://pocket.runhello.com/). It is available under [Creative Commons Zero](https://creativecommons.org/publicdomain/zero/1.0/legalcode), in other words, it is public domain. If you substantially reuse the code, a credit would be appreciated, but this is not legally required.
-
 ## Suggestions
 
 Notes from Andi:
@@ -41,3 +37,7 @@ If you want to try improving the example as written, some things to try might be
 - Some sort of score (or if the game is kept simple and hard, a timer that tells you how quickly you beat it).
 - The current app implements a useful trick: It keeps draws fast by *only* updating those screen pixels that have changed. It does this by XORing colors against the framebuffer when it draws, which means that drawing a sprite and erasing a sprite are identical. At the moment, this means draws are interleaved with the game logic, which means if the game logic gets more complicated it will overflow VBLANK and start tearing. Queueing draws (and executing them at the start of the next frame) would be better.
 - In my testing, the game always completes its draw/update section before VBLANK ends. Yet somehow, on my device, there is still some vertical tearing (like a flicker when the ball moves across a certain point near the center of the screen). Anybody know what's happening here? Were my tests wrong? Is something messed up with the pixel fifo in the LiteX core itself?
+
+## License
+
+This sample is written by [Andi McClure](https://pocket.runhello.com/). It is available under [Creative Commons Zero](https://creativecommons.org/publicdomain/zero/1.0/legalcode), in other words, it is public domain. If you substantially reuse the code, a credit would be appreciated, but this is not legally required.
