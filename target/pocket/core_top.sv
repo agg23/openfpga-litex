@@ -322,15 +322,16 @@ module core_top (
       default: begin
         bridge_rd_data <= 0;
       end
-      32'h0xxxxxxx: begin
+      32'h0XXX_XXXX: begin
         bridge_rd_data <= apf_wishbone_bridge_rd_data;
       end
-      32'h10xxxxxx: begin
-        // example
-        // bridge_rd_data <= example_device_data;
+      32'h1000_00XX: begin
         bridge_rd_data <= 0;
       end
-      32'hF8xxxxxx: begin
+      32'h1000_01XX: begin
+        bridge_rd_data <= interact_read_data;
+      end
+      32'hF8XX_XXXX: begin
         bridge_rd_data <= cmd_bridge_rd_data;
       end
     endcase
@@ -351,6 +352,9 @@ module core_top (
         end
         28'h8: begin
           use_jtag <= bridge_wr_data[0];
+        end
+        28'h1XX: begin
+          // Directly in FIFO
         end
       endcase
     end
@@ -520,6 +524,77 @@ module core_top (
       .datatable_q   (datatable_q)
 
   );
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // Interact CSR
+
+  wire interact_region = bridge_addr >= 32'h1000_0100 && bridge_addr < 32'h1000_0200;
+
+  wire interact_rd;
+  wire interact_wr;
+  wire [5:0] interact_addr = interact_wr ? interact_wr_addr : interact_rd_addr;
+  wire [31:0] interact_data;
+
+  wire [5:0] interact_rd_addr;
+  wire [5:0] interact_wr_addr;
+
+  wire [31:0] interact_q;
+
+  wire [31:0] interact_read_data;
+
+  sync_fifo #(
+      .WIDTH(38)
+  ) interact_write_sync_fifo (
+      .clk_write(clk_74a),
+      .clk_read (clk_sys_57_12),
+
+      .write_en(interact_region && bridge_wr),
+      .data({bridge_addr[7:2], bridge_wr_data}),
+
+      .data_s({interact_wr_addr, interact_data}),
+      .write_en_s(interact_wr)
+  );
+
+  sync_fifo #(
+      .WIDTH(6)
+  ) interact_read_addr_sync_fifo (
+      .clk_write(clk_74a),
+      .clk_read (clk_sys_57_12),
+
+      .write_en(interact_region && bridge_rd),
+      .data(bridge_addr[7:2]),
+
+      .data_s(interact_rd_addr),
+      .write_en_s(interact_rd)
+  );
+
+  reg interact_q_rd = 0;
+
+  sync_fifo #(
+      .WIDTH(32)
+  ) interact_read_data_sync_fifo (
+      .clk_write(clk_sys_57_12),
+      .clk_read (clk_74a),
+
+      .write_en(interact_q_rd),
+      .data(interact_q),
+
+      .data_s(interact_read_data)
+      // .write_en_s()
+  );
+
+  reg [5:0] prev_interact_addr = 0;
+
+  always @(posedge clk_sys_57_12) begin
+    prev_interact_addr <= interact_addr;
+
+    interact_q_rd <= 0;
+
+    if (interact_addr != prev_interact_addr) begin
+      // A cycle after we receive a new address, send the read data
+      interact_q_rd <= 1;
+    end
+  end
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // Dataslot Management
@@ -883,6 +958,11 @@ module core_top (
       .apf_input_cont4_key (cont4_key),
       .apf_input_cont4_joy (cont4_joy),
       .apf_input_cont4_trig(cont4_trig),
+
+      .apf_interact_address(interact_addr),
+      .apf_interact_data(interact_data),
+      .apf_interact_q(interact_q),
+      .apf_interact_wr(interact_wr),
 
       .apf_rtc_date_bcd(rtc_date_bcd_s),
       .apf_rtc_time_bcd(rtc_time_bcd_s),

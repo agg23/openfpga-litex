@@ -1,0 +1,153 @@
+{
+  "interact": {
+    "magic": "APF_VER_1",
+    "variables": [
+      {
+        "name": "Reset core",
+        "id": 0,
+        "type": "action",
+        "enabled": true,
+        "address": "0x10000000",
+        "value": 1
+      },
+      {
+        "name": "Enable + Btn Reset",
+        "id": 100,
+        "type": "check",
+        "enabled": true,
+        "address": "0x10000004",
+        "persist": true,
+        "writeonly": true,
+        "defaultval": 0,
+        "value": 1
+      },
+      {
+        "name": "Enable JTAG UART",
+        "id": 101,
+        "type": "check",
+        "enabled": true,
+        "address": "0x10000008",
+        "persist": true,
+        "writeonly": true,
+        "defaultval": 0,
+        "value": 1
+      },
+      {
+        "name": "Index 0",
+        "id": 200,
+        "type": "check",
+        "enabled": true,
+        "address": "0x10000100",
+        "persist": true,
+        "writeonly": true,
+        "defaultval": 0,
+        "value": 123
+      },
+      {
+        "name": "Index 1: A",
+        "id": 201,
+        "type": "radio",
+        "group": 100,
+        "enabled": true,
+        "address": "0x10000104",
+        "persist": true,
+        "writeonly": true,
+        "defaultval": "0xFF",
+        "value": "0xFF"
+      },
+      {
+        "name": "Index 1: B",
+        "id": 202,
+        "type": "radio",
+        "group": 100,
+        "enabled": true,
+        "address": "0x10000104",
+        "persist": true,
+        "writeonly": true,
+        "value": "0xFF00"
+      },
+      {
+        "name": "Index 1: C",
+        "id": 203,
+        "type": "radio",
+        "group": 100,
+        "enabled": true,
+        "address": "0x10000104",
+        "persist": true,
+        "writeonly": true,
+        "value": "0xFF0000"
+      },
+      {
+        "name": "Index 1: D",
+        "id": 204,
+        "type": "radio",
+        "group": 100,
+        "enabled": true,
+        "address": "0x10000104",
+        "persist": true,
+        "writeonly": true,
+        "value": "0xFF000000"
+      },
+      {
+        "name": "Index 2",
+        "id": 205,
+        "type": "list",
+        "enabled": true,
+        "address": "0x10000108",
+        "persist": true,
+        "writeonly": true,
+        "defaultval": 0,
+        "options": [
+          {
+            "value": 0,
+            "name": "Foo"
+          },
+          {
+            "value": 1,
+            "name": "Bar"
+          },
+          {
+            "value": 2,
+            "name": "Foobar"
+          },
+          {
+            "value": 3,
+            "name": "Foofoo"
+          }
+        ]
+      },
+      {
+        "name": "Index 3: Action",
+        "id": 206,
+        "type": "action",
+        "enabled": true,
+        "address": "0x1000010C",
+        "value": 64
+      },
+      {
+        "name": "Index 4",
+        "id": 207,
+        "type": "slider_u32",
+        "enabled": true,
+        "address": "0x10000110",
+        "persist": true,
+        "defaultval": 100,
+        "graphical": {
+          "signed": false,
+          "min": 0,
+          "max": 320,
+          "adjust_small": 1,
+          "adjust_large": "0x10"
+        }
+      },
+      {
+        "name": "5:",
+        "id": 208,
+        "type": "number_u32",
+        "enabled": false,
+        "address": "0x10000114"
+      }
+    ],
+    "messages": []
+  }
+}

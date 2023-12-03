@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-12-01 13:40:55]]></description>
+    <description><![CDATA[Litex SoC 2023-12-02 16:49:17]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -533,8 +533,500 @@ analog on controllers with analog triggers. See docs.]]></description>
             </addressBlock>
         </peripheral>
         <peripheral>
-            <name>APF_RTC</name>
+            <name>APF_INTERACT</name>
             <baseAddress>0xF0002000</baseAddress>
+            <groupName>APF_INTERACT</groupName>
+            <registers>
+                <register>
+                    <name>INTERACT0</name>
+                    <description><![CDATA[Interact.json entry 0.]]></description>
+                    <addressOffset>0x0000</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact0</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED0</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 0 has been updated.]]></description>
+                    <addressOffset>0x0004</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed0</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT1</name>
+                    <description><![CDATA[Interact.json entry 1.]]></description>
+                    <addressOffset>0x0008</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact1</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED1</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 1 has been updated.]]></description>
+                    <addressOffset>0x000c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed1</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT2</name>
+                    <description><![CDATA[Interact.json entry 2.]]></description>
+                    <addressOffset>0x0010</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact2</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED2</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 2 has been updated.]]></description>
+                    <addressOffset>0x0014</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed2</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT3</name>
+                    <description><![CDATA[Interact.json entry 3.]]></description>
+                    <addressOffset>0x0018</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact3</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED3</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 3 has been updated.]]></description>
+                    <addressOffset>0x001c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed3</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT4</name>
+                    <description><![CDATA[Interact.json entry 4.]]></description>
+                    <addressOffset>0x0020</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact4</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED4</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 4 has been updated.]]></description>
+                    <addressOffset>0x0024</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed4</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT5</name>
+                    <description><![CDATA[Interact.json entry 5.]]></description>
+                    <addressOffset>0x0028</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact5</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED5</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 5 has been updated.]]></description>
+                    <addressOffset>0x002c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed5</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT6</name>
+                    <description><![CDATA[Interact.json entry 6.]]></description>
+                    <addressOffset>0x0030</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact6</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED6</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 6 has been updated.]]></description>
+                    <addressOffset>0x0034</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed6</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT7</name>
+                    <description><![CDATA[Interact.json entry 7.]]></description>
+                    <addressOffset>0x0038</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact7</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED7</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 7 has been updated.]]></description>
+                    <addressOffset>0x003c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed7</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT8</name>
+                    <description><![CDATA[Interact.json entry 8.]]></description>
+                    <addressOffset>0x0040</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact8</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED8</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 8 has been updated.]]></description>
+                    <addressOffset>0x0044</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed8</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT9</name>
+                    <description><![CDATA[Interact.json entry 9.]]></description>
+                    <addressOffset>0x0048</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact9</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED9</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 9 has been updated.]]></description>
+                    <addressOffset>0x004c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed9</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT10</name>
+                    <description><![CDATA[Interact.json entry 10.]]></description>
+                    <addressOffset>0x0050</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact10</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED10</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 10 has been updated.]]></description>
+                    <addressOffset>0x0054</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed10</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT11</name>
+                    <description><![CDATA[Interact.json entry 11.]]></description>
+                    <addressOffset>0x0058</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact11</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED11</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 11 has been updated.]]></description>
+                    <addressOffset>0x005c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed11</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT12</name>
+                    <description><![CDATA[Interact.json entry 12.]]></description>
+                    <addressOffset>0x0060</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact12</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED12</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 12 has been updated.]]></description>
+                    <addressOffset>0x0064</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed12</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT13</name>
+                    <description><![CDATA[Interact.json entry 13.]]></description>
+                    <addressOffset>0x0068</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact13</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED13</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 13 has been updated.]]></description>
+                    <addressOffset>0x006c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed13</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT14</name>
+                    <description><![CDATA[Interact.json entry 14.]]></description>
+                    <addressOffset>0x0070</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact14</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED14</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 14 has been updated.]]></description>
+                    <addressOffset>0x0074</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed14</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT15</name>
+                    <description><![CDATA[Interact.json entry 15.]]></description>
+                    <addressOffset>0x0078</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact15</name>
+                            <msb>31</msb>
+                            <bitRange>[31:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+                <register>
+                    <name>INTERACT_CHANGED15</name>
+                    <description><![CDATA[When 1, indicates the interact.json entry 15 has been updated.]]></description>
+                    <addressOffset>0x007c</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>interact_changed15</name>
+                            <msb>0</msb>
+                            <bitRange>[0:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
+            </registers>
+            <addressBlock>
+                <offset>0</offset>
+                <size>0x80</size>
+                <usage>registers</usage>
+            </addressBlock>
+        </peripheral>
+        <peripheral>
+            <name>APF_RTC</name>
+            <baseAddress>0xF0002800</baseAddress>
             <groupName>APF_RTC</groupName>
             <registers>
                 <register>
@@ -591,7 +1083,7 @@ analog on controllers with analog triggers. See docs.]]></description>
         </peripheral>
         <peripheral>
             <name>APF_VIDEO</name>
-            <baseAddress>0xF0002800</baseAddress>
+            <baseAddress>0xF0003000</baseAddress>
             <groupName>APF_VIDEO</groupName>
             <registers>
                 <register>
@@ -635,7 +1127,7 @@ to occur at the start of vblank.]]></description>
         </peripheral>
         <peripheral>
             <name>CTRL</name>
-            <baseAddress>0xF0003000</baseAddress>
+            <baseAddress>0xF0003800</baseAddress>
             <groupName>CTRL</groupName>
             <registers>
                 <register>
@@ -701,7 +1193,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
         </peripheral>
         <peripheral>
             <name>IDENTIFIER_MEM</name>
-            <baseAddress>0xF0003800</baseAddress>
+            <baseAddress>0xF0004000</baseAddress>
             <groupName>IDENTIFIER_MEM</groupName>
             <registers>
                 <register>
@@ -728,7 +1220,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
         </peripheral>
         <peripheral>
             <name>SDRAM</name>
-            <baseAddress>0xF0004000</baseAddress>
+            <baseAddress>0xF0004800</baseAddress>
             <groupName>SDRAM</groupName>
             <registers>
                 <register>
@@ -1055,7 +1547,7 @@ to the Wishbone/CSR bus are working correctly. The initial reset value of
         </peripheral>
         <peripheral>
             <name>TIMER0</name>
-            <baseAddress>0xF0004800</baseAddress>
+            <baseAddress>0xF0005000</baseAddress>
             <groupName>TIMER0</groupName>
             <registers>
                 <register>
@@ -1247,7 +1739,7 @@ register to disable individual events.]]></description>
         </peripheral>
         <peripheral>
             <name>UART</name>
-            <baseAddress>0xF0005000</baseAddress>
+            <baseAddress>0xF0005800</baseAddress>
             <groupName>UART</groupName>
             <registers>
                 <register>
@@ -1409,7 +1901,7 @@ register to disable individual events.]]></description>
         </peripheral>
         <peripheral>
             <name>VIDEO_FRAMEBUFFER</name>
-            <baseAddress>0xF0005800</baseAddress>
+            <baseAddress>0xF0006000</baseAddress>
             <groupName>VIDEO_FRAMEBUFFER</groupName>
             <registers>
                 <register>
@@ -1505,7 +1997,7 @@ register to disable individual events.]]></description>
         </peripheral>
         <peripheral>
             <name>VIDEO_FRAMEBUFFER_VTG</name>
-            <baseAddress>0xF0006000</baseAddress>
+            <baseAddress>0xF0006800</baseAddress>
             <groupName>VIDEO_FRAMEBUFFER_VTG</groupName>
             <registers>
                 <register>

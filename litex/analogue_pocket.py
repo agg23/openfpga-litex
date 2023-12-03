@@ -11,7 +11,7 @@
 
 # Set up the import paths for the LiteX packages
 import vendor
-from csr import APFID, APFRTC, APFAudio, APFBridge, APFInput, APFVideo
+from csr import APFID, APFRTC, APFAudio, APFBridge, APFInput, APFInteract, APFVideo
 from litex.soc.cores.uart import UART
 from replaced_components import (
     AS4C32M16Pocket,
@@ -143,6 +143,7 @@ class BaseSoC(SoCCore):
         self.add_module("apf_bridge", APFBridge(platform))
         self.add_module("apf_id", APFID(platform))
         self.add_module("apf_input", APFInput(platform))
+        self.add_module("apf_interact", APFInteract(platform))
         self.add_module("apf_rtc", APFRTC(platform))
         self.add_module("apf_video", APFVideo(self))
 

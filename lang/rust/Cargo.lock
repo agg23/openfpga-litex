@@ -1013,6 +1013,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "interact"
+version = "0.1.0"
+dependencies = [
+ "embedded-alloc",
+ "embedded-hal",
+ "litex-hal",
+ "litex-openfpga",
+ "litex-pac",
+ "nb 1.1.0",
+ "num-traits",
+ "riscv",
+ "riscv-rt",
+]
+
+[[package]]
 name = "itertools"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

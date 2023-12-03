@@ -66,6 +66,17 @@ See [the Analogue Docs](https://www.analogue.co/developer/docs/host-target-comma
 | `request_getfile`  | `0x8`  | W   | 1     | Writing 1 to this register will trigger a request for the filepath of the active slot.                                              |
 | `request_openfile` | `0xC`  | W   | 1     | Writing 1 to this register will trigger a request to change the file in the active slot to the one specified by the path in memory. |
 
+## Interact API
+
+Base address (`APF_INTERACT` block): `0xF000_2000`
+
+This interface provides IO to the Pocket's `interact.json`, or `Core Settings`, API. If you point your `interact.json` `address` entries to byte addresses (with 32 bit words) between `0x1000_0100` to `0x1000_0140`, you can send and receive values at indices 0-15, corresponding to the address (alternatively, this address is the same thing as 32 bit addresses, or shifting the byte address right twice). [See the Analogue Docs](https://www.analogue.co/developer/docs/core-definition-files/interact-json) for more information.
+
+| Name                     | Offset           | Dir | Width | Description                                                          |
+| ------------------------ | ---------------- | --- | ----- | -------------------------------------------------------------------- |
+| `interact[0-15]`         | `[0-15] * 8`     | RW  | 32    | `Interact.json` entry [0-15]                                         |
+| `interact_changed[0-15]` | `[0-15] * 8 + 4` | R   | 1     | When 1, indicates the `interact.json` entry [0-15] has been updated. |
+
 # ID
 
 ### CSR
@@ -138,7 +149,7 @@ Input data is directly exposed through read registers exactly how they are expos
 
 ## Control
 
-Base address (`CTRL` block): `0xF000_0000`
+Base address (`CTRL` block): `0xF000_3800`
 
 | Name    | Offset | Dir | Width | Description                                             |
 | ------- | ------ | --- | ----- | ------------------------------------------------------- |
@@ -151,7 +162,7 @@ Provides a cycle counter timer (trigger after X cycles) and a global cycle count
 
 ### CSR
 
-Base address (`TIMER0` block): `0xF000_2000`
+Base address (`TIMER0` block): `0xF000_5000`
 
 **NOTE:** These registers marked "TODO" may have documentation in the SVD file.
 
@@ -177,7 +188,7 @@ The dev cart baud rate is set to 2,000,000 bps.
 
 ### CSR
 
-Base address (`UART` block): `0xF000_2800` + `0x0`
+Base address (`UART` block): `0xF000_5800` + `0x0`
 
 | Name         | Offset | Dir | Width | Description                                 |
 | ------------ | ------ | --- | ----- | ------------------------------------------- |
@@ -194,7 +205,7 @@ Base address (`UART` block): `0xF000_2800` + `0x0`
 
 ### CSR
 
-Base address (`VIDEO_FRAMEBUFFER` block): `0xF000_3000` + `0x0`
+Base address (`VIDEO_FRAMEBUFFER` block): `0xF000_6000` + `0x0`
 
 | Name         | Offset | Dir | Width | Description                                                                                                           |
 | ------------ | ------ | --- | ----- | --------------------------------------------------------------------------------------------------------------------- |
@@ -205,7 +216,7 @@ Base address (`VIDEO_FRAMEBUFFER` block): `0xF000_3000` + `0x0`
 | `dma_loop`   | `0x10` | RW  | 1     | When 1, DMA will continue to loop when it completes a frame. When 0, it stops.                                        |
 | `dma_offset` | `0x14` | RW  | 32    | The current offset (in bytes) of the DMA into a frame. This can be used to restart drawing partially through a frame. |
 
-Base address (`VIDEO_FRAMEBUFFER_VTG` block): `0xF000_3800` + `0x0`
+Base address (`VIDEO_FRAMEBUFFER_VTG` block): `0xF000_6800` + `0x0`
 
 | Name     | Offset | Dir | Width | Description |
 | -------- | ------ | --- | ----- | ----------- |
@@ -215,7 +226,7 @@ Base address (`VIDEO_FRAMEBUFFER_VTG` block): `0xF000_3800` + `0x0`
 
 ## CSR
 
-Base address (`APF_RTC` block): `0xF000_2000`
+Base address (`APF_RTC` block): `0xF000_2800`
 
 | Name           | Offset | Dir | Width | Description                                               |
 | -------------- | ------ | --- | ----- | --------------------------------------------------------- |
@@ -227,7 +238,7 @@ Base address (`APF_RTC` block): `0xF000_2000`
 
 ## CSR
 
-Base address (`APF_VIDEO` block): `0xF000_2800`. Single 32 bit video register at `0x0`. Split as follows:
+Base address (`APF_VIDEO` block): `0xF000_3000`. Single 32 bit video register at `0x0`. Split as follows:
 
 | Name               | Dir | Width | Description                                                                                                                                                                                     |
 | ------------------ | --- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

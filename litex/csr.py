@@ -1,7 +1,7 @@
 from litex.build.altera.platform import AlteraPlatform
 from litex.gen.fhdl.module import LiteXModule
 from litex.soc.interconnect.csr import CSR, CSRField, CSRStatus, CSRStorage
-from migen.fhdl.structure import If, Signal
+from migen.fhdl.structure import Case, If, Signal
 
 
 class APFAudio(LiteXModule):
@@ -198,6 +198,53 @@ class APFInput(LiteXModule):
         self.comb += self.cont3_trig.status.eq(input_pins.cont3_trig)
         self.comb += self.cont4_trig.status.eq(input_pins.cont4_trig)
 
+class APFInteract(LiteXModule):
+    def __init__(self, platform: AlteraPlatform):
+        interact_pins = platform.request("apf_interact")
+
+        write_case_dict = {}
+        read_case_dict = {}
+
+        for i in range(16):
+            main_name = f"interact{i}"
+            changed_name = f"interact_changed{i}"
+
+            interact_csr = CSR(32)
+            interact_csr.description = f"Interact.json entry {i}."
+            interact_csr.name = main_name
+
+            setattr(self, main_name, interact_csr)
+
+            changed_csr = CSRStatus(1)
+            changed_csr.description = f"When 1, indicates the interact.json entry {i} has been updated."
+            changed_csr.name = changed_name
+
+            setattr(self, changed_name, changed_csr)
+
+            interact_storage = Signal(32)
+
+            write_case_dict[i] = [
+                interact_storage.eq(interact_pins.data),
+                changed_csr.status.eq(1)
+            ]
+
+            read_case_dict[i] = [
+                interact_pins.q.eq(interact_storage)
+            ]
+
+            self.comb += interact_csr.w.eq(interact_storage)
+        
+            self.sync += [
+                # Write
+                If(interact_csr.re, interact_storage.eq(interact_csr.r)),
+                # Read
+                If(interact_csr.we, changed_csr.status.eq(0)),
+            ]
+
+        self.sync += [
+            If(interact_pins.wr, Case(interact_pins.address, write_case_dict)),
+            Case(interact_pins.address, read_case_dict),
+        ]
 
 class APFRTC(LiteXModule):
     def __init__(self, platform: AlteraPlatform):

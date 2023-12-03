@@ -85,21 +85,14 @@ class Platform(AlteraPlatform):
                 Subsignal("err",   Pins(1)),
             ),
 
-            ("apf_input", 0,
-                Subsignal("cont1_key", 0, Pins(32)),
-                Subsignal("cont2_key", 0, Pins(32)),
-                Subsignal("cont3_key", 0, Pins(32)),
-                Subsignal("cont4_key", 0, Pins(32)),
+            ("apf_audio", 0,
+                Subsignal("bus_out", Pins(32)),
+                Subsignal("bus_wr", Pins(1)),
 
-                Subsignal("cont1_joy", 0, Pins(32)),
-                Subsignal("cont2_joy", 0, Pins(32)),
-                Subsignal("cont3_joy", 0, Pins(32)),
-                Subsignal("cont4_joy", 0, Pins(32)),
+                Subsignal("playback_en", Pins(1)),
+                Subsignal("flush", Pins(1)),
 
-                Subsignal("cont1_trig", 0, Pins(32)),
-                Subsignal("cont2_trig", 0, Pins(32)),
-                Subsignal("cont3_trig", 0, Pins(32)),
-                Subsignal("cont4_trig", 0, Pins(32)),
+                Subsignal("buffer_fill", Pins(12)),
             ),
 
             ("apf_bridge", 0,
@@ -121,27 +114,41 @@ class Platform(AlteraPlatform):
 
                 Subsignal("current_address", Pins(32)),
                 Subsignal("complete_trigger", Pins(1)),
-                Subsignal("command_result_code", Pins(3))
+                Subsignal("command_result_code", Pins(3)),
             ),
 
-            ("apf_audio", 0,
-                Subsignal("bus_out", Pins(32)),
-                Subsignal("bus_wr", Pins(1)),
+            ("apf_id", 0,
+                Subsignal("chip_id", Pins(64)) 
+            ),
 
-                Subsignal("playback_en", Pins(1)),
-                Subsignal("flush", Pins(1)),
+            ("apf_input", 0,
+                Subsignal("cont1_key", 0, Pins(32)),
+                Subsignal("cont2_key", 0, Pins(32)),
+                Subsignal("cont3_key", 0, Pins(32)),
+                Subsignal("cont4_key", 0, Pins(32)),
 
-                Subsignal("buffer_fill", Pins(12))
+                Subsignal("cont1_joy", 0, Pins(32)),
+                Subsignal("cont2_joy", 0, Pins(32)),
+                Subsignal("cont3_joy", 0, Pins(32)),
+                Subsignal("cont4_joy", 0, Pins(32)),
+
+                Subsignal("cont1_trig", 0, Pins(32)),
+                Subsignal("cont2_trig", 0, Pins(32)),
+                Subsignal("cont3_trig", 0, Pins(32)),
+                Subsignal("cont4_trig", 0, Pins(32)),
+            ),
+
+            ("apf_interact", 0,
+                Subsignal("address", 0, Pins(4)),
+                Subsignal("data", 0, Pins(32)),
+                Subsignal("wr", 0, Pins(1)),
+                Subsignal("q", 0, Pins(32)),
             ),
 
             ("apf_rtc", 0,
                 Subsignal("unix_seconds", Pins(32)),
                 Subsignal("date_bcd", Pins(32)),
-                Subsignal("time_bcd", Pins(32))
-            ),
-
-            ("apf_id", 0,
-                Subsignal("chip_id", Pins(64)) 
+                Subsignal("time_bcd", Pins(32)),
             ),
         ]
         _connectors = []
