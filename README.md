@@ -61,18 +61,18 @@ Without performing this change, you will not be able to do anything over the car
 
 You can connect using the LiteX tooling via:
 ```bash
-python3 ./litex/vendor/litex/litex/tools/litex_term.py --speed 2000000 /dev/ttyUSB0
+python3 ./litex/litex_term.py --speed 2000000 /dev/ttyUSB0
 
 # To automatically upload a program named `rust.bin`
-python3 ./litex/vendor/litex/litex/tools/litex_term.py --speed 2000000 --kernel rust.bin /dev/ttyUSB0
+python3 ./litex/litex_term.py --speed 2000000 --kernel rust.bin /dev/ttyUSB0
 ```
 
 JTAG UART must be explicitly enabled in the [Core Settings](#core-settings). JTAG UART has fewer options:
 ```bash
-python3 ./litex/vendor/litex/litex/tools/litex_term.py --jtag-config=openocd_usb_blaster.cfg jtag
+python3 ./litex/litex_term.py --jtag-config=openocd_usb_blaster.cfg jtag
 
 # To automatically upload a program named `rust.bin`
-python3 ./litex/vendor/litex/litex/tools/litex_term.py --jtag-config=openocd_usb_blaster.cfg --kernel rust.bin jtag
+python3 ./litex/litex_term.py --jtag-config=openocd_usb_blaster.cfg --kernel rust.bin jtag
 ```
 
 The kernel program will be uploaded on core reset, so you can either start the core fresh, or reset it from the menu (or configured reset button).
