@@ -4,7 +4,7 @@ OUTPUT_DIRECTORY = ./build
 
 # crt0 MUST be included to properly bootstrap the program
 # INSERT YOUR OBJECT FILES HERE:
-OBJECTS   = crt0.o hello.o
+OBJECTS   = init_asm.o hello.o
 
 # Enable to display all commands
 # V = 1

@@ -11,9 +11,14 @@ int main(void)
 {
 	printf("C: Hello, world!\n");
 
-	while (1)
-	{
-	}
+	char *alloced_pointer = (char *)malloc(18 * sizeof(char));
+
+	strcpy(alloced_pointer, "helloworld");
+	printf("Pointer value: %p\n", alloced_pointer);
+	printf("Pointer address: %p\n", &alloced_pointer);
+	printf("String: %s\n", alloced_pointer);
+
+	while (1) {}
 
 	return 0;
 }

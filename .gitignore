@@ -1,4 +1,6 @@
 examples/**/*.o
+examples/**/*.i
+examples/**/*.s
 examples/**/*.elf
 examples/**/target/
 sim/

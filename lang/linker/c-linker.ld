@@ -10,10 +10,10 @@ SECTIONS
 	.text :
 	{
 		_ftext = .;
-		/* Make sure crt0 files come first, and they, and the isr */
+		/* Make sure init_asm files come first, and they, and the isr */
 		/* don't get disposed of by greedy optimisation */
-		*crt0*(.text)
-		KEEP(*crt0*(.text))
+		*init_asm*(.text)
+		KEEP(*init_asm*(.text))
 		KEEP(*(.text.isr))
 
 		*(.text .stub .text.* .gnu.linkonce.t.*)
@@ -42,7 +42,7 @@ SECTIONS
 		*(.sdata .sdata.* .gnu.linkonce.s.*)
 		. = ALIGN(8);
 		_edata = .;
-	} > sram AT > main_ram
+	} > main_ram
 
 	.bss :
 	{
@@ -64,3 +64,9 @@ PROVIDE(_fstack = ORIGIN(main_ram) + LENGTH(main_ram));
 
 PROVIDE(_fdata_rom = LOADADDR(.data));
 PROVIDE(_edata_rom = LOADADDR(.data) + SIZEOF(.data));
+PROVIDE(_emain_ram = ORIGIN(main_ram) + LENGTH(main_ram)); 
+
+/* Start heap at end of .bss segment */
+PROVIDE (__heap_start = _end);
+PROVIDE (__heap_end = _fstack - (DEFINED(__stack_size) ? __stack_size : 0x800));
+PROVIDE (__heap_size = __heap_end - __heap_start);
