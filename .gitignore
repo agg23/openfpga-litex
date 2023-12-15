@@ -1,8 +1,8 @@
-examples/**/*.o
-examples/**/*.i
-examples/**/*.s
-examples/**/*.elf
-examples/**/target/
+**/examples/**/*.o
+**/examples/**/*.i
+**/examples/**/*.s
+**/examples/**/*.elf
+**/examples/**/target/
 sim/
 *.bin
 *.hex

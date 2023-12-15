@@ -5,6 +5,7 @@
 * [`helloworld`](./examples/helloworld/) - A simple hello world demonstration in C, with the included `printf()` function.
 * [`helloworld-cpp`](./examples/helloworld-cpp/) - A simple hello world class demonstration in C++, with the included `printf()` function.
 * [`fungus`](./examples/fungus/) - A demo with visuals, sound and controls.
+* [`dhrystone`](./examples/dhrystone/) - The Dhrystone benchmarking program.
 
 ## Overview
 
