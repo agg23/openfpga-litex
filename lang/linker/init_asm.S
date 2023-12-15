@@ -1,3 +1,5 @@
+// Init file for C/C++ programs linking using `c-linker.ld`
+
 .global main
 .global _start
 

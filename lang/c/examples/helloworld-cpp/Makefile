@@ -2,9 +2,9 @@
 LITEX_ROOT_DIRECTORY = ../../../../litex
 OUTPUT_DIRECTORY = ./build
 
-# crt0 MUST be included to properly bootstrap the program
+# init_asm MUST be included to properly bootstrap the program
 # INSERT YOUR OBJECT FILES HERE:
-OBJECTS   = crt0.o hello.o
+OBJECTS   = init_asm.o hello.o
 
 # Enable to display all commands
 # V = 1
@@ -57,7 +57,7 @@ endif
 
 build.o: CFLAGS   += -w
 
-VPATH = $(BIOS_DIRECTORY):$(BIOS_DIRECTORY)/cmds:$(CPU_DIRECTORY)
+VPATH = $(BIOS_DIRECTORY):$(BIOS_DIRECTORY)/cmds:$(CPU_DIRECTORY):$(LINKER_DIRECTORY)
 
 # Build the object files from source
 $(OUTPUT_DIRECTORY)/%.o: %.cpp
