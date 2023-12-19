@@ -268,7 +268,7 @@ class APFRTC(LiteXModule):
 
 
 class APFVideo(LiteXModule):
-    def __init__(self, soc):
+    def __init__(self, soc, v_active: int):
         vblank = Signal()
 
         self.video = CSRStatus(
@@ -297,8 +297,8 @@ class APFVideo(LiteXModule):
         self.prev_vblank_triggered = Signal()
 
         self.sync += [
-            # 240 is what vactive is set to
-            vblank.eq(soc.video_framebuffer_vtg.source.vcount >= 240),
+            # 240 is what vactive defaults to
+            vblank.eq(soc.video_framebuffer_vtg.source.vcount >= v_active),
             self.prev_vblank_triggered.eq(vblank),
             # Read clear must apply before write set, because otherwise you can miss a signal
             If(

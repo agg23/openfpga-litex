@@ -145,7 +145,7 @@ class BaseSoC(SoCCore):
         self.add_module("apf_input", APFInput(platform))
         self.add_module("apf_interact", APFInteract(platform))
         self.add_module("apf_rtc", APFRTC(platform))
-        self.add_module("apf_video", APFVideo(self))
+        self.add_module("apf_video", APFVideo(self, timings["v_active"]))
 
         self.add_uart(platform)
 
