@@ -790,6 +790,7 @@ module core_top (
   wire [31:0] apf_bridge_data_offset;
   wire [31:0] apf_bridge_length;
   wire [15:0] apf_bridge_slot_id;
+  wire [2:0] apf_bridge_scaler_slot;
 
   reg [2:0] apf_bridge_request_counter = 0;
   reg [1:0] apf_bridge_request_type = 0;
@@ -940,6 +941,7 @@ module core_top (
       // Pulse complete on rising edge of done
       .apf_bridge_complete_trigger(target_dataslot_done_s && ~prev_target_dataslot_done_s),
       .apf_bridge_command_result_code(target_dataslot_err),
+      .apf_bridge_scaler_slot(apf_bridge_scaler_slot),
 
       .apf_id_chip_id(chip_id),
 
@@ -1088,6 +1090,7 @@ module core_top (
   reg de_delay = 0;
   reg vs_delay = 0;
   reg hs_delay = 0;
+  reg de_delay_endline = 0; // Pixel after last visible color [metadata]
 
   reg prev_de = 0;
   reg prev2_de = 0;
@@ -1101,13 +1104,16 @@ module core_top (
     de_delay  <= de;
     vs_delay  <= vsync;
     hs_delay  <= hsync;
+    de_delay_endline <= prev2_de; // Column after video_de goes low
   end
 
   reg [3:0] de_counter = 0;
 
   assign video_rgb_clock = clk_vid_5_712;
   assign video_rgb_clock_90 = clk_vid_5_712_90deg;
-  assign video_rgb = de_delay ? rgb888 : 24'h0;
+  assign video_rgb = de_delay ? rgb888 // Color
+                              : (de_delay_endline ? (apf_bridge_scaler_slot|24'h0) << 13 // End-of-line command
+                                                  : 24'h0); // Blank
   // Extend DE for one extra cycle at beginning and end to insert a black column
   // I don't understand why I have DE high for 2 extra cycles on the back end
   assign video_de = de || de_delay || prev_de || prev2_de;
