@@ -1104,7 +1104,7 @@ module core_top (
     de_delay  <= de;
     vs_delay  <= vsync;
     hs_delay  <= hsync;
-    de_delay_endline <= prev2_de; // Column after video_de goes low
+    de_delay_endline <= video_de;
   end
 
   reg [3:0] de_counter = 0;
@@ -1112,7 +1112,7 @@ module core_top (
   assign video_rgb_clock = clk_vid_5_712;
   assign video_rgb_clock_90 = clk_vid_5_712_90deg;
   assign video_rgb = de_delay ? rgb888 // Color
-                              : (de_delay_endline ? (apf_bridge_scaler_slot|24'h0) << 13 // End-of-line command
+                              : (de_delay_endline ? {8'h0, apf_bridge_scaler_slot, 13'h0} // End-of-line command
                                                   : 24'h0); // Blank
   // Extend DE for one extra cycle at beginning and end to insert a black column
   // I don't understand why I have DE high for 2 extra cycles on the back end
