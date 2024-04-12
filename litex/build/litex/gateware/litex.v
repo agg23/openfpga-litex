@@ -9,7 +9,7 @@
 // Filename   : litex.v
 // Device     : 5CEBA4F23C8
 // LiteX sha1 : 7bbfe3ae
-// Date       : 2024-04-11 15:50:28
+// Date       : 2024-04-11 22:43:01
 //------------------------------------------------------------------------------
 
 `timescale 1ns / 1ps
@@ -41,7 +41,7 @@ module litex (
     output wire          apf_bridge_request_openfile,
     output wire          apf_bridge_request_read,
     output wire          apf_bridge_request_write,
-    input  wire    [2:0] apf_bridge_scaler_slot,
+    output wire    [2:0] apf_bridge_scaler_slot,
     output wire   [15:0] apf_bridge_slot_id,
     input  wire   [63:0] apf_id_chip_id,
     input  wire   [31:0] apf_input_cont1_joy,
@@ -282,7 +282,7 @@ BaseSoC
 │    │    └─── csrstatus_0* (CSRStatus)
 │    │    └─── csrstatus_1* (CSRStatus)
 │    │    └─── csrstatus_2* (CSRStatus)
-│    │    └─── csrstatus_3* (CSRStatus)
+│    │    └─── csrstorage_4* (CSRStorage)
 │    └─── csrbank_2* (CSRBank)
 │    │    └─── csrstatus_0* (CSRStatus)
 │    └─── csrbank_3* (CSRBank)
@@ -383,8 +383,8 @@ BaseSoC
 └─── [DFF]
 └─── [DFF]
 └─── [DFF]
-└─── [ALTDDIO_OUT]
 └─── [DFF]
+└─── [ALTDDIO_OUT]
 └─── [DFF]
 * : Generated name.
 []: BlackBox.
@@ -416,11 +416,11 @@ reg           apfvideo_vblank = 1'd0;
 reg           apfvideo_vblank_status = 1'd0;
 reg           apfvideo_vblank_triggered = 1'd0;
 wire          apfvideo_we;
-wire          ars_cd_from10225_rst_meta;
-wire          ars_cd_from10376_rst_meta;
+wire          ars_cd_from10223_rst_meta;
+wire          ars_cd_from10374_rst_meta;
 wire          ars_cd_jtag_rst_meta;
-wire          ars_cd_to10225_rst_meta;
-wire          ars_cd_to10376_rst_meta;
+wire          ars_cd_to10223_rst_meta;
+wire          ars_cd_to10374_rst_meta;
 reg     [2:0] bankmachine0_next_state = 3'd0;
 reg     [2:0] bankmachine0_state = 3'd0;
 reg     [2:0] bankmachine1_next_state = 3'd0;
@@ -2203,10 +2203,10 @@ wire   [31:0] csr_bankarray_csrbank1_ram_data_address0_r;
 reg           csr_bankarray_csrbank1_ram_data_address0_re = 1'd0;
 wire   [31:0] csr_bankarray_csrbank1_ram_data_address0_w;
 reg           csr_bankarray_csrbank1_ram_data_address0_we = 1'd0;
-wire    [2:0] csr_bankarray_csrbank1_scaler_slot_r;
-reg           csr_bankarray_csrbank1_scaler_slot_re = 1'd0;
-wire    [2:0] csr_bankarray_csrbank1_scaler_slot_w;
-reg           csr_bankarray_csrbank1_scaler_slot_we = 1'd0;
+wire    [2:0] csr_bankarray_csrbank1_scaler_slot0_r;
+reg           csr_bankarray_csrbank1_scaler_slot0_re = 1'd0;
+wire    [2:0] csr_bankarray_csrbank1_scaler_slot0_w;
+reg           csr_bankarray_csrbank1_scaler_slot0_we = 1'd0;
 wire          csr_bankarray_csrbank1_sel;
 wire   [15:0] csr_bankarray_csrbank1_slot_id0_r;
 reg           csr_bankarray_csrbank1_slot_id0_re = 1'd0;
@@ -2632,10 +2632,10 @@ wire   [31:0] file_size_r;
 reg           file_size_re = 1'd0;
 wire   [31:0] file_size_w;
 reg           file_size_we = 1'd0;
-wire          from10225_clk;
-wire          from10225_rst;
-wire          from10376_clk;
-wire          from10376_rst;
+wire          from10223_clk;
+wire          from10223_rst;
+wire          from10374_clk;
+wire          from10374_rst;
 reg           full_rate_phy_dfi_p0_act_n = 1'd1;
 reg    [12:0] full_rate_phy_dfi_p0_address = 13'd0;
 reg     [1:0] full_rate_phy_dfi_p0_bank = 2'd0;
@@ -2919,8 +2919,7 @@ reg           rs232phyrx_state = 1'd0;
 reg           rs232phytx_next_state = 1'd0;
 reg           rs232phytx_state = 1'd0;
 reg           scaler_slot_re = 1'd0;
-wire    [2:0] scaler_slot_status;
-wire          scaler_slot_we;
+reg     [2:0] scaler_slot_storage = 3'd0;
 reg     [1:0] self0 = 2'd0;
 reg    [12:0] self1 = 13'd0;
 reg           self10 = 1'd0;
@@ -2978,10 +2977,10 @@ reg           t_self5 = 1'd0;
 reg           time_bcd_re = 1'd0;
 wire   [31:0] time_bcd_status;
 wire          time_bcd_we;
-wire          to10225_clk;
-wire          to10225_rst;
-wire          to10376_clk;
-wire          to10376_rst;
+wire          to10223_clk;
+wire          to10223_rst;
+wire          to10374_clk;
+wire          to10374_rst;
 reg           transfer_length_re = 1'd0;
 reg    [31:0] transfer_length_storage = 32'd0;
 reg           unix_seconds_re = 1'd0;
@@ -5052,7 +5051,7 @@ assign apf_bridge_data_offset = data_offset_storage;
 assign apf_bridge_length = transfer_length_storage;
 assign apf_bridge_ram_data_address = ram_data_address_storage;
 assign command_result_code_status = apf_bridge_command_result_code;
-assign scaler_slot_status = apf_bridge_scaler_slot;
+assign apf_bridge_scaler_slot = scaler_slot_storage;
 assign file_size_w = apf_bridge_file_size;
 assign apf_bridge_file_size_wr = file_size_re;
 assign apf_bridge_new_file_size_data = file_size_r;
@@ -5307,8 +5306,8 @@ always @(*) begin
         end
     endcase
 end
-assign from10225_clk = sys_jtag_clk;
-assign to10225_clk = jtag_clk;
+assign from10223_clk = sys_jtag_clk;
+assign to10223_clk = jtag_clk;
 assign basesoc_jtag_uart_phy_tx_cdc_cd_rst = (sys_jtag_rst | jtag_rst);
 assign basesoc_jtag_uart_phy_tx_cdc_cdc_sink_valid = basesoc_jtag_uart_phy_tx_cdc_sink_sink_valid;
 assign basesoc_jtag_uart_phy_tx_cdc_sink_sink_ready = basesoc_jtag_uart_phy_tx_cdc_cdc_sink_ready;
@@ -5359,8 +5358,8 @@ always @(*) begin
     end
 end
 assign basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter1_q_next = (basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter1_q_next_binary ^ basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter1_q_next_binary[2:1]);
-assign from10376_clk = jtag_clk;
-assign to10376_clk = sys_jtag_clk;
+assign from10374_clk = jtag_clk;
+assign to10374_clk = sys_jtag_clk;
 assign basesoc_jtag_uart_phy_rx_cdc_cd_rst = (jtag_rst | sys_jtag_rst);
 assign basesoc_jtag_uart_phy_rx_cdc_cdc_sink_valid = basesoc_jtag_uart_phy_rx_cdc_sink_sink_valid;
 assign basesoc_jtag_uart_phy_rx_cdc_sink_sink_ready = basesoc_jtag_uart_phy_rx_cdc_cdc_sink_ready;
@@ -5880,13 +5879,13 @@ always @(*) begin
         csr_bankarray_csrbank1_command_result_code_we <= (~csr_bankarray_interface1_bank_bus_we);
     end
 end
-assign csr_bankarray_csrbank1_scaler_slot_r = csr_bankarray_interface1_bank_bus_dat_w[2:0];
+assign csr_bankarray_csrbank1_scaler_slot0_r = csr_bankarray_interface1_bank_bus_dat_w[2:0];
 always @(*) begin
-    csr_bankarray_csrbank1_scaler_slot_re <= 1'd0;
-    csr_bankarray_csrbank1_scaler_slot_we <= 1'd0;
+    csr_bankarray_csrbank1_scaler_slot0_re <= 1'd0;
+    csr_bankarray_csrbank1_scaler_slot0_we <= 1'd0;
     if ((csr_bankarray_csrbank1_sel & (csr_bankarray_interface1_bank_bus_adr[8:0] == 4'd12))) begin
-        csr_bankarray_csrbank1_scaler_slot_re <= csr_bankarray_interface1_bank_bus_we;
-        csr_bankarray_csrbank1_scaler_slot_we <= (~csr_bankarray_interface1_bank_bus_we);
+        csr_bankarray_csrbank1_scaler_slot0_re <= csr_bankarray_interface1_bank_bus_we;
+        csr_bankarray_csrbank1_scaler_slot0_we <= (~csr_bankarray_interface1_bank_bus_we);
     end
 end
 assign csr_bankarray_csrbank1_slot_id0_w = slot_id_storage[15:0];
@@ -5899,8 +5898,7 @@ assign csr_bankarray_csrbank1_current_address_w = current_address_status[31:0];
 assign current_address_we = csr_bankarray_csrbank1_current_address_we;
 assign csr_bankarray_csrbank1_command_result_code_w = command_result_code_status[2:0];
 assign command_result_code_we = csr_bankarray_csrbank1_command_result_code_we;
-assign csr_bankarray_csrbank1_scaler_slot_w = scaler_slot_status[2:0];
-assign scaler_slot_we = csr_bankarray_csrbank1_scaler_slot_we;
+assign csr_bankarray_csrbank1_scaler_slot0_w = scaler_slot_storage[2:0];
 assign csr_bankarray_csrbank2_sel = (csr_bankarray_interface2_bank_bus_adr[13:9] == 2'd2);
 assign csr_bankarray_csrbank2_id1_r = csr_bankarray_interface2_bank_bus_dat_w[31:0];
 always @(*) begin
@@ -7909,10 +7907,10 @@ assign basesoc_rx_rx = multiregimpl16_regs1;
 // Synchronous Logic
 //------------------------------------------------------------------------------
 
-always @(posedge from10225_clk) begin
+always @(posedge from10223_clk) begin
     basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter0_q_binary <= basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter0_q_next_binary;
     basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter0_q <= basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter0_q_next;
-    if (from10225_rst) begin
+    if (from10223_rst) begin
         basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter0_q <= 3'd0;
         basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter0_q_binary <= 3'd0;
     end
@@ -7920,10 +7918,10 @@ always @(posedge from10225_clk) begin
     multiregimpl13_regs1 <= multiregimpl13_regs0;
 end
 
-always @(posedge from10376_clk) begin
+always @(posedge from10374_clk) begin
     basesoc_jtag_uart_phy_rx_cdc_cdc_graycounter0_q_binary <= basesoc_jtag_uart_phy_rx_cdc_cdc_graycounter0_q_next_binary;
     basesoc_jtag_uart_phy_rx_cdc_cdc_graycounter0_q <= basesoc_jtag_uart_phy_rx_cdc_cdc_graycounter0_q_next;
-    if (from10376_rst) begin
+    if (from10374_rst) begin
         basesoc_jtag_uart_phy_rx_cdc_cdc_graycounter0_q <= 3'd0;
         basesoc_jtag_uart_phy_rx_cdc_cdc_graycounter0_q_binary <= 3'd0;
     end
@@ -9285,7 +9283,7 @@ always @(posedge sys_clk) begin
                 csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_command_result_code_w;
             end
             4'd12: begin
-                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_scaler_slot_w;
+                csr_bankarray_interface1_bank_bus_dat_r <= csr_bankarray_csrbank1_scaler_slot0_w;
             end
         endcase
     end
@@ -9308,7 +9306,10 @@ always @(posedge sys_clk) begin
     status_re <= csr_bankarray_csrbank1_status_re;
     current_address_re <= csr_bankarray_csrbank1_current_address_re;
     command_result_code_re <= csr_bankarray_csrbank1_command_result_code_re;
-    scaler_slot_re <= csr_bankarray_csrbank1_scaler_slot_re;
+    if (csr_bankarray_csrbank1_scaler_slot0_re) begin
+        scaler_slot_storage[2:0] <= csr_bankarray_csrbank1_scaler_slot0_r;
+    end
+    scaler_slot_re <= csr_bankarray_csrbank1_scaler_slot0_re;
     csr_bankarray_interface2_bank_bus_dat_r <= 1'd0;
     if (csr_bankarray_csrbank2_sel) begin
         case (csr_bankarray_interface2_bank_bus_adr[8:0])
@@ -10039,6 +10040,7 @@ always @(posedge sys_clk) begin
         status_re <= 1'd0;
         current_address_re <= 1'd0;
         command_result_code_re <= 1'd0;
+        scaler_slot_storage <= 3'd0;
         scaler_slot_re <= 1'd0;
         prev_complete_trigger <= 1'd0;
         apfid_re <= 1'd0;
@@ -10342,10 +10344,10 @@ always @(posedge sys2x_clk) begin
     end
 end
 
-always @(posedge to10225_clk) begin
+always @(posedge to10223_clk) begin
     basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter1_q_binary <= basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter1_q_next_binary;
     basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter1_q <= basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter1_q_next;
-    if (to10225_rst) begin
+    if (to10223_rst) begin
         basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter1_q <= 3'd0;
         basesoc_jtag_uart_phy_tx_cdc_cdc_graycounter1_q_binary <= 3'd0;
     end
@@ -10353,10 +10355,10 @@ always @(posedge to10225_clk) begin
     multiregimpl12_regs1 <= multiregimpl12_regs0;
 end
 
-always @(posedge to10376_clk) begin
+always @(posedge to10374_clk) begin
     basesoc_jtag_uart_phy_rx_cdc_cdc_graycounter1_q_binary <= basesoc_jtag_uart_phy_rx_cdc_cdc_graycounter1_q_next_binary;
     basesoc_jtag_uart_phy_rx_cdc_cdc_graycounter1_q <= basesoc_jtag_uart_phy_rx_cdc_cdc_graycounter1_q_next;
-    if (to10376_rst) begin
+    if (to10374_rst) begin
         basesoc_jtag_uart_phy_rx_cdc_cdc_graycounter1_q <= 3'd0;
         basesoc_jtag_uart_phy_rx_cdc_cdc_graycounter1_q_binary <= 3'd0;
     end
@@ -10719,12 +10721,12 @@ cyclonev_jtag cyclonev_jtag(
 reg [9:0] storage_7[0:3];
 reg [9:0] storage_7_dat0;
 reg [9:0] storage_7_dat1;
-always @(posedge from10225_clk) begin
+always @(posedge from10223_clk) begin
 	if (basesoc_jtag_uart_phy_tx_cdc_cdc_wrport_we)
 		storage_7[basesoc_jtag_uart_phy_tx_cdc_cdc_wrport_adr] <= basesoc_jtag_uart_phy_tx_cdc_cdc_wrport_dat_w;
 	storage_7_dat0 <= storage_7[basesoc_jtag_uart_phy_tx_cdc_cdc_wrport_adr];
 end
-always @(posedge to10225_clk) begin
+always @(posedge to10223_clk) begin
 	storage_7_dat1 <= storage_7[basesoc_jtag_uart_phy_tx_cdc_cdc_rdport_adr];
 end
 assign basesoc_jtag_uart_phy_tx_cdc_cdc_wrport_dat_r = storage_7_dat0;
@@ -10739,12 +10741,12 @@ assign basesoc_jtag_uart_phy_tx_cdc_cdc_rdport_dat_r = storage_7_dat1;
 reg [9:0] storage_8[0:3];
 reg [9:0] storage_8_dat0;
 reg [9:0] storage_8_dat1;
-always @(posedge from10376_clk) begin
+always @(posedge from10374_clk) begin
 	if (basesoc_jtag_uart_phy_rx_cdc_cdc_wrport_we)
 		storage_8[basesoc_jtag_uart_phy_rx_cdc_cdc_wrport_adr] <= basesoc_jtag_uart_phy_rx_cdc_cdc_wrport_dat_w;
 	storage_8_dat0 <= storage_8[basesoc_jtag_uart_phy_rx_cdc_cdc_wrport_adr];
 end
-always @(posedge to10376_clk) begin
+always @(posedge to10374_clk) begin
 	storage_8_dat1 <= storage_8[basesoc_jtag_uart_phy_rx_cdc_cdc_rdport_adr];
 end
 assign basesoc_jtag_uart_phy_rx_cdc_cdc_wrport_dat_r = storage_8_dat0;
@@ -10905,119 +10907,119 @@ DFF ars_cd_jtag_ff1(
 );
 
 //------------------------------------------------------------------------------
-// Instance ars_cd_from10225_ff0 of DFF Module.
+// Instance ars_cd_from10223_ff0 of DFF Module.
 //------------------------------------------------------------------------------
-DFF ars_cd_from10225_ff0(
+DFF ars_cd_from10223_ff0(
 	// Inputs.
-	.clk  (from10225_clk),
+	.clk  (from10223_clk),
 	.clrn (1'd1),
 	.d    (1'd0),
 	.prn  ((~basesoc_jtag_uart_phy_tx_cdc_cd_rst)),
 
 	// Outputs.
-	.q    (ars_cd_from10225_rst_meta)
+	.q    (ars_cd_from10223_rst_meta)
 );
 
 //------------------------------------------------------------------------------
-// Instance ars_cd_from10225_ff1 of DFF Module.
+// Instance ars_cd_from10223_ff1 of DFF Module.
 //------------------------------------------------------------------------------
-DFF ars_cd_from10225_ff1(
+DFF ars_cd_from10223_ff1(
 	// Inputs.
-	.clk  (from10225_clk),
+	.clk  (from10223_clk),
 	.clrn (1'd1),
-	.d    (ars_cd_from10225_rst_meta),
+	.d    (ars_cd_from10223_rst_meta),
 	.prn  ((~basesoc_jtag_uart_phy_tx_cdc_cd_rst)),
 
 	// Outputs.
-	.q    (from10225_rst)
+	.q    (from10223_rst)
 );
 
 //------------------------------------------------------------------------------
-// Instance ars_cd_to10225_ff0 of DFF Module.
+// Instance ars_cd_to10223_ff0 of DFF Module.
 //------------------------------------------------------------------------------
-DFF ars_cd_to10225_ff0(
+DFF ars_cd_to10223_ff0(
 	// Inputs.
-	.clk  (to10225_clk),
+	.clk  (to10223_clk),
 	.clrn (1'd1),
 	.d    (1'd0),
 	.prn  ((~basesoc_jtag_uart_phy_tx_cdc_cd_rst)),
 
 	// Outputs.
-	.q    (ars_cd_to10225_rst_meta)
+	.q    (ars_cd_to10223_rst_meta)
 );
 
 //------------------------------------------------------------------------------
-// Instance ars_cd_to10225_ff1 of DFF Module.
+// Instance ars_cd_to10223_ff1 of DFF Module.
 //------------------------------------------------------------------------------
-DFF ars_cd_to10225_ff1(
+DFF ars_cd_to10223_ff1(
 	// Inputs.
-	.clk  (to10225_clk),
+	.clk  (to10223_clk),
 	.clrn (1'd1),
-	.d    (ars_cd_to10225_rst_meta),
+	.d    (ars_cd_to10223_rst_meta),
 	.prn  ((~basesoc_jtag_uart_phy_tx_cdc_cd_rst)),
 
 	// Outputs.
-	.q    (to10225_rst)
+	.q    (to10223_rst)
 );
 
 //------------------------------------------------------------------------------
-// Instance ars_cd_from10376_ff0 of DFF Module.
+// Instance ars_cd_from10374_ff0 of DFF Module.
 //------------------------------------------------------------------------------
-DFF ars_cd_from10376_ff0(
+DFF ars_cd_from10374_ff0(
 	// Inputs.
-	.clk  (from10376_clk),
+	.clk  (from10374_clk),
 	.clrn (1'd1),
 	.d    (1'd0),
 	.prn  ((~basesoc_jtag_uart_phy_rx_cdc_cd_rst)),
 
 	// Outputs.
-	.q    (ars_cd_from10376_rst_meta)
+	.q    (ars_cd_from10374_rst_meta)
 );
 
 //------------------------------------------------------------------------------
-// Instance ars_cd_from10376_ff1 of DFF Module.
+// Instance ars_cd_from10374_ff1 of DFF Module.
 //------------------------------------------------------------------------------
-DFF ars_cd_from10376_ff1(
+DFF ars_cd_from10374_ff1(
 	// Inputs.
-	.clk  (from10376_clk),
+	.clk  (from10374_clk),
 	.clrn (1'd1),
-	.d    (ars_cd_from10376_rst_meta),
+	.d    (ars_cd_from10374_rst_meta),
 	.prn  ((~basesoc_jtag_uart_phy_rx_cdc_cd_rst)),
 
 	// Outputs.
-	.q    (from10376_rst)
+	.q    (from10374_rst)
 );
 
 //------------------------------------------------------------------------------
-// Instance ars_cd_to10376_ff0 of DFF Module.
+// Instance ars_cd_to10374_ff0 of DFF Module.
 //------------------------------------------------------------------------------
-DFF ars_cd_to10376_ff0(
+DFF ars_cd_to10374_ff0(
 	// Inputs.
-	.clk  (to10376_clk),
+	.clk  (to10374_clk),
 	.clrn (1'd1),
 	.d    (1'd0),
 	.prn  ((~basesoc_jtag_uart_phy_rx_cdc_cd_rst)),
 
 	// Outputs.
-	.q    (ars_cd_to10376_rst_meta)
+	.q    (ars_cd_to10374_rst_meta)
 );
 
 //------------------------------------------------------------------------------
-// Instance ars_cd_to10376_ff1 of DFF Module.
+// Instance ars_cd_to10374_ff1 of DFF Module.
 //------------------------------------------------------------------------------
-DFF ars_cd_to10376_ff1(
+DFF ars_cd_to10374_ff1(
 	// Inputs.
-	.clk  (to10376_clk),
+	.clk  (to10374_clk),
 	.clrn (1'd1),
-	.d    (ars_cd_to10376_rst_meta),
+	.d    (ars_cd_to10374_rst_meta),
 	.prn  ((~basesoc_jtag_uart_phy_rx_cdc_cd_rst)),
 
 	// Outputs.
-	.q    (to10376_rst)
+	.q    (to10374_rst)
 );
 
 endmodule
 
 // -----------------------------------------------------------------------------
-//  Auto-Generated by LiteX on 2024-04-11 15:50:28.
+//  Auto-Generated by LiteX on 2024-04-11 22:43:01.
 //------------------------------------------------------------------------------

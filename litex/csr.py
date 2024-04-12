@@ -92,7 +92,7 @@ class APFBridge(LiteXModule):
             description="Reports the results of the recent file command. See https://www.analogue.co/developer/docs/host-target-commands for details on expected codes.",
         )
 
-        self.scaler_slot = CSRStatus(
+        self.scaler_slot = CSRStorage(
             3,
             description="The index in video.json of the current scaler mode. Set during VBLANK.",
         )
@@ -125,7 +125,7 @@ class APFBridge(LiteXModule):
             bridge_pins.length.eq(self.transfer_length.storage),
             bridge_pins.ram_data_address.eq(self.ram_data_address.storage),
             self.command_result_code.status.eq(bridge_pins.command_result_code),
-            self.scaler_slot.status.eq(bridge_pins.scaler_slot),
+            bridge_pins.scaler_slot.eq(self.scaler_slot.storage),
             self.file_size.w.eq(bridge_pins.file_size),
             bridge_pins.file_size_wr.eq(self.file_size.re),
             bridge_pins.new_file_size_data.eq(self.file_size.r),
