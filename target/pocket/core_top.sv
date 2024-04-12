@@ -790,7 +790,7 @@ module core_top (
   wire [31:0] apf_bridge_data_offset;
   wire [31:0] apf_bridge_length;
   wire [15:0] apf_bridge_slot_id;
-  wire [2:0] apf_bridge_scaler_slot;
+  reg [2:0] apf_bridge_scaler_slot;
 
   reg [2:0] apf_bridge_request_counter = 0;
   reg [1:0] apf_bridge_request_type = 0;
