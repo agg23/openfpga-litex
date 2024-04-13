@@ -1086,19 +1086,15 @@ module core_top (
   reg [23:0] rgb_delay = 0;
 
   reg de_delay = 0;
+  reg de_delay2 = 0;
   reg vs_delay = 0;
   reg hs_delay = 0;
 
-  reg prev_de = 0;
-  reg prev2_de = 0;
-
   always @(posedge clk_vid_5_712) begin
-    prev_de   <= de;
-    prev2_de  <= prev_de;
-
     rgb_delay <= rgb888;
 
-    de_delay  <= de;
+    de_delay  <= de; // period when rgb_delay is valid
+    de_delay2 <= de_delay;
     vs_delay  <= vsync;
     hs_delay  <= hsync;
   end
@@ -1107,10 +1103,10 @@ module core_top (
 
   assign video_rgb_clock = clk_vid_5_712;
   assign video_rgb_clock_90 = clk_vid_5_712_90deg;
-  assign video_rgb = de_delay ? rgb888 : 24'h0;
-  // Extend DE for one extra cycle at beginning and end to insert a black column
-  // I don't understand why I have DE high for 2 extra cycles on the back end
-  assign video_de = de || de_delay || prev_de || prev2_de;
+  assign video_rgb = de_delay ? rgb_delay : 24'h0;
+  // Extend DE for two cycles (one at beginning and one at end) to add black bars
+  // Could also || in de_delay in this expression but it's technically redundant
+  assign video_de = de || de_delay2;
   assign video_skip = 0;
   assign video_vs = vs_delay;
   assign video_hs = hs_delay;
