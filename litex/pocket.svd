@@ -3,7 +3,7 @@
 <device schemaVersion="1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd" >
     <vendor>litex</vendor>
     <name>SOC</name>
-    <description><![CDATA[Litex SoC 2023-12-02 16:49:17]]></description>
+    <description><![CDATA[Litex SoC 2024-04-16 15:58:51]]></description>
 
     <addressUnitBits>8</addressUnitBits>
     <width>32</width>
@@ -287,10 +287,26 @@ expected codes.]]></description>
                         </field>
                     </fields>
                 </register>
+                <register>
+                    <name>SCALER_SLOT</name>
+                    <description><![CDATA[The index in video.json of the current scaler mode. Set during VBLANK. The 4th
+bit, if set, disables borders.]]></description>
+                    <addressOffset>0x0030</addressOffset>
+                    <resetValue>0x00</resetValue>
+                    <size>32</size>
+                    <fields>
+                        <field>
+                            <name>scaler_slot</name>
+                            <msb>3</msb>
+                            <bitRange>[3:0]</bitRange>
+                            <lsb>0</lsb>
+                        </field>
+                    </fields>
+                </register>
             </registers>
             <addressBlock>
                 <offset>0</offset>
-                <size>0x30</size>
+                <size>0x34</size>
                 <usage>registers</usage>
             </addressBlock>
         </peripheral>

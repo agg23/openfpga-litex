@@ -41,6 +41,7 @@ For all of these operations, it is recommended to read through the [Host/Target 
 | `status`              | `0x24` | R   | 1     | Indicates when the bridge is currently transferring a file. 1 when transferring, 0 otherwise. Clears its value on read.                                                                                                                                      |
 | `current_address`     | `0x28` | R   | 32    | The current address the bridge is operating on. Can be used to show a progress bar/estimate time until completion.                                                                                                                                           |
 | `command_result_code` | `0x2C` | R   | 3     | Reports the results of the recent file command. See https://www.analogue.co/developer/docs/host-target-commands for details on expected codes.                                                                                                               |
+| `scaler_slot`         | `0x30` | RW  | 4     | The index in video.json of the current scaler mode. Set during VBLANK. The 4th bit, if set, disables borders.                                                                                                                                                |
 
 
 ### Reading
