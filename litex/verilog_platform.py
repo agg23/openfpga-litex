@@ -115,7 +115,7 @@ class Platform(AlteraPlatform):
                 Subsignal("current_address", Pins(32)),
                 Subsignal("complete_trigger", Pins(1)),
                 Subsignal("command_result_code", Pins(3)),
-                Subsignal("scaler_slot", Pins(3)),
+                Subsignal("scaler_slot", Pins(4)),
             ),
 
             ("apf_id", 0,

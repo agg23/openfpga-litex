@@ -93,8 +93,8 @@ class APFBridge(LiteXModule):
         )
 
         self.scaler_slot = CSRStorage(
-            3,
-            description="The index in video.json of the current scaler mode. Set during VBLANK.",
+            4,
+            description="The index in video.json of the current scaler mode. Set during VBLANK. The 4th bit, if set, disables borders.",
         )
 
         self.prev_complete_trigger = Signal()

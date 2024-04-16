@@ -790,7 +790,7 @@ module core_top (
   wire [31:0] apf_bridge_data_offset;
   wire [31:0] apf_bridge_length;
   wire [15:0] apf_bridge_slot_id;
-  reg [2:0] apf_bridge_scaler_slot;
+  reg [3:0] apf_bridge_scaler_slot;
 
   reg [2:0] apf_bridge_request_counter = 0;
   reg [1:0] apf_bridge_request_type = 0;
@@ -1087,6 +1087,7 @@ module core_top (
 
   reg [23:0] rgb_delay = 0;
 
+  wire rgb_live;
   reg de_delay = 0;
   reg de_delay2 = 0;
   reg vs_delay = 0;
@@ -1107,12 +1108,13 @@ module core_top (
 
   assign video_rgb_clock = clk_vid_5_712;
   assign video_rgb_clock_90 = clk_vid_5_712_90deg;
-  assign video_rgb = de_delay ? rgb_delay // Color
-                              : (de_delay_endline ? {8'h0, apf_bridge_scaler_slot, 13'h0} // End-of-line command
+  assign rgb_live = apf_bridge_scaler_slot[3] ? de : de_delay;
+  assign video_rgb = rgb_live ? (apf_bridge_scaler_slot[3] ? rgb888 : rgb_delay) // Color
+                              : (de_delay_endline ? {8'h0, apf_bridge_scaler_slot[3:0], 13'h0} // End-of-line command
                                                   : 24'h0); // Blank
   // Extend DE for two cycles (one at beginning and one at end) to add black bars
   // Could also || in de_delay in this expression but it's technically redundant
-  assign video_de = de || de_delay2;
+  assign video_de = de || (!apf_bridge_scaler_slot[3] && de_delay2);
   assign video_skip = 0;
   assign video_vs = vs_delay;
   assign video_hs = hs_delay;
